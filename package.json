@@ -1,0 +1,29 @@
+{
+  "name": "productmanager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "bcrypt": "^6.0.0",
+    "chrome-launcher": "^1.2.1",
+    "dotenv": "^17.4.2",
+    "ghost-cursor": "^1.4.2",
+    "googleapis": "^173.0.0",
+    "jsdom": "^24.1.0",
+    "node-fetch": "^2.7.0",
+    "puppeteer": "^24.39.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer-real-browser": "^1.4.4",
+    "rebrowser-patches": "^1.0.19",
+    "rebrowser-puppeteer-core": "^24.8.1",
+    "tree-kill": "^1.2.2",
+    "xvfb": "^0.4.0"
+  }
+}
