@@ -8,7 +8,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   });
 }
 
-async function getProductRows() {
+export default async function getProductRows() {
   const productSheet = await getProductSheet();
   const CHECK_INDEX = 3;
   const START_INDEX = 1;
@@ -51,5 +51,3 @@ async function getSheetValues(sheetsResource, spreadsheetId, range) {
 
   return getRows;
 }
-
-export { getProductRows };

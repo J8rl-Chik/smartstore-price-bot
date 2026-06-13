@@ -4,9 +4,9 @@ import { pathToFileURL } from "node:url";
 import generateAccessToken from "./generateAccessToken.js";
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  getSaleProducts().then(([saleProduct]) =>
+  getSaleProducts().then((saleProducts) =>
     console.log(
-      `getSaleProducts 함수 테스트: ${saleProduct.channelProducts[0].name}`,
+      `getSaleProducts 함수 테스트: ${saleProducts.length}개 판매 중`,
     ),
   );
 }
@@ -30,22 +30,9 @@ export default async function getSaleProducts() {
 
   const { contents } = await response.json();
 
-  const shuffleInPlace = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
+  return contents.filter((content) => {
+    const productCode = content.channelProducts[0].sellerManagementCode;
 
-  return shuffleInPlace(
-    contents.filter((content) => {
-      const productCode = content.channelProducts[0].sellerManagementCode;
-
-      if (productCode === undefined) return true;
-
-      return productCode.includes("신규") ? false : true;
-    }),
-  );
+    return !productCode?.includes("신규");
+  });
 }
