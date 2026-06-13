@@ -1,7 +1,12 @@
 import "dotenv/config";
+import { pathToFileURL } from "node:url";
 import { google } from "googleapis";
 
-getProductRows().then(console.log);
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  getProductRows().then(() => {
+    console.log("getProductRows 함수 테스트");
+  });
+}
 
 async function getProductRows() {
   const productSheet = await getProductSheet();
