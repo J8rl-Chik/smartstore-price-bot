@@ -8,6 +8,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 export default async function createBrowser() {
   const browser = await puppeteer.launch({
     headless: false,
+    executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
   });
   const page = await browser.newPage();
 
