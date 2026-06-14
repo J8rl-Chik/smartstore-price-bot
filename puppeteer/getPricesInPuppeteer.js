@@ -1,11 +1,11 @@
 import { pathToFileURL } from "node:url";
 
-import createBrowser from "./createBrowser.js";
+import createPage from "./createPage.js";
 import delaySeconds from "../util/delaySeconds.js";
 import { naverLogin } from "./naverLogin.js";
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  createBrowser().then(async ({ page }) => {
+  createPage().then(async (page) => {
     await naverLogin(page);
     await delaySeconds(1);
 
@@ -14,12 +14,19 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     const productName = "휩드 머그트리 비건 팩 클렌저 130ml 1개";
 
     await getPricesInPuppeteer(page, productUrl, productName).then(console.log);
+
+    await page.close();
   });
 }
 
-export default async function getPricesInPuppeteer(page, url, productName) {
-  let encodeName = encodeURIComponent(productName).replaceAll("(", "%28");
-  encodeName = encodeName.replaceAll(")", "%29");
+export default async function getPricesInPuppeteer(
+  page,
+  catalogUrl,
+  productName,
+) {
+  const encodeName = encodeURIComponent(productName)
+    .replaceAll("(", "%28")
+    .replaceAll(")", "%29");
 
   const referer = `https://search.shopping.naver.com/search/all?query=${encodeName}&vertical=search`;
 
@@ -31,7 +38,7 @@ export default async function getPricesInPuppeteer(page, url, productName) {
 
   await delaySeconds(1);
 
-  await page.goto(url, {
+  await page.goto(catalogUrl, {
     referer,
   });
 
