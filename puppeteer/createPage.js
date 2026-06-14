@@ -2,19 +2,19 @@ import puppeteer from "puppeteer";
 import { pathToFileURL } from "node:url";
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  createBrowser();
+  createPage();
 }
 
-export default async function createBrowser() {
+export default async function createPage() {
   const browser = await puppeteer.launch({
     headless: false,
     executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
   });
-  const page = await browser.newPage();
+  const [page] = await browser.pages();
 
   await page.evaluateOnNewDocument(() => {
     Object.defineProperty(navigator, "webdriver", { get: () => false });
   });
 
-  return { browser, page };
+  return page;
 }
