@@ -10,7 +10,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     await delaySeconds(1);
 
     const productUrl =
-      "https://search.shopping.naver.com/catalog/51929585719?query=%ED%9C%A9%EB%93%9C&NaPm=ct%3Dmqdy6ff4%7Cci%3Da242da32bacc1f085a62dd901ee984ed2ba0e29d%7Ctr%3Dslsl%7Csn%3D95694%7Chk%3Df31dd97911f3b3736f4ad58ff2d1026121c8e95a";
+      "https://search.shopping.naver.com/catalog/51929585719?query=%ED%9C%A9%EB%93%9C&NaPm=ct%3Dmqf6u9d4%7Cci%3Dd44532879fd554626041d24918bed3162d1d6e49%7Ctr%3Dslsl%7Csn%3D95694%7Chk%3D7733850d7257e887c444476727fa12e57b958142";
     const productName = "휩드 머그트리 비건 팩 클렌저 130ml 1개";
 
     await getPricesInPuppeteer(page, productUrl, productName).then(console.log);
@@ -43,32 +43,72 @@ export default async function getPricesInPuppeteer(
   });
 
   const sellerPrices = await page.evaluate(async () => {
-    const getSeller = (productSellerRow) => {
+    const PRODUCT_SELLER_ROWS_SELECTOR =
+      '[class^="product_seller_info_wrap__"]';
+    const sellerPrices = Array.from(
+      document.querySelectorAll(PRODUCT_SELLER_ROWS_SELECTOR),
+    ).flatMap((productSellerRow) => {
+      const seller = getSeller(productSellerRow);
+      const price = getPrice(productSellerRow);
+      const deliveryFee = getDeliveryFee(productSellerRow);
+      const discountPrice = getDiscountPrice(productSellerRow);
+
+      const sellerPrice = { seller, price, deliveryFee };
+
+      if (discountPrice !== null) {
+        sellerPrice = {
+          ...sellerPrice,
+          discountPrice,
+        };
+      }
+
+      return sellerPrice;
+    });
+
+    return sellerPrices;
+
+    function getSeller(productSellerRow) {
       const SELLER_SELECTOR = 'span[class^="product_name__"]';
       const { textContent: seller } =
         productSellerRow.querySelector(SELLER_SELECTOR);
 
       return seller;
-    };
+    }
 
-    const getPrice = (productSellerRow) => {
+    function getPrice(productSellerRow) {
       const PRICE_SELECTOR = 'strong[class^="product_num__"]';
       const { textContent: price } =
         productSellerRow.querySelector(PRICE_SELECTOR);
 
       return Number(price.replaceAll(",", ""));
-    };
+    }
 
-    const productSellerRows = Array.from(
-      document.querySelectorAll('[class^="product_seller_info_wrap__"]'),
-    );
+    function getDiscountPrice(productSellerRow) {
+      const DISCOUNT_PRICE_SELECTOR =
+        'span[class^="discountPrice_discount_price__"] b';
+      const discountPrice = productSellerRow.querySelector(
+        DISCOUNT_PRICE_SELECTOR,
+      );
 
-    const sellerPrices = productSellerRows.map((productSellerRow) => ({
-      seller: getSeller(productSellerRow),
-      price: getPrice(productSellerRow),
-    }));
+      if (!discountPrice) return null;
 
-    return sellerPrices;
+      return Number(discountPrice.textContent.replaceAll(",", ""));
+    }
+
+    function getDeliveryFee(productSellerRow) {
+      const DELIVERY_FEE_SELECTOR = 'div[class^="DeliveryFee"]';
+      const deliveryFeeElement = productSellerRow.querySelector(
+        DELIVERY_FEE_SELECTOR,
+      );
+
+      const { textContent } = deliveryFeeElement;
+
+      if (textContent.includes("무료")) return 0;
+
+      const [fee] = textContent.match(/[\d,]+/);
+
+      return Number(fee.replaceAll(",", ""));
+    }
   });
 
   return sellerPrices;
