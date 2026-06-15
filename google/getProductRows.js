@@ -23,7 +23,7 @@ export default async function getProductRows() {
 
   return productSheet.data.values
     .map((row) => Array.from({ length: COLUMN_COUNT }, (_, i) => row[i] ?? ""))
-    .filter((productItems) => productItems[ACTIVATE_INDEX] === "TRUE");
+    .filter((productColumns) => productColumns[ACTIVATE_INDEX] === "TRUE");
 }
 
 async function getSheetsResource() {
