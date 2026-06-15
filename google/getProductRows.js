@@ -19,7 +19,7 @@ export default async function getProductRows() {
     `${SHEET_NAME}!A2:L`, // 1번 행은 타이틀 행, 현재 L 칼럼까지만 사용 중
   );
 
-  const ACTIVATE_INDEX = 1;
+  const ACTIVATE_INDEX = 2;
 
   return productSheet.data.values
     .map((row) => Array.from({ length: COLUMN_COUNT }, (_, i) => row[i] ?? ""))
