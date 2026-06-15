@@ -30,13 +30,9 @@ export default async function getPricesInPuppeteer(
 
   const referer = `https://search.shopping.naver.com/search/all?query=${encodeName}&vertical=search`;
 
-  await delaySeconds(1);
-
   await page.goto(referer, {
     referer: "https://search.shopping.naver.com/home",
   });
-
-  await delaySeconds(1);
 
   await page.goto(catalogUrl, {
     referer,
@@ -51,9 +47,9 @@ export default async function getPricesInPuppeteer(
       const seller = getSeller(productSellerRow);
       const price = getPrice(productSellerRow);
       const deliveryFee = getDeliveryFee(productSellerRow);
+      const deliveryFeeType = getDeliveryFeeType(productSellerRow);
       const discountPrice = getDiscountPrice(productSellerRow);
-
-      const sellerPrice = { seller, price, deliveryFee };
+      let sellerPrice = { seller, price, deliveryFee, deliveryFeeType };
 
       if (discountPrice !== null) {
         sellerPrice = {
@@ -108,6 +104,19 @@ export default async function getPricesInPuppeteer(
       const [fee] = textContent.match(/[\d,]+/);
 
       return Number(fee.replaceAll(",", ""));
+    }
+
+    function getDeliveryFeeType(productSellerRow) {
+      const DELIVERY_FEE_TYPE_SELECTOR = 'div[class^="DeliveryFee"]';
+      const deliveryFeeTypeElement = productSellerRow.querySelector(
+        DELIVERY_FEE_TYPE_SELECTOR,
+      );
+
+      const { textContent } = deliveryFeeTypeElement;
+
+      if (textContent.includes("무료")) return "무료";
+
+      return "유료";
     }
   });
 
