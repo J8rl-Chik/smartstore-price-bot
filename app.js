@@ -14,13 +14,13 @@ import delayMinutes from "./util/delayMinutes.js";
 async function start() {
   console.time("실행 시간");
 
-  const saleProducts = (await getSaleProducts()).slice(0, 3);
+  const saleProducts = await getSaleProducts();
   const productRows = await getProductRows();
   const page = await createPage();
   const myStoreName = process.env.SMART_STORE_NAME;
   const COLUMN_INDEX = {
-    CATALOG_URL: 0,
-    NAME: 2,
+    NAME: 0,
+    CATALOG_URL: 1,
     VIRTUAL_PRICE: 10,
     EXCLUDED_SELLERS: 11,
   };
