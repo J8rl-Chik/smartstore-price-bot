@@ -2,7 +2,7 @@ import { pathToFileURL } from "node:url";
 
 import createPage from "./createPage.js";
 import delaySeconds from "../util/delaySeconds.js";
-import { naverLogin } from "./naverLogin.js";
+import naverLogin from "./naverLogin.js";
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   createPage().then(async (page) => {

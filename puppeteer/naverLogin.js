@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-export async function naverLogin(page) {
+export default async function naverLogin(page) {
   const ID_SELECTOR = "#id";
   const PASSWORD_SELECTOR = "#pw";
   const LOGIN_BUTTON_SELECTOR = ".btn_login";

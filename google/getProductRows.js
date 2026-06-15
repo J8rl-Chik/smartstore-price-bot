@@ -3,8 +3,8 @@ import { pathToFileURL } from "node:url";
 import { google } from "googleapis";
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  getProductRows().then(() => {
-    console.log("getProductRows 함수 테스트");
+  getProductRows().then(([productRow]) => {
+    console.log(`getProductRows 함수 테스트: ${productRow}`);
   });
 }
 
@@ -13,9 +13,9 @@ export default async function getProductRows() {
   const CHECK_INDEX = 3;
   const START_INDEX = 1;
 
-  return productSheet
-    .slice(START_INDEX) // 0번 행은 타이틀 행
-    .filter((productItems) => productItems[CHECK_INDEX] === "TRUE");
+  return productSheet.filter(
+    (productItems) => productItems[CHECK_INDEX] === "TRUE",
+  );
 }
 
 async function getProductSheet() {
@@ -25,7 +25,7 @@ async function getProductSheet() {
   const productSheet = await getSheetValues(
     sheetsResource,
     SHEET_ID,
-    SHEET_NAME,
+    `${SHEET_NAME}!A2:M`, // 1번 행은 타이틀 행, 현재 M 칼럼까지만 사용 중
   );
 
   return productSheet.data.values;
