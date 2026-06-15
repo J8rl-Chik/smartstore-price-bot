@@ -10,34 +10,36 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 
   updatePrice({
     productNo: 12646660788, // 클린 웜 코튼 오 드 퍼퓸 60ml
-    salePrice: 200000,
-    deliveryFeeType: "수량별",
-    baseFee: 3000,
-    repeatQuantity: 10,
+    targetPrice: 200500,
+    delivery: {
+      feeType: "수량별",
+      baseFee: 3000,
+      repeatQuantity: 20,
+    },
   });
 }
 
 export default async function updatePrice({
   productNo,
-  salePrice,
-  deliveryFeeType,
-  baseFee,
-  repeatQuantity,
+  targetPrice,
+  delivery,
 }) {
   const deliveryFee = {};
+  let salePrice = targetPrice;
 
-  // deliveryFeeType이 비어있으면 API가 FREE(무료)로 처리
-  if (deliveryFeeType === "무료") {
+  if (delivery.feeType === "무료") {
     deliveryFee.deliveryFeeType = "FREE";
-  } else if (deliveryFeeType === "유료") {
+  } else if (delivery.feeType === "유료") {
     deliveryFee.deliveryFeeType = "PAID";
-    deliveryFee.baseFee = baseFee;
     deliveryFee.deliveryFeePayType = "PREPAID";
-  } else if (deliveryFeeType === "수량별") {
+    deliveryFee.baseFee = delivery.baseFee;
+    salePrice = targetPrice - delivery.baseFee;
+  } else if (delivery.feeType === "수량별") {
+    deliveryFee.deliveryFeePayType = "PREPAID";
     deliveryFee.deliveryFeeType = "UNIT_QUANTITY_PAID";
-    deliveryFee.baseFee = baseFee;
-    deliveryFee.repeatQuantity = repeatQuantity;
-    deliveryFee.deliveryFeePayType = "PREPAID";
+    deliveryFee.repeatQuantity = delivery.repeatQuantity;
+    deliveryFee.baseFee = delivery.baseFee;
+    salePrice = targetPrice - delivery.baseFee;
   }
 
   const PRODUCT_URL =
@@ -66,9 +68,9 @@ export default async function updatePrice({
           deliveryFee,
         },
         salePrice,
-        smartstoreChannelProduct,
-        windowChannelProduct,
       },
+      smartstoreChannelProduct,
+      windowChannelProduct,
     }),
   });
 
