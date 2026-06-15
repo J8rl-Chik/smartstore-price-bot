@@ -35,8 +35,6 @@ async function start() {
       (productRow) => productRow[COLUMN_INDEX.NAME] === productName,
     );
 
-    console.log(productRow);
-
     if (!productRow) {
       continue;
     }
@@ -55,6 +53,7 @@ async function start() {
       continue;
     }
 
+    const myStore = sellerPrices.find(({ seller }) => seller === myStoreName);
     const targetSellerPrices = sellerPrices.filter(({ seller }) => {
       const excludedSellers = [
         myStoreName,
@@ -100,11 +99,17 @@ async function start() {
     const minPrice = prices.find((price) => price >= freeDeliveryPrice + 10);
     const targetPrice = minPrice ? minPrice - 10 : freeDeliveryPrice;
 
-    await updatePrice({
-      productNo: saleProduct.channelProducts[0].originProductNo,
-      targetPrice,
-      delivery,
-    });
+    if (targetPrice !== myStore.price || feeType !== myStore.deliveryFeeType) {
+      const response = await updatePrice({
+        productNo: saleProduct.channelProducts[0].originProductNo,
+        targetPrice,
+        delivery,
+      });
+
+      if (Object.hasOwn(response, "message")) {
+        console.error(`${productName}: ${response.message}`);
+      }
+    }
   }
 
   await page.close();
