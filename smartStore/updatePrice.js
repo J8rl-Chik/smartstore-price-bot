@@ -57,6 +57,11 @@ export default async function updatePrice({
   const { originProduct, smartstoreChannelProduct, windowChannelProduct } =
     await response.json();
 
+  // HTML로 강제 수정돼서 제거
+  delete originProduct.detailContent;
+  // 재고 오차 발생 가능성으로 제거
+  delete originProduct.stockQuantity;
+
   const updateResponse = await fetch(`${PRODUCT_URL}/${productNo}`, {
     headers,
     method: "PUT",
