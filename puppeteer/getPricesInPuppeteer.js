@@ -25,7 +25,7 @@ export default async function getPricesInPuppeteer(
   productName,
 ) {
   const encodeName = encodeURIComponent(productName)
-    .replaceAll("(", "%28")
+    .replaceAll("(", "%28") // 제품명에 괄호가 포함된 경우 요청 에러
     .replaceAll(")", "%29");
 
   const referer = `https://search.shopping.naver.com/search/all?query=${encodeName}&vertical=search`;
@@ -52,13 +52,10 @@ export default async function getPricesInPuppeteer(
       let sellerPrice = { seller, price, deliveryFee, deliveryFeeType };
 
       if (discountPrice !== null) {
-        sellerPrice = {
-          ...sellerPrice,
-          discountPrice,
-        };
+        return [sellerPrice, { ...sellerPrice, price: discountPrice }];
       }
 
-      return sellerPrice;
+      return [sellerPrice];
     });
 
     return sellerPrices;
