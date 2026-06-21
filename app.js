@@ -99,6 +99,20 @@ async function start() {
     const minPrice = prices.find((price) => price >= freeDeliveryPrice + 10);
     const targetPrice = minPrice ? minPrice - 10 : freeDeliveryPrice;
 
+    if (!myStore) {
+      const response = await updatePrice({
+        productNo: saleProduct.channelProducts[0].originProductNo,
+        targetPrice,
+        delivery,
+      });
+
+      if (Object.hasOwn(response, "message")) {
+        console.error(`${productName}: ${response.message}`);
+      }
+
+      continue;
+    }
+
     if (targetPrice !== myStore.price || feeType !== myStore.deliveryFeeType) {
       const response = await updatePrice({
         productNo: saleProduct.channelProducts[0].originProductNo,
