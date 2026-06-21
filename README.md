@@ -5,85 +5,29 @@
 
 ## 실행 흐름
 
-```mermaid
-flowchart TD
-    A([start]) --> B[getSaleProducts\n네이버 커머스 API\n판매 중인 상품 목록 조회]
-    A --> C[getProductRows\n구글 시트\n활성화된 제품 행 조회]
-    A --> D[createPage\nPuppeteer\nChrome 브라우저 실행]
-    B & C & D --> E[naverLogin\n네이버 계정 로그인]
+### 1. 초기화
 
-    E --> F{상품별 루프\nfor each saleProduct}
+- `getSaleProducts` — 네이버 커머스 API에서 판매 중인 상품 목록 조회
+- `getProductRows` — 구글 시트에서 최저가 자동 수정 활성화된 제품 행 조회
+- `createPage` — Puppeteer로 Chrome 브라우저 실행(페이지 생성)
+- `naverLogin` — 네이버 계정 로그인
 
-    F --> G{구글 시트에서\n매칭 제품 탐색}
-    G -- 없음 --> F
-    G -- 있음 --> H[getPricesInPuppeteer\n네이버 쇼핑 카탈로그 크롤링\n판매처별 가격 수집]
+### 2. 상품별 가격 업데이트 루프
 
-    H --> I{가격 목록\n비어있음?}
-    I -- Yes --> F
-    I -- No --> J[가격 계산\n제외 판매처 필터링\n가상 판매처 추가\n오름차순 정렬]
+판매 중인 상품을 하나씩 순회하며 아래 순서로 처리합니다.
 
-    J --> K[targetPrice 결정\nfreeDeliveryPrice + 10 이상인\n최저가 - 10원]
+1. **매칭 확인** — 구글 시트에서 같은 이름의 제품 행을 찾고, 없으면 다음 제품으로 이동
+2. **가격 수집** — `getPricesInPuppeteer`로 네이버 쇼핑 카탈로그 페이지에서 판매처별 가격 수집
+   - 가격 목록이 비어있으면 다음 제품으로 이동
+3. **가격 계산**
+   - 나의 스토어와 제품 행에 입력한 제외 판매처들을 필터링
+   - 가상 판매처 가격이 있으면 추가
+   - 오름차순 정렬
+4. **목표가 결정** — 현재 최저가(1등)가 `freeDeliveryPrice(최소 무료배송가)` + 10원 이상이면 최저가에서 10원을 뺀 값, 없으면 2등부터 차례대로 다시 비교 후 목표가 설정. 끝까지 비교해도 목표가를 설정할 수 없으면 `freeDeliveryPrice`로 목표가 설정.
+5. **가격 업데이트 판단**
+   - 카탈로그에 내 스토어가 없거나, 목표가 또는 배송비 타입이 변경된 경우 → `updatePrice` 호출
+   - 변경 없으면 다음 제품으로 이동
 
-    K --> L{내 스토어가\n카탈로그에 없음?}
-    L -- Yes --> M[updatePrice\n스마트스토어 API\n가격 업데이트]
-    M --> F
+### 3. 반복
 
-    L -- No --> N{targetPrice 변경\nor 배송비 타입 변경?}
-    N -- No --> F
-    N -- Yes --> O[updatePrice\n스마트스토어 API\n가격 업데이트]
-    O --> F
-
-    F -- 루프 종료 --> P[page.close\n브라우저 종료]
-    P --> Q[delayMinutes 5\n5분 대기]
-    Q --> A
-```
-
-## 사용 기술
-
-| 역할 | 기술 |
-|---|---|
-| 제품 카탈로그 관리 | Google Sheets API |
-| 가격 크롤링 | Puppeteer |
-| 가격 업데이트 | 네이버 커머스 API |
-| 환경변수 관리 | dotenv |
-
-## 환경변수 설정
-
-프로젝트 루트에 `.env` 파일을 생성하세요.
-
-```env
-# 구글 시트
-SHEET_ID=
-SHEET_NAME=
-
-# 네이버 커머스 API
-CLIENT_ID=
-CLIENT_SECRET=
-
-# 네이버 로그인
-NAVER_ID=
-NAVER_PASSWORD=
-
-# 스마트 스토어 이름
-SMART_STORE_NAME=
-```
-
-## 구글 시트 컬럼 구조
-
-| 컬럼 | 인덱스 | 설명 |
-|---|---|---|
-| A | 0 | 제품명 |
-| B | 1 | 카탈로그 URL |
-| C | 2 | 활성화 여부 (TRUE / FALSE) |
-| G | 6 | 배송비 타입 (무료 / 유료 / 수량별) |
-| H | 7 | 무료배송 기준 금액 |
-| I | 8 | 최저 판매가 |
-| J | 9 | 기본 배송비 |
-| K | 10 | 가상 판매처 가격 |
-| L | 11 | 제외 판매처 (쉼표 구분) |
-
-## 실행
-
-```bash
-node app.js
-```
+브라우저를 닫고 5분 대기 후 처음부터 다시 실행합니다.
