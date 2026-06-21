@@ -2,6 +2,9 @@ import "dotenv/config";
 import { pathToFileURL } from "node:url";
 import { google } from "googleapis";
 
+import { COLUMN_COUNT, COLUMN, RANGE } from "./constant.js";
+import testInTerminal from "../util/testInTerminal.js";
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   getProductRows().then((productRows) => {
     console.log(`getProductRows 함수 테스트: ${productRows.length}개`);
@@ -9,21 +12,22 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 }
 
 export default async function getProductRows() {
-  const SHEET_ID = process.env.SHEET_ID;
-  const SHEET_NAME = process.env.SHEET_NAME;
-  const COLUMN_COUNT = 12; // A~L
+  const { SHEET_ID, SHEET_NAME } = process.env;
   const sheetsResource = await getSheetsResource();
-  const productSheet = await getSheetValues(
+  const { data } = await getSheetValues(
     sheetsResource,
     SHEET_ID,
-    `${SHEET_NAME}!A2:L`, // 1번 행은 타이틀 행, 현재 L 칼럼까지만 사용 중
+    `${SHEET_NAME}${RANGE}`,
   );
 
-  const ACTIVATE_INDEX = 2;
-
-  return productSheet.data.values
-    .map((row) => Array.from({ length: COLUMN_COUNT }, (_, i) => row[i] ?? ""))
-    .filter((productColumns) => productColumns[ACTIVATE_INDEX] === "TRUE");
+  return data.values
+    .map((row) =>
+      Array.from(
+        { length: COLUMN_COUNT },
+        (_, columnIndex) => row[columnIndex] ?? "",
+      ),
+    )
+    .filter((productColumns) => productColumns[COLUMN.ACTIVATE] === "TRUE");
 }
 
 async function getSheetsResource() {
@@ -33,9 +37,12 @@ async function getSheetsResource() {
   });
 
   const authClient = await auth.getClient();
-  const { spreadsheets } = google.sheets({ version: "v4", auth: authClient });
+  const { spreadsheets: sheetsResource } = google.sheets({
+    version: "v4",
+    auth: authClient,
+  });
 
-  return spreadsheets;
+  return sheetsResource;
 }
 
 async function getSheetValues(sheetsResource, spreadsheetId, range) {
