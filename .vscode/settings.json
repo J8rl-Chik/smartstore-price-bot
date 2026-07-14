@@ -1,1 +1,11 @@
-{}
+{
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "해당 하는 타입을 사용할 것. feat: 새로운 기능 추가fix: 버그 수정docs: 문서 수정 (README, 주석 등)style: 코드 포맷 변경, 세미콜론 누락 등 (코드의 동작에 영향을 주지 않음)refactor: 코드 리팩토링 (기능 추가나 버그 수정이 없는 코드 개선)test: 테스트 코드 추가 및 수정chore: 빌드 업무 수정, 패키지 매니저 설정, 패키지 설정 변경 등 (프로덕션 코드에 직접 영향을 주지 않는 기타 변경)"
+    },
+    { "text": "한국어로 작성할 것" },
+    { "text": "body도 작성할 것" },
+    { "text": "body 작성시 리스트 마크다운 사용할 것" },
+    { "text": "주의가 필요하면 footer도 작성할 것" }
+  ]
+}
