@@ -1,11 +1,12 @@
-import "dotenv/config";
-import bcrypt from "bcrypt";
-import fetch from "node-fetch";
-import { pathToFileURL } from "node:url";
+import 'dotenv/config';
+import bcrypt from 'bcrypt';
+import fetch from 'node-fetch';
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+import isManualTestRun from '../util/isManualTestRun.js';
+
+if (isManualTestRun(import.meta.url)) {
   generateAccessToken().then(() => {
-    console.log("generateAccessToken 함수 테스트");
+    console.log('generateAccessToken 함수 테스트');
   });
 }
 
@@ -14,23 +15,21 @@ export default async function generateAccessToken() {
   const timestamp = Date.now();
   const password = `${CLIENT_ID}_${timestamp}`;
   const hashedPassword = bcrypt.hashSync(password, CLIENT_SECRET);
-  const clientSecretSign = Buffer.from(hashedPassword, "utf-8").toString(
-    "base64",
-  );
+  const clientSecretSign = Buffer.from(hashedPassword, 'utf-8').toString('base64');
 
-  const TOKEN_URL = "https://api.commerce.naver.com/external/v1/oauth2/token";
+  const TOKEN_URL = 'https://api.commerce.naver.com/external/v1/oauth2/token';
   const query = new URLSearchParams({
     client_id: CLIENT_ID,
     timestamp,
-    grant_type: "client_credentials",
+    grant_type: 'client_credentials',
     client_secret_sign: clientSecretSign,
-    type: "SELF",
+    type: 'SELF',
   });
 
   const response = await fetch(`${TOKEN_URL}?${query}`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
   });
   const { access_token } = await response.json();

@@ -1,7 +1,8 @@
-import puppeteer from "puppeteer";
-import { pathToFileURL } from "node:url";
+import puppeteer from 'puppeteer';
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+import isManualTestRun from '../util/isManualTestRun.js';
+
+if (isManualTestRun(import.meta.url)) {
   createPage();
 }
 
@@ -13,7 +14,7 @@ export default async function createPage() {
   const [page] = await browser.pages();
 
   await page.evaluateOnNewDocument(() => {
-    Object.defineProperty(navigator, "webdriver", { get: () => false });
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
   });
 
   return page;
