@@ -1,61 +1,38 @@
-import { pathToFileURL } from "node:url";
-import fetch from "node-fetch";
+import fetch from 'node-fetch';
 
-import generateAccessToken from "./generateAccessToken.js";
+import generateAccessToken from './generateAccessToken.js';
+import { buildDeliveryFeePayload } from '../core/delivery.js';
+import isManualTestRun from '../util/isManualTestRun.js';
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  console.log(
-    "updatePrice 함수 테스트: 클린 웜 코튼 오 드 퍼퓸 60ml 20만원으로 수정",
-  );
+if (isManualTestRun(import.meta.url)) {
+  console.log('updatePrice 함수 테스트: 클린 웜 코튼 오 드 퍼퓸 60ml 20만원으로 수정');
 
   updatePrice({
     productNo: 12646660788, // 클린 웜 코튼 오 드 퍼퓸 60ml
     targetPrice: 200500,
     delivery: {
-      feeType: "수량별",
+      feeType: '수량별',
       baseFee: 3000,
       repeatQuantity: 20,
     },
   });
 }
 
-export default async function updatePrice({
-  productNo,
-  targetPrice,
-  delivery,
-}) {
-  const deliveryFee = {};
-  let salePrice = targetPrice;
+export default async function updatePrice({ productNo, targetPrice, delivery }) {
+  const { deliveryFee, salePrice } = buildDeliveryFeePayload(delivery, targetPrice);
 
-  if (delivery.feeType === "무료") {
-    deliveryFee.deliveryFeeType = "FREE";
-  } else if (delivery.feeType === "유료") {
-    deliveryFee.deliveryFeeType = "PAID";
-    deliveryFee.deliveryFeePayType = "PREPAID";
-    deliveryFee.baseFee = delivery.baseFee;
-    salePrice = targetPrice - delivery.baseFee;
-  } else if (delivery.feeType === "수량별") {
-    deliveryFee.deliveryFeePayType = "PREPAID";
-    deliveryFee.deliveryFeeType = "UNIT_QUANTITY_PAID";
-    deliveryFee.repeatQuantity = delivery.repeatQuantity;
-    deliveryFee.baseFee = delivery.baseFee;
-    salePrice = targetPrice - delivery.baseFee;
-  }
-
-  const PRODUCT_URL =
-    "https://api.commerce.naver.com/external/v2/products/origin-products";
+  const PRODUCT_URL = 'https://api.commerce.naver.com/external/v2/products/origin-products';
   const accessToken = await generateAccessToken();
   const headers = {
     Authorization: accessToken,
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   };
 
   const response = await fetch(`${PRODUCT_URL}/${productNo}`, {
     headers,
-    method: "GET",
+    method: 'GET',
   });
-  const { originProduct, smartstoreChannelProduct, windowChannelProduct } =
-    await response.json();
+  const { originProduct, smartstoreChannelProduct, windowChannelProduct } = await response.json();
 
   // HTML로 강제 수정돼서 제거
   delete originProduct.detailContent;
@@ -64,7 +41,7 @@ export default async function updatePrice({
 
   const updateResponse = await fetch(`${PRODUCT_URL}/${productNo}`, {
     headers,
-    method: "PUT",
+    method: 'PUT',
     body: JSON.stringify({
       originProduct: {
         ...originProduct,
