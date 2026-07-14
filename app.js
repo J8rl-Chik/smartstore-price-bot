@@ -33,7 +33,8 @@ const start = async () => {
       continue;
     }
 
-    console.log(`${++productCount}번째: ${productName}`);
+    productCount += 1;
+    console.log(`${productCount}번째: ${productName}`);
 
     const priceRule = parseProductRow(matchedRow);
     const sellers = await getSellersInPuppeteer(page, priceRule.catalogUrl, productName);
