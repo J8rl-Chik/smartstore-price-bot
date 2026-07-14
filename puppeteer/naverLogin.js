@@ -1,20 +1,20 @@
-import "dotenv/config";
+import 'dotenv/config';
 
 export default async function naverLogin(page) {
-  const ID_SELECTOR = "#id";
-  const PASSWORD_SELECTOR = "#pw";
-  const LOGIN_BUTTON_SELECTOR = ".btn_login";
-  const TYPE_DELAY = 100;
+  const idSelector = '#id';
+  const passwordSelector = '#pw';
+  const loginButtonSelector = '.btn_login';
+  const typeDelay = 100;
 
-  await page.goto("https://nid.naver.com/");
+  await page.goto('https://nid.naver.com/');
 
-  await page.click(ID_SELECTOR);
-  await page.type(ID_SELECTOR, process.env.NAVER_ID, { delay: TYPE_DELAY });
+  await page.click(idSelector);
+  await page.type(idSelector, process.env.NAVER_ID, { delay: typeDelay });
 
-  await page.click(PASSWORD_SELECTOR);
-  await page.type(PASSWORD_SELECTOR, process.env.NAVER_PASSWORD, {
-    delay: TYPE_DELAY,
+  await page.click(passwordSelector);
+  await page.type(passwordSelector, process.env.NAVER_PASSWORD, {
+    delay: typeDelay,
   });
 
-  await page.click(LOGIN_BUTTON_SELECTOR);
+  await page.click(loginButtonSelector);
 }
