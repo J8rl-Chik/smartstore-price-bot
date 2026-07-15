@@ -1,15 +1,19 @@
-// TODO: freeDeliveryPrice가 파싱 실패로 NaN이 되면 targetPrice도 NaN이 되는 잠재 버그가 있음.
-// 현재는 기존 동작을 그대로 보존(캐릭터라이제이션)하고, 수정 여부는 별도 논의 후 결정.
+/**
+ * prices가 오름차순 정렬되어 있어야 find()가 최저가를 반환하므로, 호출부가 정렬 여부를
+ * 신경 쓰지 않도록 여기서 직접 정렬한다.
+ */
 export const calculateTargetPrice = (prices, freeDeliveryPrice) => {
-  const minPrice = prices.find((price) => price >= freeDeliveryPrice + 10);
+  const sortedPrices = [...prices].sort((price1, price2) => price1 - price2);
+  // freeDeliveryPrice + 10원 이상인 가격 중 최저가(이 가격보다 10원 낮게 판매가를 설정하기 위함)
+  const minPrice = sortedPrices.find((price) => price >= freeDeliveryPrice + 10);
 
   return minPrice ? minPrice - 10 : freeDeliveryPrice;
 };
 
-export const isUpdateRequired = (myStore, targetPrice, feeType) => {
-  if (!myStore) {
+export const isUpdateRequired = (currentMyStore, targetPrice, feeType) => {
+  if (!currentMyStore) {
     return true;
   }
 
-  return targetPrice !== myStore.price || feeType !== myStore.deliveryFeeType;
+  return targetPrice !== currentMyStore.price || feeType !== currentMyStore.deliveryFeeType;
 };
