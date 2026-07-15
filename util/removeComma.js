@@ -1,3 +1,3 @@
 export default function removeComma(string) {
-  return string.replaceAll(",", "");
+  return string.replaceAll(',', '');
 }
