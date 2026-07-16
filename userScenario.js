@@ -9,8 +9,9 @@ import delaySeconds from './util/delaySeconds.js';
 import updatePrice from './smartStore/updatePrice.js';
 import { findProductRow, parseProductRow } from './core/productRow.js';
 import { getProductName, getOriginProductNo } from './core/saleProduct.js';
-import { filterExcludedSellers, addVirtualSeller, sortByPriceAscending } from './core/sellers.js';
+import { filterExcludedSellers, addVirtualPrice } from './core/sellers.js';
 import { calculateTargetPrice, isUpdateRequired } from './core/pricing.js';
+import { buildPriceWithDeliveryFee } from './core/delivery.js';
 
 const runUserScenario = async () => {
   const [saleProduct] = await getSaleProducts();
@@ -41,12 +42,12 @@ const runUserScenario = async () => {
     return;
   }
 
-  const myStore = sellers.find(({ name }) => name === myStoreName);
-  const targetSellers = addVirtualSeller(
-    filterExcludedSellers(sellers, myStoreName, priceRule.excludedSellerNames),
-    priceRule.virtualPrice,
-  );
-  const prices = sortByPriceAscending(targetSellers).map(({ price }) => price);
+  const currentMyStore = sellers.find(({ name }) => name === myStoreName);
+  const sellerPrices = filterExcludedSellers(sellers, [
+    ...priceRule.excludedSellerNames,
+    myStoreName,
+  ]).map(({ price }) => price);
+  const prices = addVirtualPrice(sellerPrices, priceRule.virtualPrice);
 
   console.log(prices);
 
@@ -56,11 +57,12 @@ const runUserScenario = async () => {
 
   console.log(targetPrice);
 
-  if (isUpdateRequired(myStore, targetPrice, feeType)) {
+  if (isUpdateRequired(currentMyStore, targetPrice, feeType)) {
+    const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
     const response = await updatePrice({
       productNo: getOriginProductNo(saleProduct),
-      targetPrice,
-      delivery,
+      deliveryFee,
+      salePrice,
     });
 
     if (Object.hasOwn(response, 'message')) {
