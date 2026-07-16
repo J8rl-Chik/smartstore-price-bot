@@ -26,7 +26,7 @@ describe('calculateTargetPrice', () => {
 
 describe('isUpdateRequired', () => {
   // 가격비교 페이지에서 가격이 순위권에서 밀려나면 currentMyStore는 undefined
-  it('currentMyStore가 없으면 갱신 필요(true)를 반환한다', () => {
+  it('판매처들 중 현재 내 판매처가 없으면 갱신 필요(true)를 반환한다', () => {
     const sellers = [{ name: '다른 판매처', price: 9000 }];
     const currentMyStore = sellers.find(({ name }) => name === '내 스토어');
 
