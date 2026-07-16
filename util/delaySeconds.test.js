@@ -18,7 +18,6 @@ describe('delaySeconds', () => {
     const second5 = 5_000;
 
     await vi.advanceTimersByTimeAsync(second5);
-
     expect(resolved).toHaveBeenCalled();
   });
 
@@ -30,7 +29,6 @@ describe('delaySeconds', () => {
     const second4 = 4_999;
 
     await vi.advanceTimersByTimeAsync(second4);
-
     expect(resolved).not.toHaveBeenCalled();
   });
 });

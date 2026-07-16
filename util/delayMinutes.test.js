@@ -18,7 +18,6 @@ describe('delayMinutes', () => {
     const minute1 = 60_000;
 
     await vi.advanceTimersByTimeAsync(minute1);
-
     expect(resolved).toHaveBeenCalled();
   });
 
@@ -30,7 +29,6 @@ describe('delayMinutes', () => {
     const second59 = 59_999;
 
     await vi.advanceTimersByTimeAsync(second59);
-
     expect(resolved).not.toHaveBeenCalled();
   });
 });
