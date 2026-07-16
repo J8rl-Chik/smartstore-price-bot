@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import { defineConfig } from "eslint/config";
 import eslintConfigPrettier from "eslint-config-prettier";
+import tseslint from "typescript-eslint";
 
 export default defineConfig([
   {
@@ -9,6 +10,11 @@ export default defineConfig([
     plugins: { js },
     extends: ["js/recommended"],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
+  },
+  {
+    files: ["**/*.ts"],
+    extends: [tseslint.configs.recommended],
+    languageOptions: { globals: { ...globals.node } },
   },
   eslintConfigPrettier,
 ]);
