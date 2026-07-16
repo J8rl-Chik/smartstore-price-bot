@@ -45,7 +45,6 @@ describe('parseProductRow', () => {
       catalogUrl: 'https://example.com/catalog/1',
       feeType: '유료',
     });
-
     const result = parseProductRow(row);
 
     expect(result.name).toBe('무선 이어폰');
@@ -60,7 +59,6 @@ describe('parseProductRow', () => {
       baseFee: '2,500',
       virtualPrice: '1,000',
     });
-
     const result = parseProductRow(row);
 
     expect(result.freeDeliveryPrice).toBe(10000);
@@ -122,7 +120,7 @@ describe('parseProductRow', () => {
     it('0을 명시적으로 입력하면 에러를 던진다', () => {
       const row = createRow({ virtualPrice: '0' });
 
-      expect(() => parseProductRow(row)).toThrow('0보다 큰 값이어야 합니다');
+      expect(() => parseProductRow(row)).toThrow('0이 아닌 10 단위의 값이어야 합니다');
     });
 
     it('숫자로 변환할 수 없는 값이면 에러를 던진다', () => {
@@ -136,19 +134,19 @@ describe('parseProductRow', () => {
     it('freeDeliveryPrice가 유효하지 않으면 에러를 던진다', () => {
       const row = createRow({ freeDeliveryPrice: '0' });
 
-      expect(() => parseProductRow(row)).toThrow('0보다 큰 값이어야 합니다');
+      expect(() => parseProductRow(row)).toThrow('0이 아닌 10 단위의 값이어야 합니다');
     });
 
     it('0이면 에러를 던진다', () => {
       const row = createRow({ baseFee: '0' });
 
-      expect(() => parseProductRow(row)).toThrow('0보다 큰 값이어야 합니다');
+      expect(() => parseProductRow(row)).toThrow('0이 아닌 10 단위의 값이어야 합니다');
     });
 
     it('10의 배수가 아니면 에러를 던진다', () => {
       const row = createRow({ productPrice: '15,005' });
 
-      expect(() => parseProductRow(row)).toThrow('10의 배수여야 합니다');
+      expect(() => parseProductRow(row)).toThrow('0이 아닌 10 단위의 값이어야 합니다');
     });
   });
 });

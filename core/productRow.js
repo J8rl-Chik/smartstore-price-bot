@@ -1,5 +1,5 @@
 import { COLUMN } from '../google/constant.js';
-import parseToNumberFromKRW from '../util/parseToNumberFromKRW.js';
+import parseToNumberFromKRW from './parseToNumberFromKRW.js';
 import { DELIVERY_FEE_TYPE } from './constant.js';
 
 export const findProductRow = (productRows, productName) =>

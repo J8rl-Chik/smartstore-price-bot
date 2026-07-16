@@ -19,18 +19,18 @@ describe('parseToNumberFromKRW', () => {
   });
 
   it('10의 배수가 아니면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('1,005')).toThrow('10의 배수여야 합니다');
+    expect(() => parseToNumberFromKRW('1,005')).toThrow('0이 아닌 10 단위의 값이어야 합니다');
   });
 
   it('0이면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('0')).toThrow('0보다 큰 값이어야 합니다');
+    expect(() => parseToNumberFromKRW('0')).toThrow('0이 아닌 10 단위의 값이어야 합니다');
   });
 
   it('빈 문자열이면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('')).toThrow('0보다 큰 값이어야 합니다');
+    expect(() => parseToNumberFromKRW('')).toThrow('0이 아닌 10 단위의 값이어야 합니다');
   });
 
   it('음수면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('-10')).toThrow('0보다 큰 값이어야 합니다');
+    expect(() => parseToNumberFromKRW('-10')).toThrow('0이 아닌 10 단위의 값이어야 합니다');
   });
 });

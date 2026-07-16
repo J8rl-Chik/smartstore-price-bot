@@ -1,4 +1,4 @@
-import removeComma from './removeComma.js';
+import removeComma from '../util/removeComma.js';
 
 export default function parseToNumberFromKRW(krw) {
   const price = Number(removeComma(krw).replaceAll('₩', ''));
@@ -11,13 +11,8 @@ export default function parseToNumberFromKRW(krw) {
     throw new Error(`"${krw}"은(는) 정수여야 합니다.`);
   }
 
-  if (price < 1) {
-    throw new Error(`"${krw}"은(는) 0보다 큰 값이어야 합니다.`);
+  if (!(0 < price && price % 10 === 0)) {
+    throw new Error(`"${krw}"은(는) 0이 아닌 10 단위의 값이어야 합니다.`);
   }
-
-  if (price % 10 !== 0) {
-    throw new Error(`"${krw}"은(는) 10의 배수여야 합니다.`);
-  }
-
   return price;
 }
