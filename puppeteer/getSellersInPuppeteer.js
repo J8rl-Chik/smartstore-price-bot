@@ -65,7 +65,7 @@ export default async function getSellersInPuppeteer(page, catalogUrl, productNam
 
       const { textContent } = deliveryFeeElement;
 
-      if (textContent.includes('무료')) {
+      if (textContent.includes('무료') || textContent.includes('착불')) {
         return 0;
       }
 
