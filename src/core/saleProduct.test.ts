@@ -1,14 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { getOriginProductNo, getProductName, type SaleProduct } from './saleProduct.js';
+import {
+  getOriginProductNo,
+  getProductName,
+  type SaleProduct,
+  type ProductChannel,
+} from './saleProduct.js';
 
-const createSaleProduct = (
-  overrides: Partial<SaleProduct['channelProducts'][number]> = {},
-): SaleProduct => ({
+const createSaleProduct = (productChannel: Partial<ProductChannel>): SaleProduct => ({
   channelProducts: [
     {
       name: '테스트 상품',
       originProductNo: 12345,
-      ...overrides,
+      ...productChannel,
     },
   ],
 });
