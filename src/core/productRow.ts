@@ -17,7 +17,9 @@ export const COLUMN = {
   EXCLUDED_SELLERS: 11,
 } as const;
 
-export type ProductRow = string[];
+export interface ProductRow {
+  [key: number]: string;
+}
 
 export interface ParsedProductRow {
   name: string;

@@ -19,9 +19,8 @@ const createRow = ({
   baseFee?: string;
   virtualPrice?: string;
   excludedSellers?: string;
-} = {}): ProductRow => {
+}): ProductRow => {
   const row: ProductRow = [];
-
   row[COLUMN.NAME] = name;
   row[COLUMN.CATALOG_URL] = catalogUrl;
   row[COLUMN.FEE_TYPE] = feeType;
