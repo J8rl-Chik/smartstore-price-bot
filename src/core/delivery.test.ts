@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPriceWithDeliveryFee } from './delivery.js';
+import { buildPriceWithDeliveryFee, type Delivery } from './delivery.js';
 
 describe('buildPriceWithDeliveryFee', () => {
   it('무료 배송이면 deliveryFeeType만 FREE로 설정하고 salePrice는 targetPrice 그대로다', () => {
@@ -42,7 +42,11 @@ describe('buildPriceWithDeliveryFee', () => {
   });
 
   it('알 수 없는 feeType이면 에러를 던진다', () => {
-    expect(() => buildPriceWithDeliveryFee({ feeType: '착불' }, 10000)).toThrow(
+    // parseProductRow가 이미 걸러내는 값이라 정상적으로는 발생하지 않지만, 타입을 우회해
+    // 들어온 외부 입력에 대한 방어를 검증한다.
+    const invalidDelivery = { feeType: '착불' } as unknown as Delivery;
+
+    expect(() => buildPriceWithDeliveryFee(invalidDelivery, 10000)).toThrow(
       '알 수 없는 배송비 유형입니다',
     );
   });

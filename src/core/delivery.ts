@@ -1,35 +1,43 @@
 import { DELIVERY_FEE_TYPE } from './constant.js';
 
-export interface Delivery {
-  feeType: string;
-  baseFee?: number;
+interface FreeDelivery {
+  feeType: typeof DELIVERY_FEE_TYPE.FREE;
+}
+
+interface PaidDelivery {
+  feeType: typeof DELIVERY_FEE_TYPE.PAID;
+  baseFee: number;
+}
+
+interface UnitQuantityPaidDelivery {
+  feeType: typeof DELIVERY_FEE_TYPE.UNIT_QUANTITY_PAID;
+  baseFee: number;
   repeatQuantity?: number;
 }
 
-interface FreeDeliveryFeePayload {
+export type Delivery = FreeDelivery | PaidDelivery | UnitQuantityPaidDelivery;
+
+interface FreeDeliveryFee {
   deliveryFeeType: 'FREE';
 }
 
-interface PaidDeliveryFeePayload {
+interface PaidDeliveryFee {
   deliveryFeeType: 'PAID';
   deliveryFeePayType: 'PREPAID';
   baseFee: number;
 }
 
-interface UnitQuantityPaidDeliveryFeePayload {
-  deliveryFeePayType: 'PREPAID';
+interface UnitQuantityPaidDeliveryFee {
   deliveryFeeType: 'UNIT_QUANTITY_PAID';
+  deliveryFeePayType: 'PREPAID';
   repeatQuantity: number | undefined;
   baseFee: number;
 }
 
-export type DeliveryFeePayload =
-  | FreeDeliveryFeePayload
-  | PaidDeliveryFeePayload
-  | UnitQuantityPaidDeliveryFeePayload;
+export type DeliveryFee = FreeDeliveryFee | PaidDeliveryFee | UnitQuantityPaidDeliveryFee;
 
 export interface PriceWithDeliveryFee {
-  deliveryFee: DeliveryFeePayload;
+  deliveryFee: DeliveryFee;
   salePrice: number;
 }
 
@@ -43,18 +51,13 @@ export const buildPriceWithDeliveryFee = (
   }
 
   if (delivery.feeType === DELIVERY_FEE_TYPE.PAID) {
-    /**
-     * TODO(strict-null): baseFee는 시트 데이터가 parseProductRow를 거치면 항상 채워지지만,
-     * 이 함수 시그니처만으로는 보장되지 않아 strict 모드에서 단언이 필요함. baseFee 없이
-     * 이 분기에 도달하면 과거와 동일하게 salePrice가 NaN이 되는 잠재 버그가 그대로 남아있음.
-     */
     return {
       deliveryFee: {
-        deliveryFeeType: 'PAID',
         deliveryFeePayType: 'PREPAID',
-        baseFee: delivery.baseFee as number,
+        deliveryFeeType: 'PAID',
+        baseFee: delivery.baseFee,
       },
-      salePrice: targetPrice - (delivery.baseFee as number),
+      salePrice: targetPrice - delivery.baseFee,
     };
   }
 
@@ -65,15 +68,17 @@ export const buildPriceWithDeliveryFee = (
         deliveryFeePayType: 'PREPAID',
         deliveryFeeType: 'UNIT_QUANTITY_PAID',
         repeatQuantity: delivery.repeatQuantity,
-        baseFee: delivery.baseFee as number,
+        baseFee: delivery.baseFee,
       },
-      salePrice: targetPrice - (delivery.baseFee as number),
+      salePrice: targetPrice - delivery.baseFee,
     };
   }
 
   /**
    * feeType이 셋 중 무엇도 아니면 과거엔 deliveryFee가 빈 객체로 남아 사실상 무료 배송으로
    * 처리되는 잠재 버그가 있었음. 조용히 잘못된 배송비로 등록되는 대신 즉시 실패하도록 변경.
+   * Delivery가 판별 유니온이라 정상 흐름에서는 여기 도달할 수 없지만(parseProductRow가 미리
+   * feeType을 검증함), 타입을 우회해 들어온 외부 입력에 대한 방어선으로 남겨둔다.
    */
-  throw new Error(`알 수 없는 배송비 유형입니다: "${delivery.feeType}"`);
+  throw new Error('알 수 없는 배송비 유형입니다.');
 };
