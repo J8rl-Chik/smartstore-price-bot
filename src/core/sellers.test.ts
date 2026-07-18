@@ -11,7 +11,9 @@ describe('filterExcludedSellers', () => {
   it('전달받은 이름 목록에 포함된 판매처를 걸러낸다', () => {
     const result = filterExcludedSellers(sellers, ['내 스토어', '제외 판매처']);
 
-    expect(result).toEqual([{ name: '일반 판매처', price: 11000, deliveryFee: 0, deliveryFeeType: '무료' }]);
+    expect(result).toEqual([
+      { name: '일반 판매처', price: 11000, deliveryFee: 0, deliveryFeeType: '무료' },
+    ]);
   });
 
   it('제외할 이름이 없으면 전체 판매처를 그대로 반환한다', () => {
@@ -28,7 +30,7 @@ describe('addVirtualPrice', () => {
     expect(addVirtualPrice(prices, 5000)).toEqual([...prices, 5000]);
   });
 
-  // virtualPrice는 parseProductRow에서 ''(빈 문자열)이면 null로 변환되어 넘어옴(core/productRow.js).
+  // virtualPrice는 parseProductRow에서 ''(빈 문자열)이면 null로 변환되어 넘어옴.
   it('virtualPrice가 null이면 추가하지 않는다', () => {
     expect(addVirtualPrice(prices, null)).toEqual(prices);
   });

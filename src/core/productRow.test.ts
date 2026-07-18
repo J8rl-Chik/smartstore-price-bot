@@ -1,9 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { COLUMN, findProductRow, parseProductRow, type ProductRow } from './productRow.js';
+import {
+  COLUMN,
+  fillEmptyCell,
+  initProductRow,
+  isActiveProductRow,
+  findProductRow,
+  parseProductRow,
+  type ProductRow,
+} from './productRow.js';
 
 const createRow = ({
   name = '테스트 상품',
   catalogUrl = 'https://example.com/catalog',
+  activate = 'TRUE',
   feeType = '무료',
   freeDeliveryPrice = '₩10,000',
   productPrice = '₩15,000',
@@ -13,6 +22,7 @@ const createRow = ({
 }: {
   name?: string;
   catalogUrl?: string;
+  activate?: string;
   feeType?: string;
   freeDeliveryPrice?: string;
   productPrice?: string;
@@ -21,14 +31,15 @@ const createRow = ({
   excludedSellers?: string;
 }): ProductRow => {
   const row: ProductRow = [];
-  row[COLUMN.NAME] = name;
-  row[COLUMN.CATALOG_URL] = catalogUrl;
-  row[COLUMN.FEE_TYPE] = feeType;
-  row[COLUMN.FREE_DELIVERY_PRICE] = freeDeliveryPrice;
-  row[COLUMN.PRODUCT_PRICE] = productPrice;
-  row[COLUMN.BASE_FEE] = baseFee;
-  row[COLUMN.VIRTUAL_PRICE] = virtualPrice;
-  row[COLUMN.EXCLUDED_SELLERS] = excludedSellers;
+  row[COLUMN.name] = name;
+  row[COLUMN.catalogUrl] = catalogUrl;
+  row[COLUMN.activate] = activate;
+  row[COLUMN.feeType] = feeType;
+  row[COLUMN.freeDeliveryPrice] = freeDeliveryPrice;
+  row[COLUMN.productPrice] = productPrice;
+  row[COLUMN.baseFee] = baseFee;
+  row[COLUMN.virtualPrice] = virtualPrice;
+  row[COLUMN.excludedSellers] = excludedSellers;
 
   return row;
 };
@@ -42,6 +53,75 @@ describe('findProductRow', () => {
 
   it('일치하는 행이 없으면 undefined를 반환한다', () => {
     expect(findProductRow(productRows, '상품C')).toBeUndefined();
+  });
+});
+
+describe('fillEmptyCell', () => {
+  it('원시 행 값을 컬럼 위치에 맞게 유지한다', () => {
+    const rawRow: string[] = [];
+    rawRow[COLUMN.name] = '상품A';
+
+    expect(fillEmptyCell(rawRow)[COLUMN.name]).toBe('상품A');
+  });
+
+  it('원시 행이 짧아도 부족한 칸을 빈 문자열로 채운다', () => {
+    const shortRow: string[] = [];
+    shortRow[COLUMN.name] = '상품A'; // catalogUrl(1) 이후 칸이 없는 짧은 행
+
+    const productRow = fillEmptyCell(shortRow);
+
+    expect(productRow[COLUMN.catalogUrl]).toBe('');
+    expect(productRow[COLUMN.excludedSellers]).toBe('');
+  });
+});
+
+describe('isActiveProductRow', () => {
+  const createRawRow = (activate: string): string[] => {
+    const row: string[] = [];
+    row[COLUMN.activate] = activate;
+
+    return row;
+  };
+
+  it('activate가 TRUE이면 true를 반환한다', () => {
+    expect(isActiveProductRow(createRawRow('TRUE'))).toBe(true);
+  });
+
+  it('activate가 TRUE가 아니면 false를 반환한다', () => {
+    expect(isActiveProductRow(createRawRow('FALSE'))).toBe(false);
+  });
+});
+
+describe('initProductRow', () => {
+  const createRawRow = ({
+    name = '테스트 상품',
+    activate = 'TRUE',
+  }: { name?: string; activate?: string } = {}): string[] => {
+    const row: string[] = [];
+    row[COLUMN.name] = name;
+    row[COLUMN.catalogUrl] = 'https://example.com/catalog';
+    row[COLUMN.activate] = activate;
+    row[COLUMN.feeType] = '무료';
+    row[COLUMN.freeDeliveryPrice] = '₩10,000';
+    row[COLUMN.productPrice] = '₩15,000';
+    row[COLUMN.baseFee] = '₩3,000';
+    row[COLUMN.virtualPrice] = '';
+    row[COLUMN.excludedSellers] = '';
+
+    return row;
+  };
+
+  it('활성화된(ACTIVATE가 TRUE인) 행만 파싱해서 반환한다', () => {
+    const rawRows = [
+      createRawRow({ name: '상품A', activate: 'TRUE' }),
+      createRawRow({ name: '상품B', activate: 'FALSE' }),
+    ];
+
+    expect(initProductRow(rawRows).map((productRow) => productRow.name)).toEqual(['상품A']);
+  });
+
+  it('빈 배열이면 빈 배열을 반환한다', () => {
+    expect(initProductRow([])).toEqual([]);
   });
 });
 

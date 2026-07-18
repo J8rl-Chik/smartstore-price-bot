@@ -31,3 +31,15 @@ describe('getOriginProductNo', () => {
     expect(getOriginProductNo(saleProduct)).toBe(98765);
   });
 });
+
+describe('channelProducts가 비어 있는 경우', () => {
+  const emptySaleProduct: SaleProduct = { channelProducts: [] };
+
+  it('getProductName 호출 시 에러를 던진다', () => {
+    expect(() => getProductName(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+  });
+
+  it('getOriginProductNo 호출 시 에러를 던진다', () => {
+    expect(() => getOriginProductNo(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+  });
+});

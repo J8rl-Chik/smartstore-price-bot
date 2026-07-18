@@ -7,9 +7,19 @@ export interface SaleProduct {
   channelProducts: ProductChannel[];
 }
 
+// 현재 단일 채널로만 상품을 판매하므로 channelProducts는 요소가 1개다.
+const getFirstChannelProduct = (saleProduct: SaleProduct): ProductChannel => {
+  const [channelProduct] = saleProduct.channelProducts;
+
+  if (!channelProduct) {
+    throw new Error('channelProducts가 비어 있습니다.');
+  }
+
+  return channelProduct;
+};
+
 export const getProductName = (saleProduct: SaleProduct): string =>
-  // 현재 단일 채널로만 상품을 판매하므로 channelProducts는 요소가 1개다.
-  saleProduct.channelProducts[0].name;
+  getFirstChannelProduct(saleProduct).name;
 
 export const getOriginProductNo = (saleProduct: SaleProduct): number =>
-  saleProduct.channelProducts[0].originProductNo;
+  getFirstChannelProduct(saleProduct).originProductNo;
