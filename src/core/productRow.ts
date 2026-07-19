@@ -85,29 +85,37 @@ const validateRow = (row: ProductRow): ValidatedRow => {
 };
 
 export const parseProductRow = (row: ProductRow): ParsedProductRow => {
-  const {
-    name,
-    catalogUrl,
-    activate,
-    feeType,
-    freeDeliveryPrice,
-    productPrice,
-    baseFee,
-    virtualPrice,
-    excludedSellers,
-  } = validateRow(row);
+  try {
+    const {
+      name,
+      catalogUrl,
+      activate,
+      feeType,
+      freeDeliveryPrice,
+      productPrice,
+      baseFee,
+      virtualPrice,
+      excludedSellers,
+    } = validateRow(row);
 
-  return {
-    name,
-    catalogUrl,
-    activate,
-    feeType: validateFeeType(feeType),
-    freeDeliveryPrice: parseToNumberFromKRW(freeDeliveryPrice),
-    productPrice: parseToNumberFromKRW(productPrice),
-    baseFee: parseToNumberFromKRW(baseFee),
-    virtualPrice: parseVirtualPrice(virtualPrice),
-    excludedSellerNames: excludedSellers.split(',').map((sellerName) => sellerName.trim()),
-  };
+    return {
+      name,
+      catalogUrl,
+      activate,
+      feeType: validateFeeType(feeType),
+      freeDeliveryPrice: parseToNumberFromKRW(freeDeliveryPrice),
+      productPrice: parseToNumberFromKRW(productPrice),
+      baseFee: parseToNumberFromKRW(baseFee),
+      virtualPrice: parseVirtualPrice(virtualPrice),
+      excludedSellerNames: excludedSellers.split(',').map((sellerName) => sellerName.trim()),
+    };
+  } catch (error) {
+    const productName = row[COLUMN.name] ?? '(이름 없음)';
+
+    throw new Error(
+      `'${productName}' 상품 파싱 에러: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 };
 
 /**
