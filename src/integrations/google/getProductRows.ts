@@ -1,8 +1,6 @@
 import 'dotenv/config';
 import { google, type sheets_v4 } from 'googleapis';
 
-import isManualTestRun from '../../util/isManualTestRun.js';
-
 const getSheetsResource = (): sheets_v4.Resource$Spreadsheets => {
   const auth = new google.auth.GoogleAuth({
     keyFile: 'config/googleSheetKey.json',
@@ -43,9 +41,3 @@ async function getProductRows(): Promise<string[][]> {
 }
 
 export default getProductRows;
-
-if (isManualTestRun(import.meta.url)) {
-  getProductRows().then((productRows) => {
-    console.log(`getProductRows 함수 테스트: ${productRows.length}개`);
-  });
-}
