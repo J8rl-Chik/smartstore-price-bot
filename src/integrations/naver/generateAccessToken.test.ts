@@ -89,4 +89,15 @@ describe('generateAccessToken', () => {
       cause: signingError,
     });
   });
+
+  it('응답에 message가 있으면(네이버 쪽 토큰 발급 실패) 원인을 보존한 채 에러를 던진다', async () => {
+    mockFetch.mockResolvedValue({
+      json: () => Promise.resolve({ message: '유효하지 않은 클라이언트입니다.' }),
+    });
+
+    await expect(generateAccessToken()).rejects.toMatchObject({
+      message: '네이버 접근 토큰을 발급받지 못했습니다.',
+      cause: expect.objectContaining({ message: '유효하지 않은 클라이언트입니다.' }),
+    });
+  });
 });

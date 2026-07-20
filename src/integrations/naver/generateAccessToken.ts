@@ -2,7 +2,9 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import fetch from 'node-fetch';
 
-interface AccessTokenResponse {
+import checkNaverApiSucceeded, { type NaverApiResult } from './checkNaverApiSucceeded.js';
+
+interface AccessTokenResult extends NaverApiResult {
   access_token: string;
 }
 
@@ -29,9 +31,11 @@ async function generateAccessToken(): Promise<string> {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-    const { access_token: accessToken }: AccessTokenResponse = await response.json();
+    const result: AccessTokenResult = await response.json();
 
-    return accessToken;
+    checkNaverApiSucceeded(result);
+
+    return result.access_token;
   } catch (error) {
     throw new Error('네이버 접근 토큰을 발급받지 못했습니다.', { cause: error });
   }
