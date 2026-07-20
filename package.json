@@ -19,6 +19,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
+    "@types/jsdom": "^28.0.3",
     "@types/node": "^26.1.1",
     "@types/node-fetch": "^2.6.13",
     "@vitest/coverage-v8": "^4.1.10",
