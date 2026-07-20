@@ -96,7 +96,8 @@ export default async function getPricesInPuppeteer(
 
       const { textContent } = deliveryFeeElement;
 
-      if (textContent.includes("무료")) return 0;
+      if (textContent.includes("무료") || textContent.includes("착불"))
+        return 0;
 
       const [fee] = textContent.match(/[\d,]+/);
 

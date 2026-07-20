@@ -3,7 +3,6 @@ import { pathToFileURL } from "node:url";
 import { google } from "googleapis";
 
 import { COLUMN_COUNT, COLUMN, RANGE } from "./constant.js";
-import testInTerminal from "../util/testInTerminal.js";
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   getProductRows().then((productRows) => {

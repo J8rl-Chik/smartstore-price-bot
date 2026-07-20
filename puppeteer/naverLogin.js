@@ -3,7 +3,7 @@ import "dotenv/config";
 export default async function naverLogin(page) {
   const ID_SELECTOR = "#id";
   const PASSWORD_SELECTOR = "#pw";
-  const LOGIN_BUTTON_SELECTOR = ".btn_login";
+  const LOGIN_BUTTON_SELECTOR = "#loginBtn_row";
   const TYPE_DELAY = 100;
 
   await page.goto("https://nid.naver.com/");
