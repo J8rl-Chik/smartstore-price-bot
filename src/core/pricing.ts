@@ -6,9 +6,10 @@ import type { Seller } from './sellers.js';
  */
 export const calculateTargetPrice = (prices: number[], freeDeliveryPrice: number): number => {
   const sortedPrices = [...prices].sort((price1, price2) => price1 - price2);
-  // freeDeliveryPrice + 10원 이상인 가격 중 최저가(이 가격보다 10원 낮게 판매가를 설정하기 위함)
+  // freeDeliveryPrice + 10원 이상인 가격들 중 최저가보다 10원 낮게 판매가를 설정한다.
   const minPrice = sortedPrices.find((price) => price >= freeDeliveryPrice + 10);
 
+  // 만약 freeDeliveryPrice + 10원 이상인 가격이 없으면, freeDeliveryPrice를 기준으로 판매가를 설정한다.
   return minPrice ? minPrice - 10 : freeDeliveryPrice;
 };
 
