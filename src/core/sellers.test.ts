@@ -30,7 +30,6 @@ describe('addVirtualPrice', () => {
     expect(addVirtualPrice(prices, 5000)).toEqual([...prices, 5000]);
   });
 
-  // virtualPrice는 parseProductRow에서 ''(빈 문자열)이면 null로 변환되어 넘어옴.
   it('virtualPrice가 null이면 추가하지 않는다', () => {
     expect(addVirtualPrice(prices, null)).toEqual(prices);
   });
