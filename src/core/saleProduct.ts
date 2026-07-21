@@ -25,9 +25,8 @@ export const getProductName = (saleProduct: SaleProduct): string =>
 export const getOriginProductNo = (saleProduct: SaleProduct): number =>
   getFirstChannelProduct(saleProduct).originProductNo;
 
-// 채널이 비어 있으면 신규 등록 여부를 판단할 수 없으니 안전하게 undefined로 취급한다.
-const getSellerManagementCode = (saleProduct: SaleProduct): string | undefined =>
-  saleProduct.channelProducts[0]?.sellerManagementCode;
+export const getSellerManagementCode = (saleProduct: SaleProduct): string | undefined =>
+  getFirstChannelProduct(saleProduct).sellerManagementCode;
 
 export const isNewlyRegisteredProduct = (saleProduct: SaleProduct): boolean =>
   Boolean(getSellerManagementCode(saleProduct)?.includes('신규'));

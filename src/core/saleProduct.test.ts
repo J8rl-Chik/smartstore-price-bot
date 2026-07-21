@@ -45,14 +45,22 @@ describe('channelProducts가 비어 있는 경우', () => {
     expect(() => getOriginProductNo(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
   });
 
-  it('isNewlyRegisteredProduct 호출 시 신규 등록 여부를 판단할 수 없으므로 false를 반환한다', () => {
-    expect(isNewlyRegisteredProduct(emptySaleProduct)).toBe(false);
+  it('isNewlyRegisteredProduct 호출 시 에러를 던진다', () => {
+    expect(() => isNewlyRegisteredProduct(emptySaleProduct)).toThrow(
+      'channelProducts가 비어 있습니다',
+    );
   });
 });
 
 describe('isNewlyRegisteredProduct', () => {
   it('sellerManagementCode에 "신규"가 포함되면 true를 반환한다', () => {
     const saleProduct = createSaleProduct({ sellerManagementCode: '신규' });
+
+    expect(isNewlyRegisteredProduct(saleProduct)).toBe(true);
+  });
+
+  it('sellerManagementCode에 "a.신규 묶음"이 포함되면 true를 반환한다', () => {
+    const saleProduct = createSaleProduct({ sellerManagementCode: 'a.신규 묶음' });
 
     expect(isNewlyRegisteredProduct(saleProduct)).toBe(true);
   });
@@ -73,7 +81,7 @@ describe('isNewlyRegisteredProduct', () => {
 describe('excludeNewlyRegisteredProducts', () => {
   it('신규 등록 상품을 제외한 나머지 목록을 반환한다', () => {
     const newProduct = createSaleProduct({ sellerManagementCode: '신규' });
-    const existingProduct = createSaleProduct({ sellerManagementCode: '새 상품' });
+    const existingProduct = createSaleProduct({ sellerManagementCode: '기존 상품' });
 
     expect(excludeNewlyRegisteredProducts([newProduct, existingProduct])).toEqual([
       existingProduct,
