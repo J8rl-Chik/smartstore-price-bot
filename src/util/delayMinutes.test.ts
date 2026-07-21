@@ -12,7 +12,6 @@ describe('delayMinutes', () => {
 
   it('지정한 분이 지나면 resolve된다', async () => {
     const resolved = vi.fn();
-
     delayMinutes(1).then(resolved);
 
     const minute1 = 60_000;
@@ -23,7 +22,6 @@ describe('delayMinutes', () => {
 
   it('지정한 분이 지나기 전에는 resolve되지 않는다', async () => {
     const resolved = vi.fn();
-
     delayMinutes(1).then(resolved);
 
     const second59 = 59_999;
