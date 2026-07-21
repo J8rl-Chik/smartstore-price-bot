@@ -1,10 +1,7 @@
 import parseToNumberFromKRW from './parseToNumberFromKRW.js';
 import { DELIVERY_FEE_TYPE, type DeliveryFeeType } from './constant.js';
 
-/**
- * 구글 시트 "A~L" 범위 12개 컬럼의 인덱스. Google Sheets API의 세부사항이 아니라
- * "시트 행을 어떻게 해석할지"에 대한 core의 도메인 지식이므로 여기서 소유한다.
- */
+// 구글 시트 "A~L" 범위 12개 컬럼의 인덱스.
 export const COLUMN = {
   name: 0,
   catalogUrl: 1,
@@ -20,9 +17,7 @@ export const COLUMN = {
 type ColumnKey = keyof typeof COLUMN;
 type ValidatedRow = Record<ColumnKey, string>;
 
-export interface ProductRow {
-  [key: number]: string;
-}
+export type ProductRow = string[];
 
 export interface ParsedProductRow {
   name: string;
@@ -36,18 +31,14 @@ export interface ParsedProductRow {
   excludedSellerNames: string[];
 }
 
-// fillEmptyCell/parseProductRow를 거치기 전, 원시 행 상태에서 먼저 걸러낸다.
 export const isActiveProductRow = (rawRow: string[]): boolean => rawRow[COLUMN.activate] === 'TRUE';
 
-/**
- * 시트에서 읽은 원시 행(길이가 제각각일 수 있음)을 고정 열 길이 ProductRow로 일관화한다.
- * noUncheckedIndexedAccess 덕분에 뒤쪽 셀이 없는 짧은 행도 타입 에러 없이 안전하게 처리된다.
- */
+// 시트에서 읽은 원시 행(길이가 제각각일 수 있음)을 고정 열 길이 행으로 초기화한다.
 export const fillEmptyCell = (rawRow: string[]): ProductRow => {
   // 구글 시트 "A~L" 범위
-  const columnCount = 12 as const;
+  const columnLength = 12 as const;
 
-  return Array.from({ length: columnCount }, (_, columnIndex) => rawRow[columnIndex] ?? '');
+  return Array.from({ length: columnLength }, (_, columnIndex) => rawRow[columnIndex] ?? '');
 };
 
 const parseVirtualPrice = (virtualPrice: string): number | null => {
@@ -58,17 +49,34 @@ const parseVirtualPrice = (virtualPrice: string): number | null => {
   return parseToNumberFromKRW(virtualPrice);
 };
 
+const parseExcludedSellerNames = (excludedSellers: string): string[] =>
+  excludedSellers.split(',').map((sellerName) => sellerName.trim());
+
+/**
+ * 현재 시트에 잘못된 값들이 많아 수정하는데 시간이 필요하다.
+ * 따라서 에러를 던지기보다는 filter로 걸러낸 뒤 정상적인 행들만 파싱한다.
+ */
+const hasValidPrice = (price: string): boolean => {
+  try {
+    parseToNumberFromKRW(price);
+
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const validateFeeType = (feeType: string): DeliveryFeeType => {
   if (!(Object.values(DELIVERY_FEE_TYPE) as string[]).includes(feeType)) {
-    throw new Error(`알 수 없는 배송비 유형입니다: "${feeType}"`);
+    throw new Error('알 수 없는 배송비 유형입니다.');
   }
 
   return feeType as DeliveryFeeType;
 };
 
 /**
- * ProductRow는 인덱스 시그니처라 특정 컬럼이 채워져 있다는 보장이 타입만으로는 안 되므로,
- * COLUMN에 정의된 모든 컬럼 값을 한 번에 검증하고, 하나라도 없으면 즉시 실패한다.
+ * ProductRow는 길이가 보장되지 않는 string[]이라 특정 컬럼이 채워져 있다는 보장이 타입만으로는
+ * 안 되므로, COLUMN에 정의된 모든 컬럼 값을 한 번에 검증하고, 하나라도 없으면 즉시 실패한다.
  */
 const validateRow = (row: ProductRow): ValidatedRow => {
   const entries = (Object.keys(COLUMN) as ColumnKey[]).map((columnKey): [ColumnKey, string] => {
@@ -107,7 +115,7 @@ export const parseProductRow = (row: ProductRow): ParsedProductRow => {
       productPrice: parseToNumberFromKRW(productPrice),
       baseFee: parseToNumberFromKRW(baseFee),
       virtualPrice: parseVirtualPrice(virtualPrice),
-      excludedSellerNames: excludedSellers.split(',').map((sellerName) => sellerName.trim()),
+      excludedSellerNames: parseExcludedSellerNames(excludedSellers),
     };
   } catch (error) {
     const productName = row[COLUMN.name] ?? '(이름 없음)';
@@ -120,11 +128,24 @@ export const parseProductRow = (row: ProductRow): ParsedProductRow => {
 
 /**
  * 구글 시트 API로 받은 원시 행 배열을 실제로 쓰이는 형태로 가공한다.
- * 활성화된 행만 먼저 걸러낸 뒤(isActiveProductRow) 빈 셀을 채우고(fillEmptyCell) 파싱한다
- * (parseProductRow). 비활성 행은 파싱하지 않으므로 값이 비어있거나 잘못돼 있어도 실패하지 않는다.
+ * 활성화된 행만 먼저 걸러낸 뒤(isActiveProductRow) 빈 셀을 채우고(fillEmptyCell),
+ * 가격 필드가 유효한 행만 남긴 뒤(hasValidPrice) 파싱한다(parseProductRow).
+ * 시트에 유효하지 않은 가격 값이 섞여 있어도 해당 행만 건너뛰고 계속 진행한다.
  */
 export const initProductRow = (rawRows: string[][]): ParsedProductRow[] =>
-  rawRows.filter(isActiveProductRow).map(fillEmptyCell).map(parseProductRow);
+  rawRows
+    .filter(isActiveProductRow)
+    .map(fillEmptyCell)
+    .filter((row) => {
+      const freeDeliveryPrice = row[COLUMN.freeDeliveryPrice] ?? '';
+      const productPrice = row[COLUMN.productPrice] ?? '';
+      const baseFee = row[COLUMN.baseFee] ?? '';
+
+      return (
+        hasValidPrice(freeDeliveryPrice) && hasValidPrice(productPrice) && hasValidPrice(baseFee)
+      );
+    })
+    .map(parseProductRow);
 
 export const findProductRow = (
   productRows: ProductRow[],
