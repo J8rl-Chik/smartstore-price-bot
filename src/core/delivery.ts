@@ -1,4 +1,4 @@
-import { DELIVERY_FEE_TYPE } from './constant.js';
+import { DELIVERY_FEE_TYPE, type DeliveryFeeType } from './constant.js';
 
 interface FreeDelivery {
   feeType: typeof DELIVERY_FEE_TYPE.FREE;
@@ -16,6 +16,13 @@ interface UnitQuantityPaidDelivery {
 }
 
 export type Delivery = FreeDelivery | PaidDelivery | UnitQuantityPaidDelivery;
+
+/**
+ * feeType은 DELIVERY_FEE_TYPE 세 리터럴의 합집합으로 넓혀진 타입이라 { feeType, baseFee }를
+ * 그대로 옮겨 담으면 Delivery의 개별 판별 유니온 멤버 중 어느 것과도 구조적으로 일치하지
+ * 않는다. 리터럴별로 분기해야만 각 분기에서 feeType이 하나의 리터럴로 좁혀져 Delivery의
+ * 각 멤버와 매칭된다.
+ */
 
 interface FreeDeliveryFee {
   deliveryFeeType: 'FREE';
@@ -40,6 +47,28 @@ export interface PriceWithDeliveryFee {
   deliveryFee: DeliveryFee;
   salePrice: number;
 }
+
+export const createDelivery = ({
+  feeType,
+  baseFee,
+}: {
+  feeType: DeliveryFeeType;
+  baseFee: number;
+}): Delivery => {
+  if (feeType === DELIVERY_FEE_TYPE.FREE) {
+    return { feeType };
+  }
+
+  if (feeType === DELIVERY_FEE_TYPE.PAID) {
+    return { feeType, baseFee };
+  }
+
+  if (feeType === DELIVERY_FEE_TYPE.UNIT_QUANTITY_PAID) {
+    return { feeType, baseFee };
+  }
+
+  throw new Error('알 수 없는 배송비 유형입니다.');
+};
 
 export const buildPriceWithDeliveryFee = (
   delivery: Delivery,
