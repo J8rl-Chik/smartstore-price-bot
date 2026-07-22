@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import getSaleProducts from './getSaleProducts.js';
+import { type SaleProduct } from '../../core/saleProduct.js';
 
 const mockFetch = vi.fn();
 const mockGenerateAccessToken = vi.fn();
@@ -12,7 +13,7 @@ vi.mock('./generateAccessToken.js', () => ({
   default: (...args: unknown[]) => mockGenerateAccessToken(...args),
 }));
 
-const createChannelProduct = (sellerManagementCode?: string) => ({
+const createSaleProduct = (sellerManagementCode?: string): SaleProduct => ({
   channelProducts: [{ name: '상품', originProductNo: 1, sellerManagementCode }],
 });
 
@@ -23,8 +24,8 @@ describe('getSaleProducts', () => {
   });
 
   it('발급받은 accessToken으로 판매 중 상품 목록을 조회해 가공 없이 그대로 반환한다', async () => {
-    const existingProduct = createChannelProduct('기존-001');
-    const newProduct = createChannelProduct('신규-001');
+    const existingProduct = createSaleProduct('기존-001');
+    const newProduct = createSaleProduct('신규-001');
 
     mockGenerateAccessToken.mockResolvedValue('token-abc');
     mockFetch.mockResolvedValue({
@@ -57,6 +58,7 @@ describe('getSaleProducts', () => {
 
   it('accessToken 발급이 실패하면 원인을 보존한 채 에러를 던진다', async () => {
     const tokenError = new Error('토큰 발급 실패');
+
     mockGenerateAccessToken.mockRejectedValue(tokenError);
 
     await expect(getSaleProducts()).rejects.toMatchObject({
@@ -66,9 +68,10 @@ describe('getSaleProducts', () => {
   });
 
   it('상품 검색 요청이 실패하면 원인을 보존한 채 에러를 던진다', async () => {
-    mockGenerateAccessToken.mockResolvedValue('token-abc');
     const networkError = new Error('네트워크 오류');
+
     mockFetch.mockRejectedValue(networkError);
+    mockGenerateAccessToken.mockResolvedValue('token-abc');
 
     await expect(getSaleProducts()).rejects.toMatchObject({
       message: '네이버 판매 상품 목록을 가져오지 못했습니다.',
@@ -77,9 +80,10 @@ describe('getSaleProducts', () => {
   });
 
   it('응답 파싱이 실패해도 원인을 보존한 채 에러를 던진다', async () => {
-    mockGenerateAccessToken.mockResolvedValue('token-abc');
     const parseError = new Error('잘못된 JSON');
+
     mockFetch.mockResolvedValue({ json: () => Promise.reject(parseError) });
+    mockGenerateAccessToken.mockResolvedValue('token-abc');
 
     await expect(getSaleProducts()).rejects.toMatchObject({
       message: '네이버 판매 상품 목록을 가져오지 못했습니다.',
