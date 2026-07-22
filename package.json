@@ -2,10 +2,10 @@
   "name": "productmanager",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "dist/app.js",
   "type": "module",
   "scripts": {
-    "start": "node app.js",
+    "start": "node dist/app.js",
     "build": "tsc",
     "dev": "tsx src/app.ts",
     "typecheck": "tsc --noEmit",
