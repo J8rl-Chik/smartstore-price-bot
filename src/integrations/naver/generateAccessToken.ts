@@ -15,8 +15,8 @@ async function generateAccessToken(): Promise<string> {
     const password = `${CLIENT_ID}_${timestamp}`;
     const hashedPassword = bcrypt.hashSync(password, CLIENT_SECRET as string);
     const clientSecretSign = Buffer.from(hashedPassword, 'utf-8').toString('base64');
+    const tokenURL = 'https://api.commerce.naver.com/external/v1/oauth2/token';
 
-    const TOKEN_URL = 'https://api.commerce.naver.com/external/v1/oauth2/token';
     const query = new URLSearchParams({
       client_id: CLIENT_ID as string,
       timestamp: timestamp.toString(),
@@ -25,12 +25,13 @@ async function generateAccessToken(): Promise<string> {
       type: 'SELF',
     });
 
-    const response = await fetch(`${TOKEN_URL}?${query}`, {
+    const response = await fetch(`${tokenURL}?${query}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
+
     const result: AccessTokenResult = await response.json();
 
     checkNaverApiSucceeded(result);
