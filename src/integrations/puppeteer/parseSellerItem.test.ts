@@ -17,7 +17,7 @@ const createSellerItemHTML = ({
 } = {}) => `
   <div class="product_seller_info_wrap__x7f2A">
     <span class="product_name__abc">${name}</span>
-    <strong class="product_num__def">${price}원 포함</strong>
+    <strong class="product_num__def">${price}</strong>원
     ${discountPriceHTML}
     <div class="DeliveryFeeArea__ghi">${deliveryFeeText}</div>
   </div>
