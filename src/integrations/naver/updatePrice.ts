@@ -10,7 +10,7 @@ interface UpdatePriceParam {
   salePrice: number;
 }
 
-interface Product {
+interface OriginProduct {
   detailContent?: unknown;
   stockQuantity?: unknown;
   deliveryInfo?: Record<string, unknown>;
@@ -18,27 +18,26 @@ interface Product {
 }
 
 interface ProductResult {
-  originProduct: Product;
+  originProduct: OriginProduct;
   smartstoreChannelProduct: unknown;
   windowChannelProduct: unknown;
 }
 
 const getProduct = async (
-  productUrl: string,
+  productURL: string,
   headers: Record<string, string>,
 ): Promise<ProductResult> => {
-  const readResponse = await fetch(productUrl, { headers, method: 'GET' });
+  const readResponse = await fetch(productURL, { headers, method: 'GET' });
 
   return readResponse.json();
 };
 
 /**
- * 조회한 원본 상품을 수정 요청 바디에 그대로 재사용할 수 없는 필드를 제거해 반환한다.
+ * 조회한 원본 상품 데이터를 수정 요청 바디에 그대로 사용할 경우, 특정 키가 문제를 일으켜 제거한다.
  * detailContent: 그대로 보내면 네이버 쪽에서 HTML이 강제로 수정됨
  * stockQuantity: 그대로 보내면 재고 오차가 발생할 수 있음
  */
-const sanitizeProductForUpdate = (product: Product): Product => {
-  // detailContent/stockQuantity를 골라내기 위한 구조 분해라 값 자체는 쓰지 않는다.
+const sanitizeProductForUpdate = (product: OriginProduct): OriginProduct => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { detailContent, stockQuantity, ...sanitizedProduct } = product;
 
@@ -47,7 +46,7 @@ const sanitizeProductForUpdate = (product: Product): Product => {
 
 async function updatePrice({ productNo, deliveryFee, salePrice }: UpdatePriceParam) {
   try {
-    const productUrl = `https://api.commerce.naver.com/external/v2/products/origin-products/${productNo}`;
+    const productURL = `https://api.commerce.naver.com/external/v2/products/origin-products/${productNo}`;
     const accessToken = await generateAccessToken();
     const headers = {
       Authorization: accessToken,
@@ -55,11 +54,11 @@ async function updatePrice({ productNo, deliveryFee, salePrice }: UpdatePricePar
     };
 
     const { originProduct, smartstoreChannelProduct, windowChannelProduct } = await getProduct(
-      productUrl,
+      productURL,
       headers,
     );
     const sanitizedProduct = sanitizeProductForUpdate(originProduct);
-    const response = await fetch(productUrl, {
+    const response = await fetch(productURL, {
       headers,
       method: 'PUT',
       body: JSON.stringify({
