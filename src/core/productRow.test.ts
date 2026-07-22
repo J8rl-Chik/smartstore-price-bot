@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   COLUMN,
   fillEmptyCell,
-  initProductRow,
+  initProductRows,
   isActiveProductRow,
-  findProductRow,
   parseProductRow,
 } from './productRow.js';
 
@@ -12,7 +11,7 @@ type CreateProductRowOption = Partial<Record<keyof typeof COLUMN, string>>;
 
 const createProductRow = ({
   name = '테스트 상품',
-  catalogUrl = 'https://example.com/catalog',
+  catalogURL = 'https://example.com/catalog',
   activate = 'TRUE',
   feeType = '무료',
   freeDeliveryPrice = '₩10,000',
@@ -23,7 +22,7 @@ const createProductRow = ({
 }: CreateProductRowOption = {}): string[] => {
   const row: string[] = [];
   row[COLUMN.name] = name;
-  row[COLUMN.catalogUrl] = catalogUrl;
+  row[COLUMN.catalogURL] = catalogURL;
   row[COLUMN.activate] = activate;
   row[COLUMN.feeType] = feeType;
   row[COLUMN.freeDeliveryPrice] = freeDeliveryPrice;
@@ -35,18 +34,6 @@ const createProductRow = ({
   return row;
 };
 
-describe('findProductRow', () => {
-  const productRows = [createProductRow({ name: '상품A' }), createProductRow({ name: '상품B' })];
-
-  it('이름이 일치하는 행을 찾는다', () => {
-    expect(findProductRow(productRows, '상품B')).toBe(productRows[1]);
-  });
-
-  it('일치하는 행이 없으면 undefined를 반환한다', () => {
-    expect(findProductRow(productRows, '상품C')).toBeUndefined();
-  });
-});
-
 describe('fillEmptyCell', () => {
   it('원시 행 값을 컬럼 위치에 맞게 유지한다', () => {
     const rawRow: string[] = [];
@@ -57,11 +44,11 @@ describe('fillEmptyCell', () => {
 
   it('원시 행이 짧아도 부족한 칸을 빈 문자열로 채운다', () => {
     const shortRawRow: string[] = [];
-    shortRawRow[COLUMN.name] = '상품A'; // catalogUrl(1) 이후 칸이 없는 짧은 행
+    shortRawRow[COLUMN.name] = '상품A'; // catalogURL(1) 이후 칸이 없는 짧은 행
 
     const productRow = fillEmptyCell(shortRawRow);
 
-    expect(productRow[COLUMN.catalogUrl]).toBe('');
+    expect(productRow[COLUMN.catalogURL]).toBe('');
     expect(productRow[COLUMN.excludedSellers]).toBe('');
   });
 });
@@ -76,18 +63,18 @@ describe('isActiveProductRow', () => {
   });
 });
 
-describe('initProductRow', () => {
+describe('initProductRows', () => {
   it('활성화된(activate가 TRUE인) 행만 파싱해서 반환한다', () => {
     const rawRows = [
       createProductRow({ name: '상품A', activate: 'TRUE' }),
       createProductRow({ name: '상품B', activate: 'FALSE' }),
     ];
 
-    expect(initProductRow(rawRows).map((productRow) => productRow.name)).toEqual(['상품A']);
+    expect(initProductRows(rawRows).map((productRow) => productRow.name)).toEqual(['상품A']);
   });
 
   it('빈 배열이면 빈 배열을 반환한다', () => {
-    expect(initProductRow([])).toEqual([]);
+    expect(initProductRows([])).toEqual([]);
   });
 
   it('가격 필드(freeDeliveryPrice, productPrice, baseFee)가 유효하지 않은 행은 건너뛴다', () => {
@@ -96,7 +83,7 @@ describe('initProductRow', () => {
 
     const rawRows = [createProductRow({ name: '상품A' }), invalidPriceRow];
 
-    expect(initProductRow(rawRows).map((productRow) => productRow.name)).toEqual(['상품A']);
+    expect(initProductRows(rawRows).map((productRow) => productRow.name)).toEqual(['상품A']);
   });
 
   it('배송비 유형이 알 수 없는 값이면 에러를 던진다', () => {
@@ -105,7 +92,7 @@ describe('initProductRow', () => {
 
     const rawRows = [createProductRow({ name: '상품A' }), invalidFeeTypeRow];
 
-    expect(() => initProductRow(rawRows)).toThrow('알 수 없는 배송비 유형입니다');
+    expect(() => initProductRows(rawRows)).toThrow('알 수 없는 배송비 유형입니다');
   });
 });
 
@@ -113,13 +100,13 @@ describe('parseProductRow', () => {
   it('각 컬럼을 의미 있는 필드명으로 매핑한다', () => {
     const row = createProductRow({
       name: '무선 이어폰',
-      catalogUrl: 'https://example.com/catalog/1',
+      catalogURL: 'https://example.com/catalog/1',
       feeType: '유료',
     });
     const result = parseProductRow(row);
 
     expect(result.name).toBe('무선 이어폰');
-    expect(result.catalogUrl).toBe('https://example.com/catalog/1');
+    expect(result.catalogURL).toBe('https://example.com/catalog/1');
     expect(result.feeType).toBe('유료');
   });
 
@@ -181,12 +168,7 @@ describe('parseProductRow > excludedSellerNames', () => {
   it('마지막에 콤마가 남아있으면 끝에 빈 문자열이 추가된다', () => {
     const row = createProductRow({ excludedSellers: '판매처A, 판매처B,판매처C, ' });
 
-    expect(parseProductRow(row).excludedSellerNames).toEqual([
-      '판매처A',
-      '판매처B',
-      '판매처C',
-      '',
-    ]);
+    expect(parseProductRow(row).excludedSellerNames).toEqual(['판매처A', '판매처B', '판매처C', '']);
   });
 });
 

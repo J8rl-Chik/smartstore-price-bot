@@ -4,7 +4,7 @@ import { DELIVERY_FEE_TYPE, type DeliveryFeeType } from './constant.js';
 // 구글 시트 "A~L" 범위 12개 컬럼의 인덱스.
 export const COLUMN = {
   name: 0,
-  catalogUrl: 1,
+  catalogURL: 1,
   activate: 2,
   feeType: 6,
   freeDeliveryPrice: 7,
@@ -21,7 +21,7 @@ export type ProductRow = string[];
 
 export interface ParsedProductRow {
   name: string;
-  catalogUrl: string;
+  catalogURL: string;
   activate: string;
   feeType: DeliveryFeeType;
   freeDeliveryPrice: number;
@@ -96,7 +96,7 @@ export const parseProductRow = (row: ProductRow): ParsedProductRow => {
   try {
     const {
       name,
-      catalogUrl,
+      catalogURL,
       activate,
       feeType,
       freeDeliveryPrice,
@@ -108,7 +108,7 @@ export const parseProductRow = (row: ProductRow): ParsedProductRow => {
 
     return {
       name,
-      catalogUrl,
+      catalogURL,
       activate,
       feeType: validateFeeType(feeType),
       freeDeliveryPrice: parseToNumberFromKRW(freeDeliveryPrice),
@@ -132,7 +132,7 @@ export const parseProductRow = (row: ProductRow): ParsedProductRow => {
  * 가격 필드가 유효한 행만 남긴 뒤(hasValidPrice) 파싱한다(parseProductRow).
  * 시트에 유효하지 않은 가격 값이 섞여 있어도 해당 행만 건너뛰고 계속 진행한다.
  */
-export const initProductRow = (rawRows: string[][]): ParsedProductRow[] =>
+export const initProductRows = (rawRows: string[][]): ParsedProductRow[] =>
   rawRows
     .filter(isActiveProductRow)
     .map(fillEmptyCell)
@@ -146,9 +146,3 @@ export const initProductRow = (rawRows: string[][]): ParsedProductRow[] =>
       );
     })
     .map(parseProductRow);
-
-export const findProductRow = (
-  productRows: ProductRow[],
-  productName: string,
-): ProductRow | undefined =>
-  productRows.find((productRow) => productRow[COLUMN.name] === productName);
