@@ -19,15 +19,21 @@ describe('createPage', () => {
     mockLaunch.mockReset();
   });
 
-  it('브라우저의 첫 번째 페이지를 반환한다', async () => {
+  it('브라우저와 그 첫 번째 페이지를 함께 반환한다', async () => {
     const mockPage = createMockPage();
-    mockLaunch.mockResolvedValue({ pages: () => Promise.resolve([mockPage]) });
+    const mockBrowser = { pages: () => Promise.resolve([mockPage]) };
 
-    await expect(createPage()).resolves.toBe(mockPage);
+    mockLaunch.mockResolvedValue(mockBrowser);
+
+    const result = await createPage();
+
+    expect(result.browser).toBe(mockBrowser);
+    expect(result.page).toBe(mockPage);
   });
 
   it('headless: false로 브라우저를 실행한다', async () => {
     const mockPage = createMockPage();
+
     mockLaunch.mockResolvedValue({ pages: () => Promise.resolve([mockPage]) });
 
     await createPage();
@@ -37,6 +43,7 @@ describe('createPage', () => {
 
   it('navigator.webdriver를 숨기는 스크립트를 새 문서에 주입한다', async () => {
     const mockPage = createMockPage();
+
     mockLaunch.mockResolvedValue({ pages: () => Promise.resolve([mockPage]) });
 
     await createPage();
@@ -55,6 +62,7 @@ describe('createPage', () => {
 
   it('브라우저 실행이 실패하면 원인을 보존한 채 에러를 던진다', async () => {
     const launchError = new Error('브라우저 실행 실패');
+
     mockLaunch.mockRejectedValue(launchError);
 
     await expect(createPage()).rejects.toMatchObject({
