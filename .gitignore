@@ -1,3 +1,5 @@
 node_modules
 googleSheetKey.json
 .env
+dist
+coverage
