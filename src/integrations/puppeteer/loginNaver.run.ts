@@ -1,11 +1,11 @@
 import createPage from './createPage.js';
-import naverLogin from './naverLogin.js';
+import loginNaver from './loginNaver.js';
 import isManualTestRun from '../../util/isManualTestRun.js';
 
 if (isManualTestRun(import.meta.url)) {
   createPage().then(async ({ page }) => {
-    await naverLogin(page);
+    await loginNaver(page);
 
-    console.log('naverLogin 함수 테스트: 로그인 완료');
+    console.log('loginNaver 함수 테스트: 로그인 완료');
   });
 }

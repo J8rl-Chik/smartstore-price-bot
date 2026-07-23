@@ -4,7 +4,7 @@ import getSaleProducts from './integrations/naver/getSaleProducts.js';
 import getProductRows from './integrations/google/getProductRows.js';
 import createPage from './integrations/puppeteer/createPage.js';
 import getSellersInPuppeteer from './integrations/puppeteer/getSellersInPuppeteer.js';
-import naverLogin from './integrations/puppeteer/naverLogin.js';
+import loginNaver from './integrations/puppeteer/loginNaver.js';
 import updatePrice from './integrations/naver/updatePrice.js';
 import delaySeconds from './util/delaySeconds.js';
 import delayMinutes from './util/delayMinutes.js';
@@ -33,7 +33,7 @@ const start = async (): Promise<void> => {
     const { browser, page } = await createPage();
     let productCount = 0;
 
-    await naverLogin(page);
+    await loginNaver(page);
     await delaySeconds(1);
 
     for (const saleProduct of saleProducts) {

@@ -16,10 +16,9 @@ export const COLUMN = {
 
 type ColumnKey = keyof typeof COLUMN;
 type ValidatedRow = Record<ColumnKey, string>;
+type RawProductRow = string[];
 
-export type ProductRow = string[];
-
-export interface ParsedProductRow {
+interface ProductRow {
   name: string;
   catalogURL: string;
   activate: string;
@@ -31,14 +30,14 @@ export interface ParsedProductRow {
   excludedSellerNames: string[];
 }
 
-export const isActiveProductRow = (rawRow: string[]): boolean => rawRow[COLUMN.activate] === 'TRUE';
+export const isActiveProductRow = (row: RawProductRow): boolean => row[COLUMN.activate] === 'TRUE';
 
 // 시트에서 읽은 원시 행(길이가 제각각일 수 있음)을 고정 열 길이 행으로 초기화한다.
-export const fillEmptyCell = (rawRow: string[]): ProductRow => {
+export const fillEmptyCell = (row: RawProductRow): RawProductRow => {
   // 구글 시트 "A~L" 범위
   const columnLength = 12 as const;
 
-  return Array.from({ length: columnLength }, (_, columnIndex) => rawRow[columnIndex] ?? '');
+  return Array.from({ length: columnLength }, (_, columnIndex) => row[columnIndex] ?? '');
 };
 
 const parseVirtualPrice = (virtualPrice: string): number | null => {
@@ -75,15 +74,15 @@ const validateFeeType = (feeType: string): DeliveryFeeType => {
 };
 
 /**
- * ProductRow는 길이가 보장되지 않는 string[]이라 특정 컬럼이 채워져 있다는 보장이 타입만으로는
+ * RawProductRow는 길이가 보장되지 않는 string[]이라 특정 컬럼이 채워져 있다는 보장이 타입만으로는
  * 안 되므로, COLUMN에 정의된 모든 컬럼 값을 한 번에 검증하고, 하나라도 없으면 즉시 실패한다.
  */
-const validateRow = (row: ProductRow): ValidatedRow => {
+const validateRow = (row: RawProductRow): ValidatedRow => {
   const entries = (Object.keys(COLUMN) as ColumnKey[]).map((columnKey): [ColumnKey, string] => {
     const value = row[COLUMN[columnKey]];
 
     if (value === undefined) {
-      throw new Error(`ProductRow에 ${columnKey} 컬럼 값이 없습니다.`);
+      throw new Error(`RawProductRow에 ${columnKey} 컬럼 값이 없습니다.`);
     }
 
     return [columnKey, value];
@@ -92,7 +91,7 @@ const validateRow = (row: ProductRow): ValidatedRow => {
   return Object.fromEntries(entries) as ValidatedRow;
 };
 
-export const parseProductRow = (row: ProductRow): ParsedProductRow => {
+export const parseProductRow = (row: RawProductRow): ProductRow => {
   try {
     const {
       name,
@@ -132,8 +131,8 @@ export const parseProductRow = (row: ProductRow): ParsedProductRow => {
  * 가격 필드가 유효한 행만 남긴 뒤(hasValidPrice) 파싱한다(parseProductRow).
  * 시트에 유효하지 않은 가격 값이 섞여 있어도 해당 행만 건너뛰고 계속 진행한다.
  */
-export const initProductRows = (rawRows: string[][]): ParsedProductRow[] =>
-  rawRows
+export const initProductRows = (rows: RawProductRow[]): ProductRow[] =>
+  rows
     .filter(isActiveProductRow)
     .map(fillEmptyCell)
     .filter((row) => {

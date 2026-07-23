@@ -2,7 +2,7 @@ import puppeteer, { type Browser, type Page } from 'puppeteer';
 
 import setWebdriverFalse from './setWebdriverFalse.js';
 
-export interface BrowserPage {
+interface BrowserPage {
   browser: Browser;
   page: Page;
 }

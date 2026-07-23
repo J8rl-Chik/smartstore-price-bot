@@ -25,7 +25,7 @@ export const getProductName = (saleProduct: SaleProduct): string =>
 export const getOriginProductNo = (saleProduct: SaleProduct): number =>
   getFirstChannelProduct(saleProduct).originProductNo;
 
-export const getSellerManagementCode = (saleProduct: SaleProduct): string | undefined =>
+const getSellerManagementCode = (saleProduct: SaleProduct): string | undefined =>
   getFirstChannelProduct(saleProduct).sellerManagementCode;
 
 export const isNewlyRegisteredProduct = (saleProduct: SaleProduct): boolean =>

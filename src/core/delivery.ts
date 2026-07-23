@@ -43,7 +43,7 @@ interface UnitQuantityPaidDeliveryFee {
 
 export type DeliveryFee = FreeDeliveryFee | PaidDeliveryFee | UnitQuantityPaidDeliveryFee;
 
-export interface PriceWithDeliveryFee {
+interface PriceWithDeliveryFee {
   deliveryFee: DeliveryFee;
   salePrice: number;
 }

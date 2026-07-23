@@ -1,12 +1,12 @@
 import createPage from './createPage.js';
-import naverLogin from './naverLogin.js';
+import loginNaver from './loginNaver.js';
 import getSellersInPuppeteer from './getSellersInPuppeteer.js';
 import delaySeconds from '../../util/delaySeconds.js';
 import isManualTestRun from '../../util/isManualTestRun.js';
 
 if (isManualTestRun(import.meta.url)) {
   createPage().then(async ({ page }) => {
-    await naverLogin(page);
+    await loginNaver(page);
     await delaySeconds(1);
 
     const productURL =

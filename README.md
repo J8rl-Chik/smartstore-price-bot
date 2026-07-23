@@ -10,7 +10,7 @@
 - `getSaleProducts` — 네이버 커머스 API에서 판매 중인 상품 목록 조회
 - `getProductRows` — 구글 시트에서 최저가 자동 수정 활성화된 제품 행 조회
 - `createPage` — Puppeteer로 Chrome 브라우저 실행(페이지 생성)
-- `naverLogin` — 네이버 계정 로그인
+- `loginNaver` — 네이버 계정 로그인
 
 ### 2. 상품별 가격 업데이트 루프
 

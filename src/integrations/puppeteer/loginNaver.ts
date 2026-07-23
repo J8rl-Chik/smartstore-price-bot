@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import type { Page } from 'puppeteer';
 
-const naverLogin = async (page: Page): Promise<void> => {
+const loginNaver = async (page: Page): Promise<void> => {
   try {
     const idSelector = '#id';
     const passwordSelector = '#pw';
@@ -23,4 +23,4 @@ const naverLogin = async (page: Page): Promise<void> => {
   }
 };
 
-export default naverLogin;
+export default loginNaver;

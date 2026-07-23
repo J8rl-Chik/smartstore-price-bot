@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
-import naverLogin from './naverLogin.js';
+import loginNaver from './loginNaver.js';
 
 const createMockPage = () => ({
   goto: vi.fn(),
@@ -8,7 +8,7 @@ const createMockPage = () => ({
   type: vi.fn(),
 });
 
-describe('naverLogin', () => {
+describe('loginNaver', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe('naverLogin', () => {
   it('네이버 로그인 페이지로 이동한다', async () => {
     const mockPage = createMockPage();
 
-    await naverLogin(mockPage as unknown as Page);
+    await loginNaver(mockPage as unknown as Page);
 
     expect(mockPage.goto).toHaveBeenCalledWith('https://nid.naver.com/');
   });
@@ -34,7 +34,7 @@ describe('naverLogin', () => {
   it('아이디/비밀번호 입력란을 클릭한 뒤 환경변수 값을 입력한다', async () => {
     const mockPage = createMockPage();
 
-    await naverLogin(mockPage as unknown as Page);
+    await loginNaver(mockPage as unknown as Page);
 
     expect(mockPage.click).toHaveBeenCalledWith('#id');
     expect(mockPage.type).toHaveBeenCalledWith('#id', 'test-id', { delay: 100 });
@@ -45,7 +45,7 @@ describe('naverLogin', () => {
   it('로그인 버튼을 클릭한다', async () => {
     const mockPage = createMockPage();
 
-    await naverLogin(mockPage as unknown as Page);
+    await loginNaver(mockPage as unknown as Page);
 
     expect(mockPage.click).toHaveBeenCalledWith('#loginBtn_row');
   });
@@ -56,7 +56,7 @@ describe('naverLogin', () => {
 
     mockPage.click.mockRejectedValue(clickError);
 
-    await expect(naverLogin(mockPage as unknown as Page)).rejects.toMatchObject({
+    await expect(loginNaver(mockPage as unknown as Page)).rejects.toMatchObject({
       message: '네이버 로그인에 실패했습니다.',
       cause: clickError,
     });
@@ -68,7 +68,7 @@ describe('naverLogin', () => {
 
     mockPage.goto.mockRejectedValue(gotoError);
 
-    await expect(naverLogin(mockPage as unknown as Page)).rejects.toMatchObject({
+    await expect(loginNaver(mockPage as unknown as Page)).rejects.toMatchObject({
       message: '네이버 로그인에 실패했습니다.',
       cause: gotoError,
     });
