@@ -3,7 +3,9 @@ import 'dotenv/config';
 import getSaleProducts from './integrations/smartStore/getSaleProducts.js';
 import getProductRows from './integrations/googleSheets/getProductRows.js';
 import createPage from './integrations/puppeteer/createPage.js';
-import getSellersInPuppeteer from './integrations/puppeteer/getSellersInPuppeteer.js';
+import getSellersInPuppeteer, {
+  UnexpectedCatalogPageError,
+} from './integrations/puppeteer/getSellersInPuppeteer.js';
 import loginNaver from './integrations/puppeteer/loginNaver.js';
 import updatePrice from './integrations/smartStore/updatePrice.js';
 import delaySeconds from './utils/delaySeconds.js';
@@ -91,8 +93,13 @@ const start = async (): Promise<void> => {
           }
         }
       } catch (error) {
-        // 재로그인 재시도까지 실패하는 등 이 상품에서 복구 불가능한 에러가 나도, 전체 실행이
-        // 죽지 않도록 로그만 남기고 다음 상품으로 넘어간다.
+        if (error instanceof UnexpectedCatalogPageError) {
+          // 세션 자체가 신뢰할 수 없는 상태(로그인 리다이렉트 등)라, 상품을 건너뛰지 않고
+          // 실행을 즉시 중단해 문제를 바로 알아챌 수 있게 한다.
+          throw error;
+        }
+
+        // 그 외 에러는 이 상품만의 문제일 수 있으니, 로그만 남기고 다음 상품으로 넘어간다.
         console.error(`${productName}: 처리 중 에러가 발생해 건너뜁니다.`, error);
       }
 
