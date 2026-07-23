@@ -57,37 +57,43 @@ const start = async (): Promise<void> => {
       productCount += 1;
       console.log(`${productCount}번째: ${productName}`);
 
-      const sellers = await getSellersInPuppeteer(page, productRow.catalogURL, productName);
+      try {
+        const sellers = await getSellersInPuppeteer(page, productRow.catalogURL, productName);
 
-      if (sellers.length === 0) {
-        console.log(`${productName}: 가격 목록이 없습니다.`);
-      } else {
-        const currentMyStore = sellers.find(({ name }) => name === myStoreName);
-        const sellerPrices = filterExcludedSellers(sellers, [
-          ...productRow.excludedSellerNames,
-          myStoreName,
-        ]).map(({ price }) => price);
-        const prices = addVirtualPrice(sellerPrices, productRow.virtualPrice);
+        if (sellers.length === 0) {
+          console.log(`${productName}: 가격 목록이 없습니다.`);
+        } else {
+          const currentMyStore = sellers.find(({ name }) => name === myStoreName);
+          const sellerPrices = filterExcludedSellers(sellers, [
+            ...productRow.excludedSellerNames,
+            myStoreName,
+          ]).map(({ price }) => price);
+          const prices = addVirtualPrice(sellerPrices, productRow.virtualPrice);
 
-        console.log(prices);
+          console.log(prices);
 
-        const { freeDeliveryPrice, feeType, baseFee } = productRow;
-        const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
+          const { freeDeliveryPrice, feeType, baseFee } = productRow;
+          const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
 
-        if (isUpdateRequired(currentMyStore, targetPrice, feeType)) {
-          const delivery = createDelivery({ feeType, baseFee });
-          const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
+          if (isUpdateRequired(currentMyStore, targetPrice, feeType)) {
+            const delivery = createDelivery({ feeType, baseFee });
+            const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
 
-          const result = await updatePrice({
-            productNo: getOriginProductNo(saleProduct),
-            deliveryFee,
-            salePrice,
-          });
+            const result = await updatePrice({
+              productNo: getOriginProductNo(saleProduct),
+              deliveryFee,
+              salePrice,
+            });
 
-          if (Object.hasOwn(result, 'message')) {
-            console.error(`${productName}: ${result.message}`);
+            if (Object.hasOwn(result, 'message')) {
+              console.error(`${productName}: ${result.message}`);
+            }
           }
         }
+      } catch (error) {
+        // 재로그인 재시도까지 실패하는 등 이 상품에서 복구 불가능한 에러가 나도, 전체 실행이
+        // 죽지 않도록 로그만 남기고 다음 상품으로 넘어간다.
+        console.error(`${productName}: 처리 중 에러가 발생해 건너뜁니다.`, error);
       }
 
       if (productCount % PRODUCTS_PER_BROWSER_SESSION === 0) {
