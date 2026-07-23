@@ -5,7 +5,7 @@ import delaySeconds from '../../utils/delaySeconds.js';
 import isManualTestRun from '../../utils/isManualTestRun.js';
 
 if (isManualTestRun(import.meta.url)) {
-  createPage().then(async ({ page }) => {
+  createPage().then(async ({ page, browser }) => {
     await loginNaver(page);
     await delaySeconds(1);
 
@@ -17,6 +17,6 @@ if (isManualTestRun(import.meta.url)) {
 
     console.log(sellers);
 
-    await page.close();
+    await browser.close();
   });
 }

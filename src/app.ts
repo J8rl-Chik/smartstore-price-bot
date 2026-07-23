@@ -15,6 +15,19 @@ import { filterExcludedSellers, addVirtualPrice } from './domain/sellers.js';
 import { calculateTargetPrice, isUpdateRequired } from './domain/pricing.js';
 import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js';
 
+// 한 세션에서 너무 많은 상품을 연달아 조회하면 네이버가 봇으로 의심해 세션을 끊고 로그인
+// 화면으로 돌려보낸다. 임계치(9~10개) 이전에 여유를 두고 브라우저를 새로 열어 재로그인한다.
+const PRODUCTS_PER_BROWSER_SESSION = 7;
+
+const createLoggedInPage = async () => {
+  const { browser, page } = await createPage();
+
+  await loginNaver(page);
+  await delaySeconds(1);
+
+  return { browser, page };
+};
+
 const start = async (): Promise<void> => {
   const myStoreName = validateEnv('SMART_STORE_NAME');
 
@@ -30,11 +43,8 @@ const start = async (): Promise<void> => {
 
     const saleProducts = await getSaleProducts();
     const productRows = initProductRows(await getProductRows());
-    const { browser, page } = await createPage();
+    let { browser, page } = await createLoggedInPage();
     let productCount = 0;
-
-    await loginNaver(page);
-    await delaySeconds(1);
 
     for (const saleProduct of saleProducts) {
       const productName = getProductName(saleProduct);
@@ -51,35 +61,38 @@ const start = async (): Promise<void> => {
 
       if (sellers.length === 0) {
         console.log(`${productName}: 가격 목록이 없습니다.`);
+      } else {
+        const currentMyStore = sellers.find(({ name }) => name === myStoreName);
+        const sellerPrices = filterExcludedSellers(sellers, [
+          ...productRow.excludedSellerNames,
+          myStoreName,
+        ]).map(({ price }) => price);
+        const prices = addVirtualPrice(sellerPrices, productRow.virtualPrice);
 
-        continue;
+        console.log(prices);
+
+        const { freeDeliveryPrice, feeType, baseFee } = productRow;
+        const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
+
+        if (isUpdateRequired(currentMyStore, targetPrice, feeType)) {
+          const delivery = createDelivery({ feeType, baseFee });
+          const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
+
+          const result = await updatePrice({
+            productNo: getOriginProductNo(saleProduct),
+            deliveryFee,
+            salePrice,
+          });
+
+          if (Object.hasOwn(result, 'message')) {
+            console.error(`${productName}: ${result.message}`);
+          }
+        }
       }
 
-      const currentMyStore = sellers.find(({ name }) => name === myStoreName);
-      const sellerPrices = filterExcludedSellers(sellers, [
-        ...productRow.excludedSellerNames,
-        myStoreName,
-      ]).map(({ price }) => price);
-      const prices = addVirtualPrice(sellerPrices, productRow.virtualPrice);
-
-      console.log(prices);
-
-      const { freeDeliveryPrice, feeType, baseFee } = productRow;
-      const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
-
-      if (isUpdateRequired(currentMyStore, targetPrice, feeType)) {
-        const delivery = createDelivery({ feeType, baseFee });
-        const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
-
-        const result = await updatePrice({
-          productNo: getOriginProductNo(saleProduct),
-          deliveryFee,
-          salePrice,
-        });
-
-        if (Object.hasOwn(result, 'message')) {
-          console.error(`${productName}: ${result.message}`);
-        }
+      if (productCount % PRODUCTS_PER_BROWSER_SESSION === 0) {
+        await browser.close();
+        ({ browser, page } = await createLoggedInPage());
       }
     }
 

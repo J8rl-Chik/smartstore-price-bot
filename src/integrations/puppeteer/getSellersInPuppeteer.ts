@@ -1,6 +1,7 @@
 import type { Page } from 'puppeteer';
 
 import type { Seller } from '../../domain/sellers.js';
+import delayRandomSeconds from '../../utils/delayRandomSeconds.js';
 import parseSellerItem from './parseSellerItem.js';
 
 export const SELLER_ITEM_SELECTOR = '[class^="product_seller_info_wrap__"]';
@@ -14,10 +15,19 @@ const getSellerItemHTMLList = async (
   const encodedName = encodeURIComponent(productName).replaceAll('(', '%28').replaceAll(')', '%29');
   const referer = `https://search.shopping.naver.com/search/all?query=${encodedName}&vertical=search`;
 
-  await page.goto(referer, { referer: 'https://search.shopping.naver.com/home' });
-  await page.goto(catalogURL, { referer });
+  await page.goto('https://www.naver.com/');
+  await delayRandomSeconds(2, 5);
 
-  // 요소 객체를 가져올 수 없어 outerHTML를 가져온다.
+  await page.goto('https://search.shopping.naver.com/home', { referer: 'https://www.naver.com/' });
+  await delayRandomSeconds(2, 5);
+
+  await page.goto(referer, { referer: 'https://search.shopping.naver.com/home' });
+  await delayRandomSeconds(2, 5);
+
+  await page.goto(catalogURL, { referer });
+  await delayRandomSeconds(2, 5);
+
+  // // 요소 객체를 가져올 수 없어 outerHTML를 가져온다.
   return page.evaluate(
     (selector) => Array.from(document.querySelectorAll(selector)).map((item) => item.outerHTML),
     SELLER_ITEM_SELECTOR,

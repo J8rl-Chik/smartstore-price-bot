@@ -1,15 +1,21 @@
 import 'dotenv/config';
 import type { Page } from 'puppeteer';
 
+import delayRandomSeconds from '../../utils/delayRandomSeconds.js';
+
 const loginNaver = async (page: Page): Promise<void> => {
   try {
+    await page.goto('https://www.naver.com/');
+    await delayRandomSeconds(2, 5);
+
     const idSelector = '#id';
     const passwordSelector = '#pw';
     const loginButtonSelector = '#loginBtn_row';
     const typeDelay = 100;
     const { NAVER_ID, NAVER_PASSWORD } = process.env;
 
-    await page.goto('https://nid.naver.com/');
+    await page.goto('https://nid.naver.com/', { referer: 'https://www.naver.com/' });
+    await delayRandomSeconds(2, 5);
 
     await page.click(idSelector);
     await page.type(idSelector, NAVER_ID as string, { delay: typeDelay });

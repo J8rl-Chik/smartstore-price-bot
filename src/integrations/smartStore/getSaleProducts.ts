@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 
 import type { SaleProduct } from '../../domain/saleProduct.js';
+import shuffleArray from '../../utils/shuffleArray.js';
 import generateAccessToken from './generateAccessToken.js';
 import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
@@ -28,7 +29,8 @@ async function getSaleProducts(): Promise<SaleProduct[]> {
 
     checkSmartStoreApiSucceeded(result);
 
-    return result.contents;
+    // 매번 앞쪽 상품만 처리되는 걸 막기 위해 순서를 무작위로 섞는다.
+    return shuffleArray(result.contents);
   } catch (error) {
     throw new Error('네이버 판매 상품 목록을 가져오지 못했습니다.', { cause: error });
   }
