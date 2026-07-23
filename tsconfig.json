@@ -10,7 +10,8 @@
     "types": ["node"],
     "outDir": "dist",
     "rootDir": "src",
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src"]
 }

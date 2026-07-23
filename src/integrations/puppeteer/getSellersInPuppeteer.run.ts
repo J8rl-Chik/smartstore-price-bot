@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import createPage from './createPage.js';
 import loginNaver from './loginNaver.js';
 import getSellersInPuppeteer from './getSellersInPuppeteer.js';

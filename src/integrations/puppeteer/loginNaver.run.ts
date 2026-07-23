@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import createPage from './createPage.js';
 import loginNaver from './loginNaver.js';
 import isManualTestRun from '../../utils/isManualTestRun.js';
