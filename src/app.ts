@@ -1,19 +1,19 @@
 import 'dotenv/config';
 
-import getSaleProducts from './integrations/naver/getSaleProducts.js';
-import getProductRows from './integrations/google/getProductRows.js';
+import getSaleProducts from './integrations/smartStore/getSaleProducts.js';
+import getProductRows from './integrations/googleSheets/getProductRows.js';
 import createPage from './integrations/puppeteer/createPage.js';
 import getSellersInPuppeteer from './integrations/puppeteer/getSellersInPuppeteer.js';
 import loginNaver from './integrations/puppeteer/loginNaver.js';
-import updatePrice from './integrations/naver/updatePrice.js';
-import delaySeconds from './util/delaySeconds.js';
-import delayMinutes from './util/delayMinutes.js';
-import validateEnv from './util/validateEnv.js';
-import { initProductRows } from './core/productRow.js';
-import { getProductName, getOriginProductNo } from './core/saleProduct.js';
-import { filterExcludedSellers, addVirtualPrice } from './core/sellers.js';
-import { calculateTargetPrice, isUpdateRequired } from './core/pricing.js';
-import { buildPriceWithDeliveryFee, createDelivery } from './core/delivery.js';
+import updatePrice from './integrations/smartStore/updatePrice.js';
+import delaySeconds from './utils/delaySeconds.js';
+import delayMinutes from './utils/delayMinutes.js';
+import validateEnv from './utils/validateEnv.js';
+import { initProductRows } from './domain/productRow.js';
+import { getProductName, getOriginProductNo } from './domain/saleProduct.js';
+import { filterExcludedSellers, addVirtualPrice } from './domain/sellers.js';
+import { calculateTargetPrice, isUpdateRequired } from './domain/pricing.js';
+import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js';
 
 const start = async (): Promise<void> => {
   const myStoreName = validateEnv('SMART_STORE_NAME');

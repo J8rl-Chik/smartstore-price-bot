@@ -1,8 +1,8 @@
 import 'dotenv/config';
 
 import getProductRows from './getProductRows.js';
-import isManualTestRun from '../../util/isManualTestRun.js';
-import { initProductRows } from '../../core/productRow.js';
+import isManualTestRun from '../../utils/isManualTestRun.js';
+import { initProductRows } from '../../domain/productRow.js';
 
 if (isManualTestRun(import.meta.url)) {
   getProductRows().then((productRows) => {

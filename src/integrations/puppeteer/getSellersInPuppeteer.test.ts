@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
 import getSellersInPuppeteer, { SELLER_ITEM_SELECTOR } from './getSellersInPuppeteer.js';
-import { DELIVERY_FEE_TYPE } from '../../core/constant.js';
-import type { Seller } from '../../core/sellers.js';
+import { DELIVERY_FEE_TYPE } from '../../domain/constant.js';
+import type { Seller } from '../../domain/sellers.js';
 
 const mockParseSellerItem = vi.fn();
 

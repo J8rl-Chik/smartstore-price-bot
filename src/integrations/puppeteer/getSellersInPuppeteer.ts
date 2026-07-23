@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer';
 
-import type { Seller } from '../../core/sellers.js';
+import type { Seller } from '../../domain/sellers.js';
 import parseSellerItem from './parseSellerItem.js';
 
 export const SELLER_ITEM_SELECTOR = '[class^="product_seller_info_wrap__"]';

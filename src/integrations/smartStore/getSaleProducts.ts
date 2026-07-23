@@ -1,10 +1,12 @@
 import fetch from 'node-fetch';
 
-import type { SaleProduct } from '../../core/saleProduct.js';
+import type { SaleProduct } from '../../domain/saleProduct.js';
 import generateAccessToken from './generateAccessToken.js';
-import checkNaverApiSucceeded, { type NaverApiResult } from './checkNaverApiSucceeded.js';
+import checkSmartStoreApiSucceeded, {
+  type SmartStoreApiResult,
+} from './checkSmartStoreApiSucceeded.js';
 
-interface SaleProductsResult extends NaverApiResult {
+interface SaleProductsResult extends SmartStoreApiResult {
   contents: SaleProduct[];
 }
 
@@ -24,7 +26,7 @@ async function getSaleProducts(): Promise<SaleProduct[]> {
     });
     const result: SaleProductsResult = await response.json();
 
-    checkNaverApiSucceeded(result);
+    checkSmartStoreApiSucceeded(result);
 
     return result.contents;
   } catch (error) {

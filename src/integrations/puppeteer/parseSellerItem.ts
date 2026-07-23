@@ -1,8 +1,8 @@
 import { JSDOM } from 'jsdom';
 
-import { DELIVERY_FEE_TYPE } from '../../core/constant.js';
-import parseToNumberFromKRW from '../../core/parseToNumberFromKRW.js';
-import type { Seller } from '../../core/sellers.js';
+import { DELIVERY_FEE_TYPE } from '../../domain/constant.js';
+import parseToNumberFromKRW from '../../domain/parseToNumberFromKRW.js';
+import type { Seller } from '../../domain/sellers.js';
 
 interface Delivery {
   fee: number;

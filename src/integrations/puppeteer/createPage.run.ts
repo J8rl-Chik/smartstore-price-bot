@@ -1,5 +1,5 @@
 import createPage from './createPage.js';
-import isManualTestRun from '../../util/isManualTestRun.js';
+import isManualTestRun from '../../utils/isManualTestRun.js';
 
 if (isManualTestRun(import.meta.url)) {
   createPage().then(() => {

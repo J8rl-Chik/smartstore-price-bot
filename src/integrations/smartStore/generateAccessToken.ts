@@ -2,9 +2,11 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import fetch from 'node-fetch';
 
-import checkNaverApiSucceeded, { type NaverApiResult } from './checkNaverApiSucceeded.js';
+import checkSmartStoreApiSucceeded, {
+  type SmartStoreApiResult,
+} from './checkSmartStoreApiSucceeded.js';
 
-interface AccessTokenResult extends NaverApiResult {
+interface AccessTokenResult extends SmartStoreApiResult {
   access_token: string;
 }
 
@@ -34,7 +36,7 @@ async function generateAccessToken(): Promise<string> {
 
     const result: AccessTokenResult = await response.json();
 
-    checkNaverApiSucceeded(result);
+    checkSmartStoreApiSucceeded(result);
 
     return result.access_token;
   } catch (error) {

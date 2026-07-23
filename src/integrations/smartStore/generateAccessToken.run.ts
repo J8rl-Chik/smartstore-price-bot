@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import generateAccessToken from './generateAccessToken.js';
-import isManualTestRun from '../../util/isManualTestRun.js';
+import isManualTestRun from '../../utils/isManualTestRun.js';
 
 if (isManualTestRun(import.meta.url)) {
   generateAccessToken().then(() => {

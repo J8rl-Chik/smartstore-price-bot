@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import getSaleProducts from './getSaleProducts.js';
-import { type SaleProduct } from '../../core/saleProduct.js';
+import { type SaleProduct } from '../../domain/saleProduct.js';
 
 const mockFetch = vi.fn();
 const mockGenerateAccessToken = vi.fn();
@@ -32,7 +32,7 @@ describe('getSaleProducts', () => {
       json: () => Promise.resolve({ contents: [existingProduct, newProduct] }),
     });
 
-    // 신규 등록 상품 제외는 core/saleProduct.js(excludeNewlyRegisteredProducts)의 책임이라
+    // 신규 등록 상품 제외는 domain/saleProduct.js(excludeNewlyRegisteredProducts)의 책임이라
     // getSaleProducts는 필터링 없이 원본 목록을 그대로 반환해야 한다.
     await expect(getSaleProducts()).resolves.toEqual([existingProduct, newProduct]);
   });

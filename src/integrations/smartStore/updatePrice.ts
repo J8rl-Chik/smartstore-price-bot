@@ -1,8 +1,10 @@
 import fetch from 'node-fetch';
 
-import type { DeliveryFee } from '../../core/delivery.js';
+import type { DeliveryFee } from '../../domain/delivery.js';
 import generateAccessToken from './generateAccessToken.js';
-import checkNaverApiSucceeded, { type NaverApiResult } from './checkNaverApiSucceeded.js';
+import checkSmartStoreApiSucceeded, {
+  type SmartStoreApiResult,
+} from './checkSmartStoreApiSucceeded.js';
 
 interface UpdatePriceParam {
   productNo: number;
@@ -74,9 +76,9 @@ async function updatePrice({ productNo, deliveryFee, salePrice }: UpdatePricePar
         windowChannelProduct,
       }),
     });
-    const result: NaverApiResult = await response.json();
+    const result: SmartStoreApiResult = await response.json();
 
-    checkNaverApiSucceeded(result);
+    checkSmartStoreApiSucceeded(result);
 
     return result;
   } catch (error) {

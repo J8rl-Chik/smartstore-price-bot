@@ -1,8 +1,8 @@
 import createPage from './createPage.js';
 import loginNaver from './loginNaver.js';
 import getSellersInPuppeteer from './getSellersInPuppeteer.js';
-import delaySeconds from '../../util/delaySeconds.js';
-import isManualTestRun from '../../util/isManualTestRun.js';
+import delaySeconds from '../../utils/delaySeconds.js';
+import isManualTestRun from '../../utils/isManualTestRun.js';
 
 if (isManualTestRun(import.meta.url)) {
   createPage().then(async ({ page }) => {
