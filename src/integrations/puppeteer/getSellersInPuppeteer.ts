@@ -13,8 +13,15 @@ export const SELLER_ITEM_SELECTOR = '[class^="product_seller_info_wrap__"]';
  */
 export class UnexpectedCatalogPageError extends Error {}
 
-const isOnExpectedCatalogPage = (page: Page, catalogURL: string): boolean =>
-  new URL(page.url()).pathname === new URL(catalogURL).pathname;
+/**
+ * rate limit에 걸리면 URL은 그대로 카탈로그 페이지인 채로 "쇼핑 접속이 일시적으로
+ * 제한되었습니다" 같은 안내 문구만 렌더링된다. URL 비교로는 이 경우를 잡을 수 없어
+ * 페이지 텍스트를 직접 확인한다.
+ */
+const RESTRICTED_PAGE_MESSAGE = '쇼핑 서비스 접속이 일시적';
+
+const isRestrictedPage = (page: Page): Promise<boolean> =>
+  page.evaluate((message) => document.body.innerText.includes(message), RESTRICTED_PAGE_MESSAGE);
 
 const navigateToCatalog = async (
   page: Page,
@@ -24,11 +31,23 @@ const navigateToCatalog = async (
   await page.goto('https://search.shopping.naver.com/home', { referer: 'https://www.naver.com/' });
   await delayRandomSeconds(2, 5);
 
+  if (await isRestrictedPage(page)) {
+    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
+  }
+
   await page.goto(referer, { referer: 'https://search.shopping.naver.com/home' });
   await delayRandomSeconds(2, 5);
 
+  if (await isRestrictedPage(page)) {
+    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
+  }
+
   await page.goto(catalogURL, { referer });
   await delayRandomSeconds(2, 5);
+
+  if (await isRestrictedPage(page)) {
+    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
+  }
 };
 
 const getSellerItemHTMLList = async (
@@ -41,12 +60,6 @@ const getSellerItemHTMLList = async (
   const referer = `https://search.shopping.naver.com/search/all?query=${encodedName}&vertical=search`;
 
   await navigateToCatalog(page, catalogURL, referer);
-
-  if (!isOnExpectedCatalogPage(page, catalogURL)) {
-    throw new UnexpectedCatalogPageError(
-      `가격비교 페이지 대신 다른 페이지로 이동했습니다: ${page.url()}`,
-    );
-  }
 
   // 요소 객체를 가져올 수 없어 outerHTML를 가져온다.
   return page.evaluate(

@@ -21,10 +21,21 @@ import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js'
 // 화면으로 돌려보낸다. 임계치(9~10개) 이전에 여유를 두고 브라우저를 새로 열어 재로그인한다.
 const PRODUCTS_PER_BROWSER_SESSION = 7;
 
+// 브라우저를 새로 열 때마다 아이디를 번갈아 써서 한 계정에 요청이 몰리지 않게 한다.
+const naverIds = [validateEnv('NAVER_ID'), validateEnv('NAVER_ID2')];
+let naverIdIndex = 0;
+
 const createLoggedInPage = async () => {
   const { browser, page } = await createPage();
+  const naverId = naverIds[naverIdIndex % naverIds.length];
 
-  await loginNaver(page);
+  if (naverId === undefined) {
+    throw new Error('사용할 네이버 아이디가 없습니다.');
+  }
+
+  naverIdIndex += 1;
+
+  await loginNaver(page, naverId);
   await delaySeconds(1);
 
   return { browser, page };

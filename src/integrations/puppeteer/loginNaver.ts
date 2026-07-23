@@ -4,7 +4,7 @@ import type { Page } from 'puppeteer';
 import delayRandomSeconds from '../../utils/delayRandomSeconds.js';
 import validateEnv from '../../utils/validateEnv.js';
 
-const loginNaver = async (page: Page): Promise<void> => {
+const loginNaver = async (page: Page, naverId: string): Promise<void> => {
   try {
     await page.goto('https://www.naver.com/');
     await delayRandomSeconds(2, 5);
@@ -16,7 +16,6 @@ const loginNaver = async (page: Page): Promise<void> => {
     const passwordSelector = '#pw';
     const loginButtonSelector = '#loginBtn_row';
     const typeDelay = 100;
-    const naverId = validateEnv('NAVER_ID');
     const naverPassword = validateEnv('NAVER_PASSWORD');
 
     await page.click(idSelector);
