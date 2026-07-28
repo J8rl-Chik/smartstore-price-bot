@@ -25,6 +25,7 @@ const PRODUCTS_PER_BROWSER_SESSION = 7;
 const naverIds = [validateEnv('NAVER_ID'), validateEnv('NAVER_ID2')];
 let naverIdIndex = 0;
 
+// TODO: 분리할 필요있는지 확인, 에러 발생시 프로그램 종료되는지 확인.
 const createLoggedInPage = async () => {
   const { browser, page } = await createPage();
   const naverId = naverIds[naverIdIndex % naverIds.length];
@@ -73,6 +74,7 @@ const start = async (): Promise<void> => {
       try {
         const sellers = await getSellersInPuppeteer(page, productRow.catalogURL, productName);
 
+        // TODO: 판매처 목록 없으면 continue로 수정, else 제거.
         if (sellers.length === 0) {
           console.log(`${productName}: 가격 목록이 없습니다.`);
         } else {
@@ -104,6 +106,7 @@ const start = async (): Promise<void> => {
           }
         }
       } catch (error) {
+        // TODO: 프로그램을 강제 종료 시키는 예외 Class 생성.
         if (error instanceof UnexpectedCatalogPageError) {
           // 세션 자체가 신뢰할 수 없는 상태(로그인 리다이렉트 등)라, 상품을 건너뛰지 않고
           // 실행을 즉시 중단해 문제를 바로 알아챌 수 있게 한다.
