@@ -117,6 +117,8 @@ const start = async (): Promise<void> => {
       if (productCount % PRODUCTS_PER_BROWSER_SESSION === 0) {
         await browser.close();
         ({ browser, page } = await createLoggedInPage());
+
+        await delaySeconds(30);
       }
     }
 

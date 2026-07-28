@@ -42,7 +42,9 @@ const createPage = async (): Promise<BrowserPage> => {
 
     const browser = await puppeteer.launch({
       headless: false,
+      userDataDir: 'config/userData',
       executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
+      // executablePath: `C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe`,
       defaultViewport: null,
       args: ['--lang=ko-KR', '--disable-blink-features=AutomationControlled', '--test-type'],
       ignoreDefaultArgs: ['--enable-automation'],
