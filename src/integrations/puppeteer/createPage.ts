@@ -35,13 +35,6 @@ const createPage = async (): Promise<BrowserPage> => {
        * null로 두면 창 크기를 그대로 따라간다.
        */
       defaultViewport: null,
-      /**
-       * --disable-blink-features=AutomationControlled는 stealth의 navigator.webdriver 우회가
-       * 직접 붙이므로 여기서 또 넘기면 값이 중복된다. --test-type은 그 플래그 때문에 뜨는
-       * "지원되지 않는 명령줄 플래그" 안내 막대를 숨기는 용도로만 남긴다.
-       */
-      args: ['--test-type'],
-      ignoreDefaultArgs: ['--enable-automation'],
     });
 
     const [blankPage] = await browser.pages();
