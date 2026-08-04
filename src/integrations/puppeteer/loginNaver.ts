@@ -7,10 +7,10 @@ import validateEnv from '../../utils/validateEnv.js';
 const loginNaver = async (page: Page, naverId: string): Promise<void> => {
   try {
     await page.goto('https://www.naver.com/');
-    await delayRandomSeconds(2, 5);
+    await delayRandomSeconds(2, 3);
 
     await page.goto('https://nid.naver.com/', { referer: 'https://www.naver.com/' });
-    await delayRandomSeconds(2, 5);
+    await delayRandomSeconds(2, 3);
 
     const idSelector = '#id';
     const passwordSelector = '#pw';
@@ -18,14 +18,22 @@ const loginNaver = async (page: Page, naverId: string): Promise<void> => {
     const typeDelay = 100;
     const naverPassword = validateEnv('NAVER_PASSWORD');
 
-    await page.click(idSelector);
-    await page.type(idSelector, naverId, { delay: typeDelay });
+    const isLogined = await page.evaluate(
+      (selector) => document.body.querySelector(selector),
+      idSelector,
+    );
 
-    await page.click(passwordSelector);
-    await page.type(passwordSelector, naverPassword, { delay: typeDelay });
+    if (isLogined) {
+      await page.click(idSelector);
+      await page.type(idSelector, naverId, { delay: typeDelay });
 
-    await page.click(loginButtonSelector);
-    await delayRandomSeconds(2, 5);
+      await page.click(passwordSelector);
+      await page.type(passwordSelector, naverPassword, { delay: typeDelay });
+
+      await page.click(loginButtonSelector);
+    }
+
+    await delayRandomSeconds(2, 3);
 
     await page.goto('https://www.naver.com/');
   } catch (error) {

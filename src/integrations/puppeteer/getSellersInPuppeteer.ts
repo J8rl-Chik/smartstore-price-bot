@@ -32,7 +32,7 @@ const navigateToCatalog = async (
   referer: string,
 ): Promise<void> => {
   await page.goto('https://search.shopping.naver.com/home', { referer: 'https://www.naver.com/' });
-  await delayRandomSeconds(2, 5);
+  await delayRandomSeconds(2, 3);
 
   // TODO: 반복되는 코드들 함수로 분리.
   if ((await isRestrictedPage(page)) || (await isRequiredLogin(page))) {
@@ -40,14 +40,14 @@ const navigateToCatalog = async (
   }
 
   await page.goto(referer, { referer: 'https://search.shopping.naver.com/home' });
-  await delayRandomSeconds(2, 5);
+  await delayRandomSeconds(2, 3);
 
   if ((await isRestrictedPage(page)) || (await isRequiredLogin(page))) {
     throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
   }
 
   await page.goto(catalogURL, { referer });
-  await delayRandomSeconds(2, 5);
+  await delayRandomSeconds(2, 3);
 
   if ((await isRestrictedPage(page)) || (await isRequiredLogin(page))) {
     throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
