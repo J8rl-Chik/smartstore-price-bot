@@ -1,23 +1,41 @@
 import 'dotenv/config';
 import type { Page } from 'puppeteer';
 
-const loginNaver = async (page: Page): Promise<void> => {
+import delayRandomSeconds from '../../utils/delayRandomSeconds.js';
+import validateEnv from '../../utils/validateEnv.js';
+
+const loginNaver = async (page: Page, naverId: string): Promise<void> => {
   try {
+    await page.goto('https://www.naver.com/');
+    await delayRandomSeconds(2, 3);
+
+    await page.goto('https://nid.naver.com/', { referer: 'https://www.naver.com/' });
+    await delayRandomSeconds(2, 3);
+
     const idSelector = '#id';
     const passwordSelector = '#pw';
     const loginButtonSelector = '#loginBtn_row';
     const typeDelay = 100;
-    const { NAVER_ID, NAVER_PASSWORD } = process.env;
+    const naverPassword = validateEnv('NAVER_PASSWORD');
 
-    await page.goto('https://nid.naver.com/');
+    const isLogined = await page.evaluate(
+      (selector) => document.body.querySelector(selector),
+      idSelector,
+    );
 
-    await page.click(idSelector);
-    await page.type(idSelector, NAVER_ID as string, { delay: typeDelay });
+    if (isLogined) {
+      await page.click(idSelector);
+      await page.type(idSelector, naverId, { delay: typeDelay });
 
-    await page.click(passwordSelector);
-    await page.type(passwordSelector, NAVER_PASSWORD as string, { delay: typeDelay });
+      await page.click(passwordSelector);
+      await page.type(passwordSelector, naverPassword, { delay: typeDelay });
 
-    await page.click(loginButtonSelector);
+      await page.click(loginButtonSelector);
+    }
+
+    await delayRandomSeconds(2, 3);
+
+    await page.goto('https://www.naver.com/');
   } catch (error) {
     throw new Error('네이버 로그인에 실패했습니다.', { cause: error });
   }

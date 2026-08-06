@@ -3,3 +3,4 @@ googleSheetKey.json
 .env
 dist
 coverage
+config

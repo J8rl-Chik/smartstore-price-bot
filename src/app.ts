@@ -3,7 +3,9 @@ import 'dotenv/config';
 import getSaleProducts from './integrations/smartStore/getSaleProducts.js';
 import getProductRows from './integrations/googleSheets/getProductRows.js';
 import createPage from './integrations/puppeteer/createPage.js';
-import getSellersInPuppeteer from './integrations/puppeteer/getSellersInPuppeteer.js';
+import getSellersInPuppeteer, {
+  UnexpectedCatalogPageError,
+} from './integrations/puppeteer/getSellersInPuppeteer.js';
 import loginNaver from './integrations/puppeteer/loginNaver.js';
 import updatePrice from './integrations/smartStore/updatePrice.js';
 import delaySeconds from './utils/delaySeconds.js';
@@ -14,6 +16,31 @@ import { getProductName, getOriginProductNo } from './domain/saleProduct.js';
 import { filterExcludedSellers, addVirtualPrice } from './domain/sellers.js';
 import { calculateTargetPrice, isUpdateRequired } from './domain/pricing.js';
 import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js';
+
+// 한 세션에서 너무 많은 상품을 연달아 조회하면 네이버가 봇으로 의심해 세션을 끊고 로그인
+// 화면으로 돌려보낸다. 임계치(9~10개) 이전에 여유를 두고 브라우저를 새로 열어 재로그인한다.
+const PRODUCTS_PER_BROWSER_SESSION = 7;
+
+// 브라우저를 새로 열 때마다 아이디를 번갈아 써서 한 계정에 요청이 몰리지 않게 한다.
+const naverIds = [validateEnv('NAVER_ID'), validateEnv('NAVER_ID2')];
+let naverIdIndex = 0;
+
+// TODO: 분리할 필요있는지 확인, 에러 발생시 프로그램 종료되는지 확인.
+const createLoggedInPage = async () => {
+  const { browser, page } = await createPage();
+  const naverId = naverIds[naverIdIndex % naverIds.length];
+
+  if (naverId === undefined) {
+    throw new Error('사용할 네이버 아이디가 없습니다.');
+  }
+
+  naverIdIndex += 1;
+
+  await loginNaver(page, naverId);
+  await delaySeconds(1);
+
+  return { browser, page };
+};
 
 const start = async (): Promise<void> => {
   const myStoreName = validateEnv('SMART_STORE_NAME');
@@ -30,11 +57,8 @@ const start = async (): Promise<void> => {
 
     const saleProducts = await getSaleProducts();
     const productRows = initProductRows(await getProductRows());
-    const { browser, page } = await createPage();
+    let { browser, page } = await createLoggedInPage();
     let productCount = 0;
-
-    await loginNaver(page);
-    await delaySeconds(1);
 
     for (const saleProduct of saleProducts) {
       const productName = getProductName(saleProduct);
@@ -47,39 +71,57 @@ const start = async (): Promise<void> => {
       productCount += 1;
       console.log(`${productCount}번째: ${productName}`);
 
-      const sellers = await getSellersInPuppeteer(page, productRow.catalogURL, productName);
+      try {
+        const sellers = await getSellersInPuppeteer(page, productRow.catalogURL, productName);
 
-      if (sellers.length === 0) {
-        console.log(`${productName}: 가격 목록이 없습니다.`);
+        // TODO: 판매처 목록 없으면 continue로 수정, else 제거.
+        if (sellers.length === 0) {
+          console.log(`${productName}: 가격 목록이 없습니다.`);
+        } else {
+          const currentMyStore = sellers.find(({ name }) => name === myStoreName);
+          const sellerPrices = filterExcludedSellers(sellers, [
+            ...productRow.excludedSellerNames,
+            myStoreName,
+          ]).map(({ price }) => price);
+          const prices = addVirtualPrice(sellerPrices, productRow.virtualPrice);
 
-        continue;
+          console.log(prices);
+
+          const { freeDeliveryPrice, feeType, baseFee } = productRow;
+          const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
+
+          if (isUpdateRequired(currentMyStore, targetPrice, feeType)) {
+            const delivery = createDelivery({ feeType, baseFee });
+            const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
+
+            const result = await updatePrice({
+              productNo: getOriginProductNo(saleProduct),
+              deliveryFee,
+              salePrice,
+            });
+
+            if (Object.hasOwn(result, 'message')) {
+              console.error(`${productName}: ${result.message}`);
+            }
+          }
+        }
+      } catch (error) {
+        // TODO: 프로그램을 강제 종료 시키는 예외 Class 생성.
+        if (error instanceof UnexpectedCatalogPageError) {
+          // 세션 자체가 신뢰할 수 없는 상태(로그인 리다이렉트 등)라, 상품을 건너뛰지 않고
+          // 실행을 즉시 중단해 문제를 바로 알아챌 수 있게 한다.
+          throw error;
+        }
+
+        // 그 외 에러는 이 상품만의 문제일 수 있으니, 로그만 남기고 다음 상품으로 넘어간다.
+        console.error(`${productName}: 처리 중 에러가 발생해 건너뜁니다.`, error);
       }
 
-      const currentMyStore = sellers.find(({ name }) => name === myStoreName);
-      const sellerPrices = filterExcludedSellers(sellers, [
-        ...productRow.excludedSellerNames,
-        myStoreName,
-      ]).map(({ price }) => price);
-      const prices = addVirtualPrice(sellerPrices, productRow.virtualPrice);
+      if (productCount % PRODUCTS_PER_BROWSER_SESSION === 0) {
+        await browser.close();
+        ({ browser, page } = await createLoggedInPage());
 
-      console.log(prices);
-
-      const { freeDeliveryPrice, feeType, baseFee } = productRow;
-      const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
-
-      if (isUpdateRequired(currentMyStore, targetPrice, feeType)) {
-        const delivery = createDelivery({ feeType, baseFee });
-        const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
-
-        const result = await updatePrice({
-          productNo: getOriginProductNo(saleProduct),
-          deliveryFee,
-          salePrice,
-        });
-
-        if (Object.hasOwn(result, 'message')) {
-          console.error(`${productName}: ${result.message}`);
-        }
+        await delaySeconds(30);
       }
     }
 

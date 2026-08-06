@@ -1,12 +1,14 @@
+import 'dotenv/config';
 import createPage from './createPage.js';
 import loginNaver from './loginNaver.js';
 import getSellersInPuppeteer from './getSellersInPuppeteer.js';
 import delaySeconds from '../../utils/delaySeconds.js';
 import isManualTestRun from '../../utils/isManualTestRun.js';
+import validateEnv from '../../utils/validateEnv.js';
 
 if (isManualTestRun(import.meta.url)) {
-  createPage().then(async ({ page }) => {
-    await loginNaver(page);
+  createPage().then(async ({ page, browser }) => {
+    await loginNaver(page, validateEnv('NAVER_ID'));
     await delaySeconds(1);
 
     const productURL =
@@ -17,6 +19,6 @@ if (isManualTestRun(import.meta.url)) {
 
     console.log(sellers);
 
-    await page.close();
+    await browser.close();
   });
 }

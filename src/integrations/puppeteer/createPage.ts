@@ -1,30 +1,47 @@
-import puppeteer, { type Browser, type Page } from 'puppeteer';
-
-import setWebdriverFalse from './setWebdriverFalse.js';
+import puppeteerExtra from 'puppeteer-extra';
+import type { PuppeteerExtra } from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import type { Browser, Page } from 'puppeteer';
 
 interface BrowserPage {
   browser: Browser;
   page: Page;
 }
 
+const puppeteer = puppeteerExtra as unknown as PuppeteerExtra;
+const stealth = StealthPlugin();
+
 /**
- * browser까지 함께 반환한다 — page만 반환하면 호출부가 page.close()만 호출하고
- * puppeteer.launch()로 띄운 브라우저 프로세스 자체는 닫을 방법이 없어, 반복 실행 시
- * 브라우저 프로세스가 계속 쌓이는 누수로 이어진다.
+ * 기본 언어가 영어로 설정되기 때문에,
+ * 서버가 받는 Accept-Language와 navigator.languages를 한국어로 일치시키기 위해 두 설정을 제거한다.
  */
+stealth.enabledEvasions.delete('user-agent-override');
+stealth.enabledEvasions.delete('navigator.languages');
+
+/**
+ * 플러그인 등록은 프로세스당 한 번이면 되는 설정이다.
+ * createPage 안에 두면 createPage 호출마다 함께 호출돼서 불필요하다.
+ */
+puppeteer.use(stealth);
+
 const createPage = async (): Promise<BrowserPage> => {
   try {
     const browser = await puppeteer.launch({
       headless: false,
+      userDataDir: 'config/userData',
       executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
+      /**
+       * 지정하지 않으면 뷰포트가 800x600으로 고정돼 실제 창 크기와 어긋난다.
+       * null로 두면 창 크기를 그대로 따라간다.
+       */
+      defaultViewport: null,
     });
-    const [page] = await browser.pages();
 
-    if (!page) {
-      throw new Error('브라우저에서 페이지를 가져오지 못했습니다.');
-    }
+    const [blankPage] = await browser.pages();
+    const page = await browser.newPage();
 
-    await page.evaluateOnNewDocument(setWebdriverFalse);
+    // newPage()로 새로 연 페이지에만 stealth가 온전히 걸리므로, 첫 페이지는 닫는다.
+    await blankPage?.close();
 
     return { browser, page };
   } catch (error) {
