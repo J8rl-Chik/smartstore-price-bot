@@ -28,6 +28,10 @@ const createPage = async (): Promise<BrowserPage> => {
   try {
     const browser = await puppeteer.launch({
       headless: false,
+      /**
+       * 프로필을 지우지 않고 누적하면 허용 조회 속도가 올라간다. 로그인 상태로 프로필을
+       * 유지했던 기간에는 4회/분이 수 주간 버텼다. 자세한 근거는 docs/naver-rate-limit.md 참고.
+       */
       userDataDir: 'config/userData',
       executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
       /**
