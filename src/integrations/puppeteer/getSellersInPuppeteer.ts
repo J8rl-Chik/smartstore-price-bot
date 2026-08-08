@@ -43,20 +43,32 @@ const buildSearchURL = (productName: string): string => {
 };
 
 /**
- * 홈 → 검색 → 카탈로그 3단계로만 이동한다.
+ * 유입 경로의 시작점. 쇼핑 도메인 쿠키를 받거나 갱신하는 역할을 겸한다.
+ * 쿠키가 전혀 없는 상태로 카탈로그를 직접 열면 보안문자를 요구한다는 관측이 있다.
+ */
+const visitShoppingHome = async (page: Page): Promise<void> => {
+  await page.goto(SHOPPING_HOME_URL, { referer: NAVER_HOME_URL });
+  await delayRandomSeconds(2, 3);
+  await throwIfBlocked(page);
+};
+
+/**
+ * 홈 → 검색 → 카탈로그를 상품마다 실제로 방문한다.
  *
- * 경유 단계를 더 늘리거나(검색 상세 파라미터, 다른 스토어) 반대로 카탈로그로 직행해도
- * 허용 조회량은 달라지지 않는다는 것이 실측으로 확인됐다. 오히려 다른 스토어를 거치면
- * 접근이 실패했다. 따라서 유입 경로가 가장 자연스러운 이 형태를 유지한다.
+ * 카탈로그 직행은 요청 수가 1/3이라 유리해 보이지만, 60초 간격으로 연속 통과가 실측된
+ * 경로는 이 3단계뿐이다(33회 통과). 직행 경로는 11초 간격에서 8회째에 막혔고 60초
+ * 간격으로는 측정된 바가 없다. 홈·검색 방문이 조회마다 쇼핑 도메인 쿠키를 갱신해 주는
+ * 반면, 직행은 세션 시작 때 한 번 받은 쿠키를 수십 분간 방치하게 되는 것이 차이로 보인다.
+ *
+ * 즉 여기서 줄여야 하는 것은 방문 수가 아니라 조회 간격이다.
+ * 근거는 logs/catalog-budget-full-pace60-*.jsonl 및 docs/naver-rate-limit.md 참고.
  */
 const navigateToCatalog = async (
   page: Page,
   catalogURL: string,
   searchURL: string,
 ): Promise<void> => {
-  await page.goto(SHOPPING_HOME_URL, { referer: NAVER_HOME_URL });
-  await delayRandomSeconds(2, 3);
-  await throwIfBlocked(page);
+  await visitShoppingHome(page);
 
   await page.goto(searchURL, { referer: SHOPPING_HOME_URL });
   await delayRandomSeconds(2, 3);
