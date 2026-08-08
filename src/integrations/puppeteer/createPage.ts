@@ -32,7 +32,7 @@ const createPage = async (): Promise<BrowserPage> => {
        * 프로필을 지우지 않고 누적하면 허용 조회 속도가 올라간다. 로그인 상태로 프로필을
        * 유지했던 기간에는 4회/분이 수 주간 버텼다. 자세한 근거는 docs/naver-rate-limit.md 참고.
        */
-      userDataDir: 'config/userData',
+      // userDataDir: 'config/userData',
       executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
       /**
        * 지정하지 않으면 뷰포트가 800x600으로 고정돼 실제 창 크기와 어긋난다.
