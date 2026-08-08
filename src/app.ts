@@ -29,7 +29,7 @@ import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js'
  * 경계선에 걸쳐 있던 값이라 이 여유분이 안전 마진이 된다.
  * 근거는 docs/naver-rate-limit.md 참고.
  */
-const PRODUCT_INTERVAL_SECONDS = 50;
+const PRODUCT_INTERVAL_SECONDS = 1;
 
 /**
  * 차단을 만났을 때 대기할 시간. 실측상 회복에 22분 초과 32분 이내가 걸렸고,
@@ -44,7 +44,7 @@ const BLOCK_BACKOFF_MINUTES = 35;
  * 어떤 영향을 주는지는 아직 확인되지 않았다. 영향 범위를 일정한 크기로 묶어두기 위해
  * 이 개수마다 브라우저를 닫고 새로 띄운다.
  */
-const PRODUCTS_PER_BROWSER = 10;
+const PRODUCTS_PER_BROWSER = 9;
 
 const start = async (): Promise<void> => {
   const myStoreName = validateEnv('SMART_STORE_NAME');
@@ -81,6 +81,8 @@ const start = async (): Promise<void> => {
       if (productCount > 0 && productCount % PRODUCTS_PER_BROWSER === 0) {
         await browser.close();
         ({ browser, page } = await createPage());
+
+        await delayMinutes(2);
       }
 
       productCount += 1;
@@ -132,10 +134,10 @@ const start = async (): Promise<void> => {
           );
 
           // await delayMinutes(BLOCK_BACKOFF_MINUTES);
-          throw new Error('차단으로 인한 중단');
           // continue;
         }
 
+        throw new Error('차단으로 인한 중단');
         // 그 외 에러는 이 상품만의 문제일 수 있으니, 로그만 남기고 다음 상품으로 넘어간다.
         console.error(`${productName}: 처리 중 에러가 발생해 건너뜁니다.`, error);
       }
