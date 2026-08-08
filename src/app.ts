@@ -29,13 +29,22 @@ import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js'
  * 경계선에 걸쳐 있던 값이라 이 여유분이 안전 마진이 된다.
  * 근거는 docs/naver-rate-limit.md 참고.
  */
-const PRODUCT_INTERVAL_SECONDS = 60;
+const PRODUCT_INTERVAL_SECONDS = 50;
 
 /**
  * 차단을 만났을 때 대기할 시간. 실측상 회복에 22분 초과 32분 이내가 걸렸고,
  * 그 사이에는 몇 번을 더 시도해도 계속 실패하므로 여유를 둬서 기다린다.
  */
 const BLOCK_BACKOFF_MINUTES = 35;
+
+/**
+ * 브라우저 하나로 연속 조회하는 상품 수의 상한.
+ *
+ * 한 페이지를 오래 유지할수록 캐시·쿠키·메모리가 누적되는데, 그 누적 상태가 조회에
+ * 어떤 영향을 주는지는 아직 확인되지 않았다. 영향 범위를 일정한 크기로 묶어두기 위해
+ * 이 개수마다 브라우저를 닫고 새로 띄운다.
+ */
+const PRODUCTS_PER_BROWSER = 10;
 
 const start = async (): Promise<void> => {
   const myStoreName = validateEnv('SMART_STORE_NAME');
@@ -52,7 +61,7 @@ const start = async (): Promise<void> => {
 
     const saleProducts = await getSaleProducts();
     const productRows = initProductRows(await getProductRows());
-    const { browser, page } = await createPage();
+    let { browser, page } = await createPage();
     let productCount = 0;
 
     for (const saleProduct of saleProducts) {
@@ -63,9 +72,19 @@ const start = async (): Promise<void> => {
         continue;
       }
 
+      /**
+       * 직전 상품까지 상한만큼 처리했다면 브라우저를 교체한다. 증가 전 productCount는
+       * 이미 처리한 개수라 이 위치에서만 정확히 10개 주기가 된다.
+       * 이전 브라우저를 닫지 않으면 크롬 프로세스가 계속 쌓여 메모리를 점유하므로,
+       * 새로 띄우기 전에 반드시 닫는다.
+       */
+      if (productCount > 0 && productCount % PRODUCTS_PER_BROWSER === 0) {
+        await browser.close();
+        ({ browser, page } = await createPage());
+      }
+
       productCount += 1;
       console.log(`${productCount}번째: ${productName}`);
-
       try {
         const sellers = await getSellersInPuppeteer(page, productRow.catalogURL, productName);
 
@@ -112,9 +131,9 @@ const start = async (): Promise<void> => {
             `${productName}: 접근이 제한돼 ${BLOCK_BACKOFF_MINUTES}분 대기 후 이어서 진행합니다.`,
           );
 
-          await delayMinutes(BLOCK_BACKOFF_MINUTES);
-
-          continue;
+          // await delayMinutes(BLOCK_BACKOFF_MINUTES);
+          throw new Error('차단으로 인한 중단');
+          // continue;
         }
 
         // 그 외 에러는 이 상품만의 문제일 수 있으니, 로그만 남기고 다음 상품으로 넘어간다.
