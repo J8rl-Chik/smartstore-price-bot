@@ -3,6 +3,7 @@ import type { Page } from 'puppeteer';
 import type { Seller } from '../../domain/sellers.js';
 import delayRandomSeconds from '../../utils/delayRandomSeconds.js';
 import parseSellerItem from './parseSellerItem.js';
+import delaySeconds from '../../utils/delaySeconds.js';
 
 export const SELLER_ITEM_SELECTOR = '[class^="product_seller_info_wrap__"]';
 
@@ -15,22 +16,35 @@ export class UnexpectedCatalogPageError extends Error {}
 
 const SHOPPING_HOME_URL = 'https://search.shopping.naver.com/home';
 const NAVER_HOME_URL = 'https://www.naver.com/';
+const SHOPPING_PARTNER_CENTER = 'https://center.shopping.naver.com/product/manage';
 
 /**
  * rate limit에 걸리면 URL은 그대로 카탈로그 페이지인 채로 "쇼핑 접속이 일시적으로
  * 제한되었습니다" 같은 안내 문구만 렌더링된다. URL 비교로는 이 경우를 잡을 수 없어
  * 페이지 텍스트를 직접 확인한다.
  */
-const RESTRICTED_PAGE_MESSAGE = '쇼핑 서비스 접속이 일시적';
 
 const isRestrictedPage = (page: Page): Promise<boolean> =>
-  page.evaluate((message) => document.body.innerText.includes(message), RESTRICTED_PAGE_MESSAGE);
+  page.evaluate(
+    (message) => document.body.innerText.includes(message),
+    '쇼핑 서비스 접속이 일시적',
+  );
 
 const isRequiredLogin = (page: Page): Promise<boolean> =>
   page.evaluate((message) => document.body.innerText.includes(message), '아이디 또는 전화번호');
 
+const isRequiredSecureCheck = (page: Page): Promise<boolean> =>
+  page.evaluate(
+    (message) => document.body.innerText.includes(message),
+    '보안 확인을 완료해 주세요.',
+  );
+
 const throwIfBlocked = async (page: Page): Promise<void> => {
-  if ((await isRestrictedPage(page)) || (await isRequiredLogin(page))) {
+  if (
+    (await isRestrictedPage(page)) ||
+    (await isRequiredLogin(page)) ||
+    (await isRequiredSecureCheck(page))
+  ) {
     throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
   }
 };
@@ -47,8 +61,12 @@ const buildSearchURL = (productName: string): string => {
  * 쿠키가 전혀 없는 상태로 카탈로그를 직접 열면 보안문자를 요구한다는 관측이 있다.
  */
 const visitShoppingHome = async (page: Page): Promise<void> => {
+  // await page.goto(NAVER_HOME_URL, { referer: 'https://www.google.com/' });
+  // await delayRandomSeconds(2, 3);
+
   await page.goto(SHOPPING_HOME_URL, { referer: NAVER_HOME_URL });
-  await delayRandomSeconds(2, 3);
+  await delaySeconds(1);
+  // await delayRandomSeconds(2, 3);
   await throwIfBlocked(page);
 };
 
@@ -71,11 +89,13 @@ const navigateToCatalog = async (
   await visitShoppingHome(page);
 
   await page.goto(searchURL, { referer: SHOPPING_HOME_URL });
-  await delayRandomSeconds(2, 3);
+  await delaySeconds(1);
+  // await delayRandomSeconds(2, 3);
   await throwIfBlocked(page);
 
   await page.goto(catalogURL, { referer: searchURL });
-  await delayRandomSeconds(2, 3);
+  await delaySeconds(1);
+  // await delayRandomSeconds(2, 3);
   await throwIfBlocked(page);
 };
 
