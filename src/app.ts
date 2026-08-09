@@ -29,13 +29,13 @@ import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js'
  * 경계선에 걸쳐 있던 값이라 이 여유분이 안전 마진이 된다.
  * 근거는 docs/naver-rate-limit.md 참고.
  */
-const PRODUCT_INTERVAL_SECONDS = 1;
+const PRODUCT_INTERVAL_SECONDS = 0;
 
 /**
  * 차단을 만났을 때 대기할 시간. 실측상 회복에 22분 초과 32분 이내가 걸렸고,
  * 그 사이에는 몇 번을 더 시도해도 계속 실패하므로 여유를 둬서 기다린다.
  */
-const BLOCK_BACKOFF_MINUTES = 35;
+const BLOCK_BACKOFF_MINUTES = 15;
 
 /**
  * 브라우저 하나로 연속 조회하는 상품 수의 상한.
@@ -79,11 +79,10 @@ const start = async (): Promise<void> => {
        * 새로 띄우기 전에 반드시 닫는다.
        */
       if (productCount > 0 && productCount % PRODUCTS_PER_BROWSER === 0) {
-        await browser.close();
-        ({ browser, page } = await createPage());
-
-        await delayMinutes(2);
+        await delayMinutes(1);
       }
+
+      ({ browser, page } = await createPage());
 
       productCount += 1;
       console.log(`${productCount}번째: ${productName}`);
@@ -132,24 +131,39 @@ const start = async (): Promise<void> => {
           console.error(
             `${productName}: 접근이 제한돼 ${BLOCK_BACKOFF_MINUTES}분 대기 후 이어서 진행합니다.`,
           );
+          console.error(`${productName}: 처리 중 에러가 발생해 건너뜁니다.`, error);
 
-          // await delayMinutes(BLOCK_BACKOFF_MINUTES);
+          await delayMinutes(BLOCK_BACKOFF_MINUTES);
+
+          // ({ browser, page } = await createPage());
+
           // continue;
         }
 
-        throw new Error('차단으로 인한 중단');
+        await browser.close();
+
         // 그 외 에러는 이 상품만의 문제일 수 있으니, 로그만 남기고 다음 상품으로 넘어간다.
         console.error(`${productName}: 처리 중 에러가 발생해 건너뜁니다.`, error);
+
+        throw new Error('차단으로 인한 중단');
       }
+
+      // await page.evaluate(() => {
+      //   localStorage.clear();
+      // });
+
+      // const cookies = await browser.cookies();
+      // await browser.deleteCookie(...cookies);
 
       // 조회 속도가 곧 처리량의 상한이므로, 다음 상품으로 넘어가기 전에 반드시 쉰다.
       await delaySeconds(PRODUCT_INTERVAL_SECONDS);
+
+      await browser.close();
     }
 
     console.timeEnd('실행 시간');
     console.log(new Date().toLocaleString());
 
-    await browser.close();
     await delayMinutes(5);
   }
 };
