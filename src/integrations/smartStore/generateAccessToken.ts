@@ -2,10 +2,6 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import fetch from 'node-fetch';
 
-import checkSmartStoreApiSucceeded, {
-  type SmartStoreApiResult,
-} from '../../../rateLimitTest/checkSmartStoreApiSucceeded.js';
-
 interface AccessTokenResult extends SmartStoreApiResult {
   access_token: string;
 }
