@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 
 import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
-} from './checkSmartStoreApiSucceeded.js';
+} from '../../../rateLimitTest/checkSmartStoreApiSucceeded.js';
 
 interface AccessTokenResult extends SmartStoreApiResult {
   access_token: string;
@@ -35,8 +35,6 @@ async function generateAccessToken(): Promise<string> {
     });
 
     const result: AccessTokenResult = await response.json();
-
-    checkSmartStoreApiSucceeded(result);
 
     return result.access_token;
   } catch (error) {
