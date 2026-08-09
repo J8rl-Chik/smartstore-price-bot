@@ -33,8 +33,9 @@ async function generateAccessToken(): Promise<string> {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-
     const result: AccessTokenResult = await response.json();
+
+    checkSmartStoreApiSucceeded(result);
 
     return result.access_token;
   } catch (error) {
