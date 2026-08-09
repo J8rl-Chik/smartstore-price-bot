@@ -4,3 +4,6 @@ googleSheetKey.json
 dist
 coverage
 config
+logs
+docs
+rateLimitTest
