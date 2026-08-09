@@ -26,32 +26,40 @@ const isRestrictedPage = (page: Page): Promise<boolean> =>
 const isRequiredLogin = (page: Page): Promise<boolean> =>
   page.evaluate((message) => document.body.innerText.includes(message), '아이디 또는 전화번호');
 
+const isRequiredSecureCheck = (page: Page): Promise<boolean> =>
+  page.evaluate(
+    (message) => document.body.innerText.includes(message),
+    '보안 확인을 완료해 주세요.',
+  );
+
+const validatePage = async (page: Page): Promise<void> => {
+  if (
+    (await isRestrictedPage(page)) ||
+    (await isRequiredLogin(page)) ||
+    (await isRequiredSecureCheck(page))
+  ) {
+    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
+  }
+};
+
+export const gotoShoppingHome = async (page: Page): Promise<void> => {
+  await page.goto('https://search.shopping.naver.com/home', { referer: 'https://www.naver.com/' });
+  await delayRandomSeconds(2, 3);
+  await validatePage(page);
+};
+
 const navigateToCatalog = async (
   page: Page,
   catalogURL: string,
   referer: string,
 ): Promise<void> => {
-  await page.goto('https://search.shopping.naver.com/home', { referer: 'https://www.naver.com/' });
-  await delayRandomSeconds(2, 3);
-
-  // TODO: 반복되는 코드들 함수로 분리.
-  if ((await isRestrictedPage(page)) || (await isRequiredLogin(page))) {
-    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
-  }
-
-  await page.goto(referer, { referer: 'https://search.shopping.naver.com/home' });
-  await delayRandomSeconds(2, 3);
-
-  if ((await isRestrictedPage(page)) || (await isRequiredLogin(page))) {
-    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
-  }
+  // await page.goto(referer, { referer: 'https://search.shopping.naver.com/home' });
+  // await delayRandomSeconds(2, 3);
+  // await validatePage(page);
 
   await page.goto(catalogURL, { referer });
   await delayRandomSeconds(2, 3);
-
-  if ((await isRestrictedPage(page)) || (await isRequiredLogin(page))) {
-    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
-  }
+  await validatePage(page);
 };
 
 const getSellerItemHTMLList = async (
