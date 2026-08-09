@@ -29,7 +29,7 @@ import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js'
  * 경계선에 걸쳐 있던 값이라 이 여유분이 안전 마진이 된다.
  * 근거는 docs/naver-rate-limit.md 참고.
  */
-const PRODUCT_INTERVAL_SECONDS = 0;
+const PRODUCT_INTERVAL_SECONDS = 10;
 
 /**
  * 차단을 만났을 때 대기할 시간. 실측상 회복에 22분 초과 32분 이내가 걸렸고,
