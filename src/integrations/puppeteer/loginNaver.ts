@@ -4,7 +4,7 @@ import type { Page } from 'puppeteer';
 import delayRandomSeconds from '../../utils/delayRandomSeconds.js';
 import validateEnv from '../../utils/validateEnv.js';
 
-const loginNaver = async (page: Page, naverId: string): Promise<void> => {
+const loginNaver = async (page: Page): Promise<void> => {
   try {
     await page.goto('https://www.naver.com/');
     await delayRandomSeconds(2, 3);
@@ -17,6 +17,7 @@ const loginNaver = async (page: Page, naverId: string): Promise<void> => {
     const loginButtonSelector = '#loginBtn_row';
     const typeDelay = 100;
     const naverPassword = validateEnv('NAVER_PASSWORD');
+    const naverId = validateEnv('NAVER_ID');
 
     const isLogined = await page.evaluate(
       (selector) => document.body.querySelector(selector),
@@ -35,7 +36,7 @@ const loginNaver = async (page: Page, naverId: string): Promise<void> => {
 
     await delayRandomSeconds(2, 3);
 
-    await page.goto('https://www.naver.com/');
+    // await page.goto('https://www.naver.com/');
   } catch (error) {
     throw new Error('네이버 로그인에 실패했습니다.', { cause: error });
   }
