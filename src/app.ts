@@ -4,6 +4,7 @@ import getSaleProducts from './integrations/smartStore/getSaleProducts.js';
 import getProductRows from './integrations/googleSheets/getProductRows.js';
 import createPage from './integrations/puppeteer/createPage.js';
 import getSellersInPuppeteer, {
+  gotoShoppingHome,
   UnexpectedCatalogPageError,
 } from './integrations/puppeteer/getSellersInPuppeteer.js';
 import loginNaver from './integrations/puppeteer/loginNaver.js';
@@ -22,22 +23,25 @@ import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js'
 const PRODUCTS_PER_BROWSER_SESSION = 7;
 
 // 브라우저를 새로 열 때마다 아이디를 번갈아 써서 한 계정에 요청이 몰리지 않게 한다.
-const naverIds = [validateEnv('NAVER_ID'), validateEnv('NAVER_ID2')];
-let naverIdIndex = 0;
+// const naverIds = [validateEnv('NAVER_ID'), validateEnv('NAVER_ID2')];
+// let naverIdIndex = 0;
 
 // TODO: 분리할 필요있는지 확인, 에러 발생시 프로그램 종료되는지 확인.
 const createLoggedInPage = async () => {
   const { browser, page } = await createPage();
-  const naverId = naverIds[naverIdIndex % naverIds.length];
+  // const naverId = naverIds[naverIdIndex % naverIds.length];
 
-  if (naverId === undefined) {
-    throw new Error('사용할 네이버 아이디가 없습니다.');
-  }
+  // if (naverId === undefined) {
+  //   throw new Error('사용할 네이버 아이디가 없습니다.');
+  // }
 
-  naverIdIndex += 1;
+  // naverIdIndex += 1;
 
-  await loginNaver(page, naverId);
+  await loginNaver(page);
   await delaySeconds(1);
+
+  // await gotoShoppingHome(page);
+  // await delaySeconds(1);
 
   return { browser, page };
 };
@@ -117,12 +121,14 @@ const start = async (): Promise<void> => {
         console.error(`${productName}: 처리 중 에러가 발생해 건너뜁니다.`, error);
       }
 
-      if (productCount % PRODUCTS_PER_BROWSER_SESSION === 0) {
-        await browser.close();
-        ({ browser, page } = await createLoggedInPage());
+      // if (productCount % PRODUCTS_PER_BROWSER_SESSION === 0) {
+      //   await browser.close();
+      //   ({ browser, page } = await createLoggedInPage());
 
-        await delaySeconds(30);
-      }
+      //   await delaySeconds(30);
+      // }
+
+      await delaySeconds(10);
     }
 
     console.timeEnd('실행 시간');
