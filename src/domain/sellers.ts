@@ -5,10 +5,8 @@ export interface Seller {
   deliveryFeeType: string;
 }
 
-export const filterExcludedSellers = (
-  sellers: Seller[],
-  excludedSellerNames: string[],
-): Seller[] => sellers.filter(({ name }) => !excludedSellerNames.includes(name));
+export const filterExcludedSellers = (sellers: Seller[], excludedSellerNames: string[]): Seller[] =>
+  sellers.filter(({ name }) => !excludedSellerNames.includes(name));
 
 export const addVirtualPrice = (prices: number[], virtualPrice: number | null): number[] =>
   virtualPrice ? [...prices, virtualPrice] : prices;
