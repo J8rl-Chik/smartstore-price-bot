@@ -13,6 +13,7 @@ const createSaleProduct = (productChannel: Partial<ProductChannel>): SaleProduct
     {
       name: '테스트 상품',
       originProductNo: 12345,
+      sellerManagementCode: undefined,
       ...productChannel,
     },
   ],
@@ -20,17 +21,19 @@ const createSaleProduct = (productChannel: Partial<ProductChannel>): SaleProduct
 
 describe('getProductName', () => {
   it('channelProducts[0]의 name을 반환한다', () => {
-    const saleProduct = createSaleProduct({ name: '무선 이어폰' });
+    const name = '무선 이어폰';
+    const saleProduct = createSaleProduct({ name });
 
-    expect(getProductName(saleProduct)).toBe('무선 이어폰');
+    expect(getProductName(saleProduct)).toBe(name);
   });
 });
 
 describe('getOriginProductNo', () => {
   it('channelProducts[0]의 originProductNo를 반환한다', () => {
-    const saleProduct = createSaleProduct({ originProductNo: 98765 });
+    const originProductNo = 98765;
+    const saleProduct = createSaleProduct({ originProductNo });
 
-    expect(getOriginProductNo(saleProduct)).toBe(98765);
+    expect(getOriginProductNo(saleProduct)).toBe(originProductNo);
   });
 });
 
@@ -76,14 +79,21 @@ describe('isNewlyRegisteredProduct', () => {
 
     expect(isNewlyRegisteredProduct(saleProduct)).toBe(false);
   });
+
+  it('sellerManagementCode가 빈 문자열("")이면 false를 반환한다', () => {
+    const saleProduct = createSaleProduct({ sellerManagementCode: '' });
+
+    expect(isNewlyRegisteredProduct(saleProduct)).toBe(false);
+  });
 });
 
 describe('excludeNewlyRegisteredProducts', () => {
-  it('신규 등록 상품을 제외한 나머지 목록을 반환한다', () => {
-    const newProduct = createSaleProduct({ sellerManagementCode: '신규' });
+  it("'신규' 코드가 포함된 상품을 제외한 나머지 상품들을 배열을 반환한다", () => {
+    const newProduct1 = createSaleProduct({ sellerManagementCode: '신규' });
+    const newProduct2 = createSaleProduct({ sellerManagementCode: 'a.신규 묶음' });
     const existingProduct = createSaleProduct({ sellerManagementCode: '기존 상품' });
 
-    expect(excludeNewlyRegisteredProducts([newProduct, existingProduct])).toEqual([
+    expect(excludeNewlyRegisteredProducts([newProduct1, newProduct2, existingProduct])).toEqual([
       existingProduct,
     ]);
   });
