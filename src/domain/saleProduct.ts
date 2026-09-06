@@ -25,11 +25,9 @@ export const getProductName = (saleProduct: SaleProduct): string =>
 export const getOriginProductNo = (saleProduct: SaleProduct): number =>
   getFirstChannelProduct(saleProduct).originProductNo;
 
-const getSellerManagementCode = (saleProduct: SaleProduct): string | undefined =>
-  getFirstChannelProduct(saleProduct).sellerManagementCode;
-
-export const isNewlyRegisteredProduct = (saleProduct: SaleProduct): boolean =>
-  Boolean(getSellerManagementCode(saleProduct)?.includes('신규'));
+export const isNewlyRegisteredProduct = (saleProduct: SaleProduct): boolean => {
+  return Boolean(getFirstChannelProduct(saleProduct).sellerManagementCode?.includes('신규'));
+};
 
 export const excludeNewlyRegisteredProducts = (saleProducts: SaleProduct[]): SaleProduct[] =>
   saleProducts.filter((saleProduct) => !isNewlyRegisteredProduct(saleProduct));
