@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateTargetPrice, isUpdateRequired } from './pricing.js';
+import { calculateTargetPrice, isPriceUpdateRequired } from './price.js';
 
 describe('calculateTargetPrice', () => {
   it('freeDeliveryPrice + 10 이상인 최저가보다 10원 낮은 가격을 반환한다', () => {
@@ -24,30 +24,35 @@ describe('calculateTargetPrice', () => {
   });
 });
 
-describe('isUpdateRequired', () => {
-  // 가격비교 페이지에서 가격이 순위권에서 밀려나면 currentMyStore는 undefined
+describe('isPriceUpdateRequired', () => {
   it('판매처들 중 현재 내 판매처가 없으면 갱신 필요(true)를 반환한다', () => {
     const sellers = [{ name: '다른 판매처', price: 9000, deliveryFeeType: '무료' }];
     const currentMyStore = sellers.find(({ name }) => name === '내 스토어');
 
-    expect(isUpdateRequired(currentMyStore, 10000, '무료')).toBe(true);
+    expect(isPriceUpdateRequired(currentMyStore, 10000, '무료')).toBe(true);
   });
 
   it('targetPrice가 다르면 true를 반환한다', () => {
-    const currentMyStore = { price: 9000, deliveryFeeType: 'FREE' };
+    const currentMyStore = { price: 9000, deliveryFeeType: '무료' };
 
-    expect(isUpdateRequired(currentMyStore, 10000, 'FREE')).toBe(true);
+    expect(isPriceUpdateRequired(currentMyStore, 10000, '무료')).toBe(true);
   });
 
   it('feeType이 다르면 true를 반환한다', () => {
-    const currentMyStore = { price: 10000, deliveryFeeType: 'FREE' };
+    const currentMyStore = { price: 10000, deliveryFeeType: '무료' };
 
-    expect(isUpdateRequired(currentMyStore, 10000, 'PAID')).toBe(true);
+    expect(isPriceUpdateRequired(currentMyStore, 10000, '유료')).toBe(true);
   });
 
   it('가격과 feeType이 모두 같으면 false를 반환한다', () => {
-    const currentMyStore = { price: 10000, deliveryFeeType: 'FREE' };
+    const currentMyStore = { price: 10000, deliveryFeeType: '무료' };
 
-    expect(isUpdateRequired(currentMyStore, 10000, 'FREE')).toBe(false);
+    expect(isPriceUpdateRequired(currentMyStore, 10000, '무료')).toBe(false);
+  });
+
+  it('가격과 feeType이 모두 다르면 true를 반환한다', () => {
+    const currentMyStore = { price: 9000, deliveryFeeType: '유료' };
+
+    expect(isPriceUpdateRequired(currentMyStore, 10000, '무료')).toBe(true);
   });
 });
