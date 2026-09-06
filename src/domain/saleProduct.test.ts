@@ -13,7 +13,6 @@ const createSaleProduct = (productChannel: Partial<ProductChannel>): SaleProduct
     {
       name: '테스트 상품',
       originProductNo: 12345,
-      sellerManagementCode: undefined,
       ...productChannel,
     },
   ],
@@ -34,24 +33,6 @@ describe('getOriginProductNo', () => {
     const saleProduct = createSaleProduct({ originProductNo });
 
     expect(getOriginProductNo(saleProduct)).toBe(originProductNo);
-  });
-});
-
-describe('channelProducts가 비어 있는 경우', () => {
-  const emptySaleProduct: SaleProduct = { channelProducts: [] };
-
-  it('getProductName 호출 시 에러를 던진다', () => {
-    expect(() => getProductName(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
-  });
-
-  it('getOriginProductNo 호출 시 에러를 던진다', () => {
-    expect(() => getOriginProductNo(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
-  });
-
-  it('isNewlyRegisteredProduct 호출 시 에러를 던진다', () => {
-    expect(() => isNewlyRegisteredProduct(emptySaleProduct)).toThrow(
-      'channelProducts가 비어 있습니다',
-    );
   });
 });
 
@@ -84,6 +65,24 @@ describe('isNewlyRegisteredProduct', () => {
     const saleProduct = createSaleProduct({ sellerManagementCode: '' });
 
     expect(isNewlyRegisteredProduct(saleProduct)).toBe(false);
+  });
+});
+
+describe('에러: channelProducts가 비어 있는 경우', () => {
+  const emptySaleProduct: SaleProduct = { channelProducts: [] };
+
+  it('getProductName 호출 시 에러를 던진다', () => {
+    expect(() => getProductName(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+  });
+
+  it('getOriginProductNo 호출 시 에러를 던진다', () => {
+    expect(() => getOriginProductNo(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+  });
+
+  it('isNewlyRegisteredProduct 호출 시 에러를 던진다', () => {
+    expect(() => isNewlyRegisteredProduct(emptySaleProduct)).toThrow(
+      'channelProducts가 비어 있습니다',
+    );
   });
 });
 
