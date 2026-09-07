@@ -11,7 +11,7 @@ describe('filterExcludedSellers', () => {
   it('전달받은 이름 목록에 포함된 판매처를 걸러낸다', () => {
     const result = filterExcludedSellers(sellers, ['내 스토어', '제외 판매처']);
 
-    expect(result).toEqual(sellers[2]);
+    expect(result).toEqual([sellers[2]]);
   });
 
   it('제외할 이름이 없으면 전체 판매처를 그대로 반환한다', () => {
