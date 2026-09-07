@@ -1,4 +1,4 @@
-import { type Delivery, type DeliveryFeeType, type PriceWithDeliveryFee } from './_type.js';
+import type { Delivery, DeliveryFeeType, PriceWithDeliveryFee } from './_type.js';
 
 export const DELIVERY_FEE_TYPE = {
   FREE: '무료',

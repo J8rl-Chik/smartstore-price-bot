@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildPriceWithDeliveryFee, createDelivery } from './delivery.js';
-import { Delivery, DeliveryFeeType } from './_type.js';
+import type { Delivery, DeliveryFeeType } from './_type.js';
 
 // baseFee는 parseProductRow 함수에서 검증했으므로, 10의 배수 값이라는 전제로 테스트했습니다.
 
