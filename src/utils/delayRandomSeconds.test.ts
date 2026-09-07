@@ -1,20 +1,24 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import delayRandomSeconds from './delayRandomSeconds.js';
 
 describe('delayRandomSeconds', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
+  vi.useFakeTimers();
+
+  const spyMath = vi.spyOn(Math, 'random');
+  const resolved = vi.fn();
 
   afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  afterAll(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
   it('Math.random이 0이면 최솟값이 지나야 resolve된다', async () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0);
+    spyMath.mockReturnValue(0);
 
-    const resolved = vi.fn();
     delayRandomSeconds(2, 5).then(resolved);
 
     await vi.advanceTimersByTimeAsync(2_000 - 1);
@@ -30,9 +34,8 @@ describe('delayRandomSeconds', () => {
    * 계산되는지(공식 자체의 상한 경계) 확인하기 위해 이론상의 값 1로 모킹한다.
    */
   it('Math.random이 1이면 최댓값이 지나야 resolve된다', async () => {
-    vi.spyOn(Math, 'random').mockReturnValue(1);
+    spyMath.mockReturnValue(1);
 
-    const resolved = vi.fn();
     delayRandomSeconds(2, 5).then(resolved);
 
     await vi.advanceTimersByTimeAsync(5_000 - 1);
@@ -43,9 +46,8 @@ describe('delayRandomSeconds', () => {
   });
 
   it('Math.random이 0과 1 사이의 임의의 값이면 그 비율만큼 계산된 시간이 지나야 resolve된다', async () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    spyMath.mockReturnValue(0.5);
 
-    const resolved = vi.fn();
     delayRandomSeconds(2, 5).then(resolved);
 
     await vi.advanceTimersByTimeAsync(3_500 - 1);
