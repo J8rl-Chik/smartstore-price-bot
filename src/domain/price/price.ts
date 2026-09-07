@@ -1,4 +1,4 @@
-import { Seller } from '../seller/_type.js';
+import { Seller } from '../seller/filterExcludedSellers.js';
 
 export const calculateTargetPrice = (prices: number[], freeDeliveryPrice: number): number => {
   const sortedPrices = [...prices].sort((price1, price2) => price1 - price2);
