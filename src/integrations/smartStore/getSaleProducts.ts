@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-import type { SaleProduct } from '../../domain/saleProduct.js';
+import type { SaleProduct } from '../../domain/product/saleProduct.js';
 import shuffleArray from '../../utils/shuffleArray.js';
 import generateAccessToken from './generateAccessToken.js';
 import checkSmartStoreApiSucceeded, {

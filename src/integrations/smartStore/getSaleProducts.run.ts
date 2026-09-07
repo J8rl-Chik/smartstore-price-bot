@@ -1,6 +1,6 @@
 import getSaleProducts from './getSaleProducts.js';
 import isManualTestRun from '../../utils/isManualTestRun.js';
-import { excludeNewlyRegisteredProducts } from '../../domain/saleProduct.js';
+import { excludeNewlyRegisteredProducts } from '../../domain/product/saleProduct.js';
 
 if (isManualTestRun(import.meta.url)) {
   getSaleProducts().then((saleProducts) =>

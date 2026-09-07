@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import getSaleProducts from './getSaleProducts.js';
-import { type SaleProduct } from '../../domain/saleProduct.js';
+import { type SaleProduct } from '../../domain/product/saleProduct.js';
 
 const mockFetch = vi.fn();
 const mockGenerateAccessToken = vi.fn();
