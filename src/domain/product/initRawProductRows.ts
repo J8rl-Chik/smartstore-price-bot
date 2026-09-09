@@ -32,8 +32,8 @@ const hasValidPrice = (price: string): boolean => {
   }
 };
 
-export const initRawProductRows = (rows: RowValues[]): ProductRow[] =>
-  rows
+export const initRawProductRows = (rawProductRows: string[][]): ProductRow[] =>
+  rawProductRows
     .filter(isActiveRow)
     .map(fillEmptyCell)
     .filter((row) => {

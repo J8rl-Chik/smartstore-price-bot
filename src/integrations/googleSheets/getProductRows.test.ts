@@ -23,12 +23,13 @@ describe('getProductRows', () => {
     mockValuesGet.mockReset();
   });
 
-  it('시트에서 받은 값을 그대로 반환한다', async () => {
-    const value = ['상품A', 'url'];
+  it('시트에서 받은 문자열로 이루어진 행의 배열을 반환한다', async () => {
+    const rowValues1 = ['상품A', 'url1'];
+    const rowValues2 = ['상품B', 'url2'];
 
-    mockValuesGet.mockResolvedValue({ data: { values: [value] } });
+    mockValuesGet.mockResolvedValue({ data: { values: [rowValues1, rowValues2] } });
 
-    await expect(getProductRows()).resolves.toEqual([value]);
+    await expect(getProductRows()).resolves.toEqual([rowValues1, rowValues2]);
   });
 
   it('data.values가 없으면 원인을 남기고 에러를 던진다', async () => {
