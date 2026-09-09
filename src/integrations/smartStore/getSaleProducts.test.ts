@@ -9,13 +9,9 @@ vi.mock('node-fetch', () => ({
   default: (...args: unknown[]) => mockFetch(...args),
 }));
 
-vi.mock('./generateAccessToken.js', () => ({
+vi.mock(import('./generateAccessToken.js'), () => ({
   default: (...args: unknown[]) => mockGenerateAccessToken(...args),
 }));
-
-const createSaleProduct = (sellerManagementCode?: string): SaleProduct => ({
-  channelProducts: [{ name: '상품', originProductNo: 1, sellerManagementCode }],
-});
 
 describe('getSaleProducts', () => {
   afterEach(() => {
@@ -24,22 +20,24 @@ describe('getSaleProducts', () => {
   });
 
   it('발급받은 accessToken으로 판매 중 상품 목록을 조회해 가공 없이 그대로 반환한다', async () => {
+    const createSaleProduct = (sellerManagementCode?: string): SaleProduct => ({
+      channelProducts: [{ name: '상품', originProductNo: 1, sellerManagementCode }],
+    });
+
     const existingProduct = createSaleProduct('기존-001');
     const newProduct = createSaleProduct('신규-001');
 
     mockGenerateAccessToken.mockResolvedValue('token-abc');
     mockFetch.mockResolvedValue({
-      json: () => Promise.resolve({ contents: [existingProduct, newProduct] }),
+      json: async () => ({ contents: [existingProduct, newProduct] }),
     });
 
-    // 신규 등록 상품 제외는 domain/saleProduct.js(excludeNewlyRegisteredProducts)의 책임이라
-    // getSaleProducts는 필터링 없이 원본 목록을 그대로 반환해야 한다.
     await expect(getSaleProducts()).resolves.toEqual([existingProduct, newProduct]);
   });
 
   it('상품 검색 API를 올바른 URL/메서드/인증 헤더/바디로 호출한다', async () => {
     mockGenerateAccessToken.mockResolvedValue('token-abc');
-    mockFetch.mockResolvedValue({ json: () => Promise.resolve({ contents: [] }) });
+    mockFetch.mockResolvedValue({ json: async () => ({ contents: [] }) });
 
     await getSaleProducts();
 
