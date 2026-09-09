@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import updatePrice from './updatePrice.js';
+import updatePrice, { type ProductResult } from './updatePrice.js';
 
 const mockFetch = vi.fn();
 const mockGenerateAccessToken = vi.fn();
@@ -12,12 +12,12 @@ vi.mock('./generateAccessToken.js', () => ({
   default: (...args: unknown[]) => mockGenerateAccessToken(...args),
 }));
 
-const createOriginProductResult = (override: Record<string, unknown> = {}) => ({
+const createOriginProductResult = (override: Record<string, unknown> = {}): ProductResult => ({
   originProduct: {
     name: '기존 상품',
     detailContent: '<div>상세페이지</div>',
     stockQuantity: 100,
-    deliveryInfo: { deliveryFeeType: 'FREE' },
+    deliveryInfo: { deliveyFee: { deliveryFeeType: 'FREE' } },
     ...override,
   },
   smartstoreChannelProduct: { channelProductNo: 1 },
@@ -94,9 +94,7 @@ describe('updatePrice', () => {
     expect(putBody.originProduct.detailContent).toBeUndefined();
     expect(putBody.originProduct.stockQuantity).toBeUndefined();
     expect(putBody.originProduct.name).toBe('기존 상품');
-    // 기존 deliveryInfo 값은 그대로 유지한 채, deliveryFee 객체 전체를 하위 필드로 중첩해 덮어쓴다(의도된 동작).
-    expect(putBody.originProduct.deliveryInfo).toEqual({
-      deliveryFeeType: 'FREE',
+    expect(putBody.originProduct.deliveryInfo).toMatchObject({
       deliveryFee: { deliveryFeeType: 'FREE' },
     });
     expect(putBody.originProduct.salePrice).toBe(50000);

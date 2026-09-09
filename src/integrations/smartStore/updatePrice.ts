@@ -1,10 +1,10 @@
 import fetch from 'node-fetch';
 
-import type { DeliveryFee } from '../../domain/delivery.js';
 import generateAccessToken from './generateAccessToken.js';
 import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
 } from './checkSmartStoreApiSucceeded.js';
+import { DeliveryFee } from '../../domain/delivery/_type.js';
 
 interface UpdatePriceParam {
   productNo: number;
@@ -19,7 +19,7 @@ interface OriginProduct {
   [key: string]: unknown;
 }
 
-interface ProductResult {
+export interface ProductResult {
   originProduct: OriginProduct;
   smartstoreChannelProduct: unknown;
   windowChannelProduct: unknown;
