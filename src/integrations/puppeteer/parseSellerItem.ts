@@ -1,12 +1,12 @@
 import { JSDOM } from 'jsdom';
+import { Seller } from '../../domain/seller/filterExcludedSellers.js';
+import parseToNumberFromKRW from '../../domain/price/parseToNumberFromKRW.js';
+import { DELIVERY_FEE_TYPE } from '../../domain/delivery/delivery.js';
+import { DeliveryFeeType } from '../../domain/delivery/_type.js';
 
-import { DELIVERY_FEE_TYPE } from '../../domain/constant.js';
-import parseToNumberFromKRW from '../../domain/parseToNumberFromKRW.js';
-import type { Seller } from '../../domain/sellers.js';
-
-interface Delivery {
+interface DeliveryFeeAndType {
   fee: number;
-  type: Seller['deliveryFeeType'];
+  type: Exclude<DeliveryFeeType, '수량별'>;
 }
 
 const getTextContent = (sellerItem: Element, selector: string): string => {
@@ -38,7 +38,7 @@ const getDiscountPrice = (sellerItem: Element): number | null => {
   return parseToNumberFromKRW(discountPriceElement.textContent);
 };
 
-const getDelivery = (sellerItem: Element): Delivery => {
+const getDelivery = (sellerItem: Element): DeliveryFeeAndType => {
   const textContent = getTextContent(sellerItem, 'div[class^="DeliveryFee"]');
 
   // 실제 배송비가 표시되는 경우 "2,500원 포함"처럼 "포함"이 붙는다.

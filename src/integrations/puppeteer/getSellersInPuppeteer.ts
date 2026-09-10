@@ -1,8 +1,8 @@
 import type { Page } from 'puppeteer';
 
-import type { Seller } from '../../domain/sellers.js';
 import delayRandomSeconds from '../../utils/delayRandomSeconds.js';
 import parseSellerItem from './parseSellerItem.js';
+import { Seller } from '../../domain/seller/filterExcludedSellers.js';
 
 export const SELLER_ITEM_SELECTOR = '[class^="product_seller_info_wrap__"]';
 

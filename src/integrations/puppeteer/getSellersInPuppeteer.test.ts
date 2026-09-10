@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
 import getSellersInPuppeteer, { SELLER_ITEM_SELECTOR } from './getSellersInPuppeteer.js';
-import { DELIVERY_FEE_TYPE } from '../../domain/constant.js';
-import type { Seller } from '../../domain/sellers.js';
+import { DELIVERY_FEE_TYPE } from '../../domain/delivery/delivery.js';
+import { Seller } from '../../domain/seller/filterExcludedSellers.js';
 
 const mockParseSellerItem = vi.fn();
 
-vi.mock('./parseSellerItem.js', () => ({
+vi.mock(import('./parseSellerItem.js'), () => ({
   default: (...args: unknown[]) => mockParseSellerItem(...args),
 }));
 
