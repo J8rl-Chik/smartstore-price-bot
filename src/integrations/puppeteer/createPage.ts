@@ -1,5 +1,4 @@
-import puppeteerExtra from 'puppeteer-extra';
-import type { PuppeteerExtra } from 'puppeteer-extra';
+import puppeteerExtra, { type PuppeteerExtra } from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import type { Browser, Page } from 'puppeteer';
 
@@ -8,23 +7,24 @@ interface BrowserPage {
   page: Page;
 }
 
-const puppeteer = puppeteerExtra as unknown as PuppeteerExtra;
-const stealth = StealthPlugin();
-
-/**
- * 기본 언어가 영어로 설정되기 때문에,
- * 서버가 받는 Accept-Language와 navigator.languages를 한국어로 일치시키기 위해 두 설정을 제거한다.
- */
-stealth.enabledEvasions.delete('user-agent-override');
-stealth.enabledEvasions.delete('navigator.languages');
-
-/**
- * 플러그인 등록은 프로세스당 한 번이면 되는 설정이다.
- * createPage 안에 두면 createPage 호출마다 함께 호출돼서 불필요하다.
- */
-puppeteer.use(stealth);
-
 const createPage = async (): Promise<BrowserPage> => {
+  const puppeteer = puppeteerExtra as unknown as PuppeteerExtra;
+  const stealth = StealthPlugin();
+
+  /**
+   * 기본 언어가 영어로 설정되기 때문에,
+   * 서버가 받는 Accept-Language와 navigator.languages를 한국어로 일치시키기 위해 두 설정을 제거한다.
+   */
+  stealth.enabledEvasions.delete('user-agent-override');
+  stealth.enabledEvasions.delete('navigator.languages');
+
+  /**
+   * 모듈 최상단에서 등록하면 import 시점에 부수 효과가 생겨 등록 여부를 테스트로 검증할 수 없다.
+   * puppeteer-extra의 use()는 중복 등록을 걸러내지 않지만,
+   * 브라우저는 프로세스당 한 번만 띄우는 전제라 함수 안에서 등록한다.
+   */
+  puppeteer.use(stealth);
+
   try {
     const browser = await puppeteer.launch({
       headless: false,
@@ -38,10 +38,14 @@ const createPage = async (): Promise<BrowserPage> => {
     });
 
     const [blankPage] = await browser.pages();
-    const page = await browser.newPage();
 
+    if (!blankPage) {
+      throw new Error('브라우저 기본 페이지가 없습니다.');
+    }
     // newPage()로 새로 연 페이지에만 stealth가 온전히 걸리므로, 첫 페이지는 닫는다.
     await blankPage?.close();
+
+    const page = await browser.newPage();
 
     return { browser, page };
   } catch (error) {
