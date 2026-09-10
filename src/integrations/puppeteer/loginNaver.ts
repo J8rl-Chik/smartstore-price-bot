@@ -19,12 +19,12 @@ const loginNaver = async (page: Page): Promise<void> => {
     const naverPassword = validateEnv('NAVER_PASSWORD');
     const naverId = validateEnv('NAVER_ID');
 
-    const isLogined = await page.evaluate(
+    const hasLoginForm = await page.evaluate(
       (selector) => document.body.querySelector(selector),
       idSelector,
     );
 
-    if (isLogined) {
+    if (hasLoginForm) {
       await page.click(idSelector);
       await page.type(idSelector, naverId, { delay: typeDelay });
 
@@ -35,8 +35,6 @@ const loginNaver = async (page: Page): Promise<void> => {
     }
 
     await delayRandomSeconds(2, 3);
-
-    // await page.goto('https://www.naver.com/');
   } catch (error) {
     throw new Error('네이버 로그인에 실패했습니다.', { cause: error });
   }
