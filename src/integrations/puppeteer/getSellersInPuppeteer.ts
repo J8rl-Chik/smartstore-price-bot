@@ -2,63 +2,33 @@ import type { Page } from 'puppeteer';
 
 import parseSellerItem from './parseSellerItem.js';
 import { Seller } from '../../domain/seller/filterExcludedSellers.js';
+import validateCatalogPage, { UnexpectedCatalogPageError } from './validateCatalogPage.js';
 
 export const SELLER_ITEM_SELECTOR = '[class^="product_seller_info_wrap__"]';
 
-/**
- * 로그인 리다이렉트, rate limit 안내 등으로 원래 가려던 가격비교 페이지가 아닌 다른 페이지로
- * 이동했을 때 던진다. 이 세션 전체가 신뢰할 수 없는 상태라는 뜻이라, 상품 단위로 건너뛰지 않고
- * 실행 자체를 즉시 중단시켜야 한다.
- */
-export class UnexpectedCatalogPageError extends Error {}
-
-/**
- * rate limit에 걸리면 URL은 그대로 카탈로그 페이지인 채로 "쇼핑 접속이 일시적으로
- * 제한되었습니다" 같은 안내 문구가 렌더링된다. URL 비교로는 이 경우를 잡을 수 없어
- * 페이지 텍스트를 직접 확인한다.
- */
-const isRestrictedPage = (page: Page): Promise<boolean> =>
-  page.evaluate(
-    (message) => document.body.innerText.includes(message),
-    '쇼핑 서비스 접속이 일시적',
-  );
-
-const isRequiredLogin = (page: Page): Promise<boolean> =>
-  page.evaluate((message) => document.body.innerText.includes(message), '아이디 또는 전화번호');
-
-const isRequiredSecureCheck = (page: Page): Promise<boolean> =>
-  page.evaluate(
-    (message) => document.body.innerText.includes(message),
-    '보안 확인을 완료해 주세요.',
-  );
-
-const validatePage = async (page: Page): Promise<void> => {
-  if (
-    (await isRestrictedPage(page)) ||
-    (await isRequiredLogin(page)) ||
-    (await isRequiredSecureCheck(page))
-  ) {
-    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
-  }
-};
-
-const goToCatalog = async (page: Page, catalogURL: string, referer: string): Promise<void> => {
-  await page.goto(catalogURL, { referer });
-
-  // await delayRandomSeconds(2, 3);
-  await validatePage(page);
-};
-
-const getSellerItemHTMLList = async (
+export const goToCatalog = async (
   page: Page,
   catalogURL: string,
-  productName: string,
-): Promise<string[]> => {
+  referer: string,
+): Promise<void> => {
+  await page.goto(catalogURL, { referer });
+};
+
+export const createReferer = (productName: string) => {
   // 제품명에 괄호가 포함된 경우 요청 에러가 나서 별도로 인코딩한다.
   const encodedName = encodeURIComponent(productName).replaceAll('(', '%28').replaceAll(')', '%29');
   const referer = `https://search.shopping.naver.com/search/all?query=${encodedName}&vertical=search`;
 
+  return referer;
+};
+
+export const getSellerItemHTMLList = async (
+  page: Page,
+  catalogURL: string,
+  referer: string,
+): Promise<string[]> => {
   await goToCatalog(page, catalogURL, referer);
+  await validateCatalogPage(page);
 
   // 요소 객체를 가져올 수 없어 outerHTML를 가져온다.
   return page.evaluate(
@@ -73,7 +43,8 @@ const getSellersInPuppeteer = async (
   productName: string,
 ): Promise<Seller[]> => {
   try {
-    const sellerItemHTMLList = await getSellerItemHTMLList(page, catalogURL, productName);
+    const referer = createReferer(productName);
+    const sellerItemHTMLList = await getSellerItemHTMLList(page, catalogURL, referer);
 
     return sellerItemHTMLList.flatMap(parseSellerItem);
   } catch (error) {
