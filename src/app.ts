@@ -3,19 +3,20 @@ import 'dotenv/config';
 import getSaleProducts from './integrations/smartStore/getSaleProducts.js';
 import getProductRows from './integrations/googleSheets/getProductRows.js';
 import createPage from './integrations/puppeteer/createPage.js';
-import getSellersInPuppeteer, {
-  UnexpectedCatalogPageError,
-} from './integrations/puppeteer/getSellersInPuppeteer.js';
+import getSellersInPuppeteer from './integrations/puppeteer/getSellersInPuppeteer.js';
 import loginNaver from './integrations/puppeteer/loginNaver.js';
 import updatePrice from './integrations/smartStore/updatePrice.js';
 import delaySeconds from './utils/delaySeconds.js';
 import delayMinutes from './utils/delayMinutes.js';
 import validateEnv from './utils/validateEnv.js';
-import { initProductRows } from './domain/productRow.js';
-import { getProductName, getOriginProductNo } from './domain/saleProduct.js';
-import { filterExcludedSellers, addVirtualPrice } from './domain/sellers.js';
-import { calculateTargetPrice, isUpdateRequired } from './domain/pricing.js';
-import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery.js';
+import shuffleArray from './utils/shuffleArray.js';
+import { initRawProductRows } from './domain/product/initRawProductRows.js';
+import { getOriginProductNo, getProductName } from './domain/product/saleProduct.js';
+import { filterExcludedSellers } from './domain/seller/filterExcludedSellers.js';
+import { addVirtualPrice } from './domain/price/addVirtualPrice.js';
+import { calculateTargetPrice, isPriceUpdateRequired } from './domain/price/price.js';
+import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery/delivery.js';
+import { UnexpectedCatalogPageError } from './integrations/puppeteer/validateCatalogPage.js';
 
 // TODO: 분리할 필요있는지 확인, 에러 발생시 프로그램 종료되는지 확인.
 const createLoggedInPage = async () => {
@@ -33,9 +34,9 @@ const start = async (): Promise<void> => {
   while (true) {
     console.time('실행 시간');
 
-    const saleProducts = await getSaleProducts();
-    const productRows = initProductRows(await getProductRows());
-    let { browser, page } = await createLoggedInPage();
+    const saleProducts = shuffleArray(await getSaleProducts());
+    const productRows = initRawProductRows(await getProductRows());
+    const { browser, page } = await createLoggedInPage();
     let productCount = 0;
 
     for (const saleProduct of saleProducts) {
@@ -68,7 +69,7 @@ const start = async (): Promise<void> => {
           const { freeDeliveryPrice, feeType, baseFee } = productRow;
           const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
 
-          if (isUpdateRequired(currentMyStore, targetPrice, feeType)) {
+          if (isPriceUpdateRequired(currentMyStore, targetPrice, feeType)) {
             const delivery = createDelivery({ feeType, baseFee });
             const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
 

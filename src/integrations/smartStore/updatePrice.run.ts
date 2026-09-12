@@ -1,6 +1,6 @@
-import { buildPriceWithDeliveryFee } from '../../domain/delivery.js';
 import updatePrice from './updatePrice.js';
 import isManualTestRun from '../../utils/isManualTestRun.js';
+import { buildPriceWithDeliveryFee } from '../../domain/delivery/delivery.js';
 
 if (isManualTestRun(import.meta.url)) {
   console.log('updatePrice 함수 테스트: 클린 웜 코튼 오 드 퍼퓸 60ml 20만원으로 수정');
