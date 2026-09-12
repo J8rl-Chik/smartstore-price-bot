@@ -2,7 +2,7 @@ import { JSDOM } from 'jsdom';
 import { describe, expect, it } from 'vitest';
 import parseSellerItem from './parseSellerItem.js';
 import { SELLER_ITEM_SELECTOR } from './getSellersInPuppeteer.js';
-import productSellersHTML from './sellerItemsHTML.fixture.js';
+import productSellersHTML from './_sellerItemsHTML.fixture.js';
 
 const createSellerItemHTML = ({
   name = '쿠팡',
