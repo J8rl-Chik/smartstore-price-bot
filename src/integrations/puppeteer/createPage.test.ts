@@ -1,13 +1,32 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import createPage from './createPage.js';
 
-const mockDelete = vi.fn();
-const mockStealth = {
-  enabledEvasions: {
-    delete: mockDelete,
+const { mockStealthPlugin, mockUse, mockLaunch, mockStealth } = vi.hoisted(() => {
+  const mockDelete = vi.fn();
+  const mockStealth = {
+    enabledEvasions: {
+      delete: mockDelete,
+    },
+  };
+
+  return {
+    mockStealth,
+    mockStealthPlugin: vi.fn().mockReturnValue(mockStealth),
+    mockUse: vi.fn(),
+    mockLaunch: vi.fn(),
+  };
+});
+
+vi.mock('puppeteer-extra-plugin-stealth', () => ({
+  default: (...args: unknown[]) => mockStealthPlugin(...args),
+}));
+
+vi.mock('puppeteer-extra', () => ({
+  default: {
+    launch: (...args: unknown[]) => mockLaunch(...args),
+    use: (...args: unknown[]) => mockUse(...args),
   },
-};
-const mockStealthPlugin = vi.fn().mockReturnValue(mockStealth);
+}));
 
 const createMockPage = () => ({
   close: vi.fn(),
@@ -23,39 +42,23 @@ const createMockBrowser = (
   newPage: async () => mockNewPage,
 });
 
-const mockLaunch = vi.fn();
-const mockUse = vi.fn();
-
-vi.mock('puppeteer-extra', () => ({
-  default: {
-    launch: (...args: unknown[]) => mockLaunch(...args),
-    use: (...args: unknown[]) => mockUse(...args),
-  },
-}));
-
-vi.mock('puppeteer-extra-plugin-stealth', () => ({
-  default: (...args: unknown[]) => mockStealthPlugin(...args),
-}));
-
 describe('createPage', () => {
   afterEach(() => {
     mockLaunch.mockReset();
-    mockDelete.mockClear();
   });
 
-  it('스텔스 모드로 실행한다.', async () => {
+  /* 
+    mockStealth.enabledEvasions.delete에 대한 개별적인 테스트가 필요한 경우,
+    최상위에서 호출한 함수라 createPage 함수 호출마다 호출되지 않는 점을 주의해야한다.
+    첫 번째 테스트를 두 번째 이후로 순서를 변경하게 되면 mockDelete.clear로 호출 기록을 지우면 안된다.
+  */
+  it('스텔스 모드로 실행하고, 시스템 언어(한국어)를 적용할 수 있도록 기본 언어 영어 설정을 제거한다.', async () => {
     mockLaunch.mockResolvedValue(createMockBrowser());
 
     await createPage();
 
     expect(mockStealthPlugin).toHaveBeenCalled();
     expect(mockUse).toHaveBeenCalledWith(mockStealth);
-  });
-
-  it('시스템 언어(한국어)를 적용할 수 있도록, 기본 언어 영어 설정을 제거한다.', async () => {
-    mockLaunch.mockResolvedValue(createMockBrowser());
-
-    await createPage();
 
     expect(mockStealth.enabledEvasions.delete).toHaveBeenCalledWith('user-agent-override');
     expect(mockStealth.enabledEvasions.delete).toHaveBeenCalledWith('navigator.languages');
