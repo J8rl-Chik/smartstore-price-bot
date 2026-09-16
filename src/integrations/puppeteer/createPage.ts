@@ -43,9 +43,9 @@ const createPage = async (): Promise<BrowserPage> => {
       throw new Error('브라우저 기본 페이지가 없습니다.');
     }
     // newPage()로 새로 연 페이지에만 stealth가 온전히 걸리므로, 첫 페이지는 닫는다.
-    await blankPage?.close();
-
     const page = await browser.newPage();
+
+    await blankPage?.close();
 
     return { browser, page };
   } catch (error) {
