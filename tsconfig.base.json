@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "removeComments": true,
+    "types": ["node"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "noUncheckedIndexedAccess": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src/domain/**/*.ts", "src/integrations/**/*.ts", "src/utils/**/*.ts", "src/*.ts"]
+}

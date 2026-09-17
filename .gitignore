@@ -7,3 +7,6 @@ config
 logs
 docs
 rateLimitTest
+electron-vite-quick-start
+.vscode
+out

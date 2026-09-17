@@ -1,17 +1,15 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "removeComments": true,
-    "types": ["node"],
-    "outDir": "dist",
-    "rootDir": "src",
-    "noUncheckedIndexedAccess": true,
-    "allowSyntheticDefaultImports": true
-  },
-  "include": ["src"]
+  "files": [],
+  // 이 파일 자체는 검사하거나 컴파일할 원본 소스 코드 파일 목록을 단 하나도 가지지 않겠다는 뜻입니다.
+  // 마스터 파일이 직접 소스 코드를 건드리지 않게 완전히 비워둔 것입니다.
+
+  "references": [
+    { "path": "./tsconfig.base.json" },
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.web.json" }
+  ]
+  // [프로젝트 참조(Project References) 설정]
+  // 이 마스터 설정을 실행하면, 아래 적힌 세부 설정 파일들로 검사 권한을 위임(참조)하겠다는 핵심 지도입니다.
+  // 1. tsconfig.node.json: 컴퓨터 시스템 기능을 다루는 메인(Main)과 프리로드(Preload) 전용 규칙 책입니다.
+  // 2. tsconfig.web.json: 브라우저 화면과 리액트를 다루는 렌더러(Renderer) 전용 규칙 책입니다.
 }

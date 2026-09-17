@@ -1,0 +1,39 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  // [설정 상속]
+  // Electron 툴킷 패키지에서 미리 만들어둔 표준 웹(Web)/리액트용 타입스크립트 베이스 설정값을 그대로 물려받아 사용합니다.
+  // 브라우저 환경에서 필요한 다양한 웹 내장 명령어(window, document 등)들을 인식할 수 있게 세팅됩니다.
+
+  "include": [
+    "src/renderer/src/env.d.ts",
+    "src/renderer/src/**/*",
+    "src/renderer/src/**/*.tsx",
+    "src/preload/*.d.ts"
+  ],
+  // [검사 대상 폴더 지정]
+  // 이 규칙 책으로 감시하고 관리할 웹 관련 파일들의 범위입니다.
+  // 1. env.d.ts : Vite의 환경 변수 타입을 정의하는 파일을 포함합니다.
+  // 2. src/renderer/src/**/* : 렌더러 폴더 내부의 모든 웹 소스 파일들을 검사합니다.
+  // 3. src/renderer/src/**/*.tsx : 리액트 컴포넌트(.tsx) 파일들을 집중적으로 검사합니다.
+  // 4. src/preload/*.d.ts : 프리로드 쪽에서 화면(렌더러)으로 넘겨줄 안전한 데이터 통로의 '타입 정의 파일'을 공유해서 읽습니다.
+
+  "compilerOptions": {
+    // 타입스크립트 컴파일러에게 웹 환경에 맞춤 명령을 내리는 옵션 창고입니다.
+
+    "composite": true,
+    // [프로젝트 참조 모드 활성화]
+    // 마스터 파일(tsconfig.json)이 이 파일을 하위 프로젝트로 참조해서 유기적으로 연결할 수 있도록 허용하는 옵션입니다.
+
+    "jsx": "react-jsx",
+    // [JSX 컴파일 방식 설정]
+    // 리액트의 독특한 화면 코드 문법인 JSX/TSX를 브라우저가 읽을 수 있는 자바스크립트로 변환할 때,
+    // React 17 버전부터 도입된 최신 자동 변환 방식(react-jsx)을 사용하겠다는 선언입니다.
+
+    "paths": {
+      "@renderer/*": ["./src/renderer/src/*"]
+    }
+    // [단축 경로(Alias) 매핑 설정]
+    // 이전에 'electron.vite.config.ts' 총감독 파일에서 설정했던 별칭(@renderer)을 타입스크립트 엔진에게도 똑같이 알려주는 곳입니다.
+    // 이 설정이 있어야 코드 창에 'import App from "@renderer/App"' 라고 적었을 때, 타입스크립트가 에러로 잡지 않고 진짜 위치를 똑똑하게 찾아갑니다.
+  }
+}
