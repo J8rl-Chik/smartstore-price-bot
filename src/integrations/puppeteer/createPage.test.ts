@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import createPage from './createPage.js';
 
 const { mockStealthPlugin, mockUse, mockLaunch, mockStealth } = vi.hoisted(() => {
@@ -47,16 +47,13 @@ describe('createPage', () => {
     mockLaunch.mockReset();
   });
 
-  /* 
-    mockStealth.enabledEvasions.delete에 대한 개별적인 테스트가 필요한 경우,
-    최상위에서 호출한 함수라 createPage 함수 호출마다 호출되지 않는 점을 주의해야한다.
-    첫 번째 테스트를 두 번째 이후로 순서를 변경하게 되면 mockDelete.clear로 호출 기록을 지우면 안된다.
+  /*
+    5버전 부터 clearMocks: true라 각 테스트 전에 mock 호출 기록이 초기화된다.
+    stealth 설정(StealthPlugin(), puppeteer.use())은 모듈 최상위(import 시점)에
+    딱 한 번만 실행되므로, 그 첫 clearMocks가 실행되기 전인 beforeAll에서 검증한다.
+    it() 안에 두면 검증 직전에 이미 호출 기록이 지워져 항상 실패한다.
   */
-  it('스텔스 모드로 실행하고, 시스템 언어(한국어)를 적용할 수 있도록 기본 언어 영어 설정을 제거한다.', async () => {
-    mockLaunch.mockResolvedValue(createMockBrowser());
-
-    await createPage();
-
+  beforeAll(() => {
     expect(mockStealthPlugin).toHaveBeenCalled();
     expect(mockUse).toHaveBeenCalledWith(mockStealth);
 
