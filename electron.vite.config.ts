@@ -1,6 +1,5 @@
-import { resolve } from 'path'
-import { defineConfig } from 'electron-vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'electron-vite';
+import react from '@vitejs/plugin-react';
 
 // electron-vite의 전체 빌드 및 개발 설정을 통합하여 선언합니다.
 export default defineConfig({
@@ -22,11 +21,11 @@ export default defineConfig({
       // 깔끔하고 단순하게 줄여서 쓸 수 있도록 이정표를 세워줍니다.
       alias: {
         // 앞으로 코드에서 '@renderer'라고 적으면, 자동으로 'src/renderer/src' 폴더를 가리키게 됩니다.
-        '@renderer': resolve('src/renderer/src')
-      }
+        // '@renderer': resolve('src/renderer/src')
+      },
     },
     // 플러그인 설정: 이 프로젝트의 화면을 'React(리액트)'로 그리겠다는 선언입니다.
     // 이 플러그인 덕분에 리액트 컴포넌트(.jsx, .tsx)와 핫 리로딩(HMR)이 완벽하게 지원됩니다.
-    plugins: [react()]
-  }
-})
+    plugins: [react()],
+  },
+});
