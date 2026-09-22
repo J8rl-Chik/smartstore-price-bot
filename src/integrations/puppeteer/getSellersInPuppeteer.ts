@@ -14,18 +14,20 @@ export const goToCatalog = async (
   await page.goto(catalogURL, { referer });
 };
 
-export const createReferer = (productName: string) => {
+type Referer = `https://search.shopping.naver.com/search/all?query=${string}&vertical=search`;
+
+export const createReferer = (productName: string): Referer => {
   // 제품명에 괄호가 포함된 경우 요청 에러가 나서 별도로 인코딩한다.
   const encodedName = encodeURIComponent(productName).replaceAll('(', '%28').replaceAll(')', '%29');
   const referer = `https://search.shopping.naver.com/search/all?query=${encodedName}&vertical=search`;
 
-  return referer;
+  return referer as Referer;
 };
 
 export const getSellerItemHTMLList = async (
   page: Page,
   catalogURL: string,
-  referer: string,
+  referer: Referer,
 ): Promise<string[]> => {
   await goToCatalog(page, catalogURL, referer);
   await validateCatalogPage(page);

@@ -19,7 +19,7 @@ import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery/del
 import { UnexpectedCatalogPageError } from './integrations/puppeteer/validateCatalogPage.js';
 
 // TODO: 분리할 필요있는지 확인, 에러 발생시 프로그램 종료되는지 확인.
-const createLoggedInPage = async () => {
+const createLoggedInPage = async (): ReturnType<typeof createPage> => {
   const { browser, page } = await createPage();
 
   await loginNaver(page);

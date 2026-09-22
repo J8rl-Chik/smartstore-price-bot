@@ -46,7 +46,11 @@ const sanitizeProductForUpdate = (product: OriginProduct): OriginProduct => {
   return sanitizedProduct;
 };
 
-async function updatePrice({ productNo, deliveryFee, salePrice }: UpdatePriceParam) {
+async function updatePrice({
+  productNo,
+  deliveryFee,
+  salePrice,
+}: UpdatePriceParam): Promise<SmartStoreApiResult> {
   try {
     const productURL = `https://api.commerce.naver.com/external/v2/products/origin-products/${productNo}`;
     const accessToken = await generateAccessToken();

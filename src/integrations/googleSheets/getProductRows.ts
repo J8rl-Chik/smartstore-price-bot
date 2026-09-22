@@ -16,7 +16,8 @@ const getSheetValues = async (
   sheetsResource: sheets_v4.Resource$Spreadsheets,
   spreadsheetId: string,
   range: string,
-) => sheetsResource.values.get({ spreadsheetId, range });
+): Promise<{ data: sheets_v4.Schema$ValueRange }> =>
+  sheetsResource.values.get({ spreadsheetId, range });
 
 async function getProductRows(): Promise<string[][]> {
   // 첫 번째 칼럼 행(제목, URL 등등) 제외
