@@ -11,7 +11,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "noUncheckedIndexedAccess": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "composite": true
   },
   "include": ["src/domain/**/*.ts", "src/integrations/**/*.ts", "src/utils/**/*.ts", "src/*.ts"]
 }
