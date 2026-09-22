@@ -70,6 +70,26 @@ export default defineConfig([
     },
   },
 
+  // 6-1. 테스트 파일은 반환 타입 명시 규칙 제외
+  // 테스트 콜백(it/test 등)까지 매번 반환 타입을 적으면 번거로우므로 .test.ts(x) 파일만 예외로 끈다.
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+    },
+  },
+
+  {
+    rules: {
+      'prettier/prettier': [
+        'error',
+        {
+          endOfLine: 'auto',
+        },
+      ],
+    },
+  },
+
   // 7. Prettier와의 충돌 방지 설정 (★마지막에 두는 것이 중요!)
   // 코드 감시관(ESLint)과 코드 정렬원(Prettier)이 서로 싸우지 않도록 만듭니다.
   // Prettier가 정렬해 줄 띄어쓰기나 괄호 관련 문법 규칙들은 ESLint가 간섭하지 않고 눈감아주게 만듭니다.
