@@ -1,7 +1,4 @@
 import styled from 'styled-components';
-// import { THEME } from '../theme';
-
-// const { color } = THEME;
 
 const HeaderContainer = styled.header`
   display: flex;
