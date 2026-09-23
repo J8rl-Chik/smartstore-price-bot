@@ -51,13 +51,18 @@ const StartButton = styled.button`
 `;
 
 const Header = (): React.JSX.Element => {
+  const handleStartButtonClick = async (): Promise<void> => {
+    const result = await window.api.ping();
+    console.log(result);
+  };
+
   return (
     <HeaderContainer>
       <Title>
         <Logo>S</Logo>
         스마트스토어 최저가 봇
       </Title>
-      <StartButton>
+      <StartButton onClick={handleStartButtonClick}>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
           <path d="M3 2l7 4-7 4V2z" fill="white" />
         </svg>

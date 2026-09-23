@@ -1,6 +1,17 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import { IpcChannels } from '../preload/ipcChannels';
+
+// 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼
+const handleIpc = <K extends keyof IpcChannels>(
+  channel: K,
+  listener: (
+    ...args: IpcChannels[K]['args']
+  ) => IpcChannels[K]['result'] | Promise<IpcChannels[K]['result']>,
+): void => {
+  ipcMain.handle(channel, (_event, ...args) => listener(...(args as IpcChannels[K]['args'])));
+};
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -9,10 +20,10 @@ function createWindow(): void {
     // 우선 화면에 띄우지 않고 백그라운드에서 로딩합니다.
     show: false,
     autoHideMenuBar: true,
-    // webPreferences: {
-    //   preload: join(__dirname, '../preload/index.mjs'),
-    //   sandbox: false,
-    // },
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.mjs'),
+      sandbox: false,
+    },
   });
 
   mainWindow.on('ready-to-show', () => {
@@ -51,7 +62,11 @@ app.whenReady().then(() => {
   });
 
   // IPC test
-  ipcMain.on('ping', () => console.log('pong'));
+  handleIpc('ping', () => {
+    console.log('pong');
+
+    return 'pong';
+  });
 
   createWindow();
 
