@@ -10,3 +10,4 @@ rateLimitTest
 electron-vite-quick-start
 .vscode
 out
+*.tsbuildinfo
