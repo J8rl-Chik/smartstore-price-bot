@@ -3,12 +3,12 @@
 import { contextBridge, ipcRenderer } from 'electron';
 // electron-toolkit이 제공하는 공통 헬퍼(ipcRenderer 래퍼 등)
 import { electronAPI } from '@electron-toolkit/preload';
-import { IpcChannels } from './ipcChannels';
+import { IpcEvent } from './ipcEvent';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
 const api = {
   // renderer -> main으로 'ping' 요청을 보내고, main의 응답을 그대로 반환한다.
-  ping: () => ipcRenderer.invoke('ping') as Promise<IpcChannels['ping']['result']>,
+  ping: () => ipcRenderer.invoke('ping') as Promise<IpcEvent['ping']['returnType']>,
 };
 
 /**

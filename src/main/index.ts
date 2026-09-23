@@ -1,16 +1,15 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { IpcChannels } from '../preload/ipcChannels';
+import { IpcEvent } from '../preload/ipcEvent';
 
 // 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼
-const handleIpc = <K extends keyof IpcChannels>(
-  channel: K,
-  listener: (
-    ...args: IpcChannels[K]['args']
-  ) => IpcChannels[K]['result'] | Promise<IpcChannels[K]['result']>,
+const handleIpc = <E extends keyof IpcEvent>(
+  event: E,
+  handler: (...args: IpcEvent[E]['args']) => IpcEvent[E]['returnType'],
 ): void => {
-  ipcMain.handle(channel, (_event, ...args) => listener(...(args as IpcChannels[K]['args'])));
+  // ipcMain.handle 콜백의 첫 번째 인자(IpcMainInvokeEvent)는 렌더러가 보낸 값이 아니므로 제외하고 나머지만 handler에 전달한다.
+  ipcMain.handle(event, (_event, ...args) => handler(...(args as IpcEvent[E]['args'])));
 };
 
 function createWindow(): void {
@@ -65,7 +64,7 @@ app.whenReady().then(() => {
   handleIpc('ping', () => {
     console.log('pong');
 
-    return 'pong';
+    return 'ping';
   });
 
   createWindow();
