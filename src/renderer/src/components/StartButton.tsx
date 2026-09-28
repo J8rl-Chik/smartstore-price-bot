@@ -1,0 +1,40 @@
+import styled from 'styled-components';
+
+const StartButtonRoot = styled.button`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.color.white};
+  cursor: pointer;
+  background: ${({ theme }) => theme.color.blue500};
+  border: none;
+  border-radius: 8px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: ${({ theme }) => theme.color.blue600};
+  }
+`;
+
+const StartButton = (): React.JSX.Element => {
+  const handleClick = async (): Promise<void> => {
+    const saleProducts = await window.api.getSaleProducts();
+    const productRows = await window.api.getProductRows();
+
+    console.log(saleProducts, productRows);
+  };
+
+  return (
+    <StartButtonRoot onClick={handleClick}>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M3 2l7 4-7 4V2z" fill="white" />
+      </svg>
+      자동 수정 시작
+    </StartButtonRoot>
+  );
+};
+
+export default StartButton;
