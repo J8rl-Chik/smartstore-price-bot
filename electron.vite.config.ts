@@ -6,7 +6,15 @@ export default defineConfig({
   // 1. 메인 프로세스(Main Process) 설정
   // src/main 폴더 안의 코드를 빌드할 때 적용되는 규칙입니다.
   // 현재는 중괄호가 비어있으므로({}) electron-vite가 제공하는 기본 최적화 설정을 그대로 따릅니다.
-  main: {},
+  main: {
+    build: {
+      rollupOptions: {
+        output: {
+          format: 'cjs',
+        },
+      },
+    },
+  },
 
   // 2. 프리로드 프로세스(Preload Process) 설정
   // src/preload 폴더 안의 코드를 빌드할 때 적용되는 규칙입니다.

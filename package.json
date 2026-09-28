@@ -2,7 +2,7 @@
   "name": "smartstore-price-bot",
   "version": "1.0.0",
   "description": "Set price automatically",
-  "main": "./out/main/index.js",
+  "main": "./out/main/index.cjs",
   "type": "module",
   "scripts": {
     "start:cli": "node dist/app.js",
