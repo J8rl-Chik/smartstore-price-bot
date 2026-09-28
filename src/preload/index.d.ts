@@ -6,7 +6,9 @@ declare global {
   interface Window {
     electron: ElectronAPI;
     api: {
-      ping: () => Promise<IpcEvent['ping']['returnType']>;
+      createPage: () => Promise<IpcEvent['createPage']['returnType']>;
+      getSaleProducts: () => Promise<IpcEvent['getSaleProducts']['returnType']>;
+      getProductRows: () => Promise<IpcEvent['getProductRows']['returnType']>;
     };
   }
 }

@@ -2,6 +2,11 @@
 // 각 채널의 요청 인자(args), 응답 타입(returnType)을 정의한다.
 // args는 렌더러가 실제로 보내는 값만 담는다. IpcMainInvokeEvent는
 // ipcMain.handle이 자동으로 넘겨주는 값이라 렌더러가 보내는 인자가 아니다.
+import type { SaleProduct } from '../domain/product/saleProduct';
+import type { ProductRow } from '../domain/product/_type';
+
 export interface IpcEvent {
-  ping: { args: []; returnType: string };
+  createPage: { args: []; returnType: void };
+  getSaleProducts: { args: []; returnType: SaleProduct[] };
+  getProductRows: { args: []; returnType: ProductRow[] };
 }

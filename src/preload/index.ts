@@ -3,12 +3,15 @@
 import { contextBridge, ipcRenderer } from 'electron';
 // electron-toolkit이 제공하는 공통 헬퍼(ipcRenderer 래퍼 등)
 import { electronAPI } from '@electron-toolkit/preload';
-import { IpcEvent } from './ipcEvent';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
 const api = {
-  // renderer -> main으로 'ping' 요청을 보내고, main의 응답을 그대로 반환한다.
-  ping: () => ipcRenderer.invoke('ping') as Promise<IpcEvent['ping']['returnType']>,
+  // renderer -> main으로 'createPage' 요청을 보내 Puppeteer 브라우저 페이지 생성을 트리거한다.
+  createPage: () => ipcRenderer.invoke('createPage'),
+  // renderer -> main으로 'getSaleProducts' 요청을 보내 네이버 판매 상품 목록을 가져온다.
+  getSaleProducts: () => ipcRenderer.invoke('getSaleProducts'),
+  // renderer -> main으로 'getProductRows' 요청을 보내 구글 시트 상품 목록을 가져온다.
+  getProductRows: () => ipcRenderer.invoke('getProductRows'),
 };
 
 /**
