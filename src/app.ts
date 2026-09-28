@@ -11,7 +11,11 @@ import delayMinutes from './utils/delayMinutes.js';
 import validateEnv from './utils/validateEnv.js';
 import shuffleArray from './utils/shuffleArray.js';
 import { initRawProductRows } from './domain/product/initRawProductRows.js';
-import { getOriginProductNo, getProductName } from './domain/product/saleProduct.js';
+import {
+  excludeNewlyRegisteredProducts,
+  getOriginProductNo,
+  getProductName,
+} from './domain/product/saleProduct.js';
 import { filterExcludedSellers } from './domain/seller/filterExcludedSellers.js';
 import { addVirtualPrice } from './domain/price/addVirtualPrice.js';
 import { calculateTargetPrice, isPriceUpdateRequired } from './domain/price/price.js';
@@ -34,7 +38,7 @@ const start = async (): Promise<void> => {
   while (true) {
     console.time('실행 시간');
 
-    const saleProducts = shuffleArray(await getSaleProducts());
+    const saleProducts = shuffleArray(excludeNewlyRegisteredProducts(await getSaleProducts()));
     const productRows = initRawProductRows(await getProductRows());
     const { browser, page } = await createLoggedInPage();
     let productCount = 0;
