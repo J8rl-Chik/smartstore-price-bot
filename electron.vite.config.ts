@@ -10,6 +10,7 @@ export default defineConfig({
     build: {
       rollupOptions: {
         output: {
+          // 설치한 패키지(ex. puppeteer) 내부에 require를 사용하면 cjs 확장자로 빌드해야 내부 require를 처리할 수 있다.
           format: 'cjs',
         },
       },
@@ -19,7 +20,24 @@ export default defineConfig({
   // 2. 프리로드 프로세스(Preload Process) 설정
   // src/preload 폴더 안의 코드를 빌드할 때 적용되는 규칙입니다.
   // 마찬가지로 비어있으므로 기본 설정(보안 및 메인-렌더러 다리 역할 최적화)을 적용합니다.
-  preload: {},
+  preload: {
+    build: {
+      /**
+       * 샌드박스 프리로드가 쓰는 require(preloadRequire)는 일반 Node의 require와 달리
+       * node_modules를 뒤지는 기능이 없어 electron 등 허용된 모듈만 불러올 수 있다.
+       * exclude로 외부화 대상에서 빼서 @electron-toolkit/preload 코드를 번들에 직접 포함시킨다.
+       */
+      externalizeDeps: {
+        exclude: ['@electron-toolkit/preload'],
+      },
+      rollupOptions: {
+        output: {
+          // 설치한 패키지(ex. puppeteer) 내부에 require를 사용하면 cjs 확장자로 빌드해야 내부 require를 처리할 수 있다.
+          format: 'cjs',
+        },
+      },
+    },
+  },
 
   // 3. 렌더러 프로세스(Renderer Process) 설정
   // 사용자의 눈에 보이는 웹 화면(src/renderer)을 빌드하고 실행할 때 적용되는 규칙입니다.
