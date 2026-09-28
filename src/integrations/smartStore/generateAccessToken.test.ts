@@ -10,7 +10,7 @@ vi.mock('node-fetch', () => ({
   default: (...args: unknown[]) => mockFetch(...args),
 }));
 
-vi.mock('bcrypt', () => ({
+vi.mock('bcryptjs', () => ({
   default: {
     hashSync: (...args: unknown[]) => mockHashSync(...args),
   },

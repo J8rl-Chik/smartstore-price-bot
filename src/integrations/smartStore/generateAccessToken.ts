@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import fetch from 'node-fetch';
 
 import checkSmartStoreApiSucceeded, {
