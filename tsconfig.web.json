@@ -10,6 +10,7 @@
     "src/renderer/src/**/*.tsx",
     "src/preload/*.d.ts"
   ],
+  "references": [{ "path": "./tsconfig.base.json" }],
   // [검사 대상 폴더 지정]
   // 이 규칙 책으로 감시하고 관리할 웹 관련 파일들의 범위입니다.
   // 1. env.d.ts : Vite의 환경 변수 타입을 정의하는 파일을 포함합니다.
