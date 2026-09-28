@@ -10,6 +10,7 @@
   // 1. electron.vite.config.* : 프로젝트 최상위의 빌드 설정 파일들을 포함합니다.
   // 2. src/main/**/* : 메인 프로세스 폴더 안의 모든 파일과 하위 폴더들을 전부 검사합니다.
   // 3. src/preload/**/* : 프리로드 스크립트 폴더 안의 모든 파일과 하위 폴더들을 전부 검사합니다.
+  "references": [{ "path": "./tsconfig.base.json" }],
 
   "compilerOptions": {
     // 타입스크립트 컴파일러에게 세부적으로 명령을 내리는 옵션 창고입니다.

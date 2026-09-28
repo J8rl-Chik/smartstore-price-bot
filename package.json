@@ -12,7 +12,7 @@
     "dev": "electron-vite dev",
     "dev:watch": "electron-vite dev --watch",
     "dev:cli": "tsx src/app.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -p tsconfig.base.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.web.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
