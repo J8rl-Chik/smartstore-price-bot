@@ -5,7 +5,7 @@
 import type { ProductRowsResponse, SaleProductsResponse } from '../domain/product/_type';
 
 export interface IpcEvent {
-  createPage: { args: []; returnType: void };
+  createLoginPage: { args: []; returnType: void };
   getSaleProducts: { args: []; returnType: SaleProductsResponse };
   getProductRows: { args: []; returnType: ProductRowsResponse };
 }

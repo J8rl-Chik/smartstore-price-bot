@@ -3,6 +3,7 @@ import { registerIpcHandlers } from './registerIpcHandlers';
 
 const mockHandle = vi.fn();
 const mockCreatePage = vi.fn();
+const mockLoginNaver = vi.fn();
 const mockGetSaleProducts = vi.fn();
 const mockGetProductRows = vi.fn();
 const mockExcludeNewlyRegisteredProducts = vi.fn();
@@ -15,6 +16,10 @@ vi.mock('electron', () => ({
 
 vi.mock(import('../integrations/puppeteer/createPage'), () => ({
   default: (...args: unknown[]) => mockCreatePage(...args),
+}));
+
+vi.mock(import('../integrations/puppeteer/loginNaver'), () => ({
+  default: (...args: unknown[]) => mockLoginNaver(...args),
 }));
 
 vi.mock(import('../integrations/smartStore/getSaleProducts'), () => ({
@@ -58,6 +63,7 @@ describe('registerIpcHandlers', () => {
   afterEach(() => {
     mockHandle.mockReset();
     mockCreatePage.mockReset();
+    mockLoginNaver.mockReset();
     mockGetSaleProducts.mockReset();
     mockGetProductRows.mockReset();
     mockExcludeNewlyRegisteredProducts.mockReset();
@@ -65,12 +71,14 @@ describe('registerIpcHandlers', () => {
     mockShuffleArray.mockReset();
   });
 
-  it('createPage 채널을 호출하면 createPage를 실행한다', async () => {
-    mockCreatePage.mockResolvedValue(undefined);
+  it('createLoginPage 채널을 호출하면 페이지를 생성하고 네이버에 로그인한다', async () => {
+    const page = { name: 'fake-page' };
+    mockCreatePage.mockResolvedValue({ browser: { name: 'fake-browser' }, page });
 
-    await invokeHandler('createPage');
+    await invokeHandler('createLoginPage');
 
     expect(mockCreatePage).toHaveBeenCalled();
+    expect(mockLoginNaver).toHaveBeenCalledWith(page);
   });
 
   it('getSaleProducts 성공 시 필터링/셔플을 거친 상품 목록을 isSuccess: true로 반환한다', async () => {

@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import { IpcEvent } from '../preload/ipcEvent';
 import createPage from '../integrations/puppeteer/createPage';
+import loginNaver from '../integrations/puppeteer/loginNaver';
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
 import getProductRows from '../integrations/googleSheets/getProductRows';
 import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
@@ -19,8 +20,10 @@ const handleIpc = <E extends keyof IpcEvent>(
 };
 
 export const registerIpcHandlers = (): void => {
-  handleIpc('createPage', async () => {
-    await createPage();
+  handleIpc('createLoginPage', async () => {
+    const { page } = await createPage();
+
+    await loginNaver(page);
   });
 
   handleIpc('getSaleProducts', async () => {
