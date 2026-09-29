@@ -34,16 +34,17 @@ const Title = styled.h1`
 
 interface HeaderProps {
   onStartButtonClick: () => void;
+  isLoading: boolean;
 }
 
-const Header = ({ onStartButtonClick }: HeaderProps): React.JSX.Element => {
+const Header = ({ onStartButtonClick, isLoading }: HeaderProps): React.JSX.Element => {
   return (
     <HeaderContainer>
       <Title>
         <Logo>S</Logo>
         스마트스토어 최저가 봇
       </Title>
-      <StartButton onClick={onStartButtonClick} />
+      <StartButton onClick={onStartButtonClick} isLoading={isLoading} />
     </HeaderContainer>
   );
 };

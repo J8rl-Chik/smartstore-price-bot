@@ -20,18 +20,25 @@ const App = (): React.JSX.Element => {
     Awaited<ReturnType<typeof window.api.getProductRows>>
   >([]);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleStartButtonClick = async (): Promise<void> => {
-    const saleProductResults = await window.api.getSaleProducts();
-    const productRowResults = await window.api.getProductRows();
+    setIsLoading(true);
+
+    const [saleProductResults, productRowResults] = await Promise.all([
+      window.api.getSaleProducts(),
+      window.api.getProductRows(),
+    ]);
 
     setSaleProducts(saleProductResults);
     setProductRows(productRowResults);
+    setIsLoading(false);
   };
 
   return (
     <StyleProvider>
       <AppContainer>
-        <Header onStartButtonClick={handleStartButtonClick} />
+        <Header onStartButtonClick={handleStartButtonClick} isLoading={isLoading} />
         <ProgressBar />
         <div>{saleProducts.length}개 상품</div>
         <div>{productRows.length}개 상품</div>

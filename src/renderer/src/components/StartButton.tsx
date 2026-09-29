@@ -17,15 +17,21 @@ const StartButtonRoot = styled.button`
   &:hover {
     background: ${({ theme }) => theme.color.blue600};
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    background: ${({ theme }) => theme.color.gray300};
+  }
 `;
 
 interface Props {
   onClick: () => void;
+  isLoading: boolean;
 }
 
-const StartButton = ({ onClick }: Props): React.JSX.Element => {
+const StartButton = ({ onClick, isLoading }: Props): React.JSX.Element => {
   return (
-    <StartButtonRoot onClick={onClick}>
+    <StartButtonRoot onClick={onClick} disabled={isLoading}>
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
         <path d="M3 2l7 4-7 4V2z" fill="white" />
       </svg>

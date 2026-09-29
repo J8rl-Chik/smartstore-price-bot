@@ -3,13 +3,13 @@ import Header from './Header';
 import { customRender } from '../customRender';
 
 test('시맨틱 header(banner) 랜드마크로 렌더링된다', async () => {
-  const screen = await customRender(<Header onStartButtonClick={vi.fn()} />);
+  const screen = await customRender(<Header onStartButtonClick={vi.fn()} isLoading={false} />);
 
   await expect.element(screen.getByRole('banner')).toBeVisible();
 });
 
 test('로고와 타이틀을 보여준다', async () => {
-  const screen = await customRender(<Header onStartButtonClick={vi.fn()} />);
+  const screen = await customRender(<Header onStartButtonClick={vi.fn()} isLoading={false} />);
 
   await expect.element(screen.getByText('S')).toBeVisible();
   await expect
@@ -18,7 +18,7 @@ test('로고와 타이틀을 보여준다', async () => {
 });
 
 test('자동 수정 시작 버튼을 보여준다', async () => {
-  const screen = await customRender(<Header onStartButtonClick={vi.fn()} />);
+  const screen = await customRender(<Header onStartButtonClick={vi.fn()} isLoading={false} />);
 
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeVisible();
 });
