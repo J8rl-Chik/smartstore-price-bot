@@ -12,11 +12,11 @@ const AppContainer = styled.div`
 `;
 
 const App = (): React.JSX.Element => {
-  const [saleProducts, setSaleProducts] = useState<Awaited<
+  const [saleProductsResponse, setSaleProductsResponse] = useState<Awaited<
     ReturnType<typeof window.api.getSaleProducts>
   > | null>(null);
 
-  const [productRows, setProductRows] = useState<Awaited<
+  const [productRowsResponse, setProductRowsResponse] = useState<Awaited<
     ReturnType<typeof window.api.getProductRows>
   > | null>(null);
 
@@ -30,8 +30,8 @@ const App = (): React.JSX.Element => {
       window.api.getProductRows(),
     ]);
 
-    setSaleProducts(saleProductResults);
-    setProductRows(productRowResults);
+    setSaleProductsResponse(saleProductResults);
+    setProductRowsResponse(productRowResults);
     setIsLoading(false);
   };
 
@@ -40,8 +40,8 @@ const App = (): React.JSX.Element => {
       <AppContainer>
         <Header onStartButtonClick={handleStartButtonClick} isLoading={isLoading} />
         <ProgressBar />
-        <div>{saleProducts ? saleProducts.isSuccess : '에러'}개 상품</div>
-        <div>{productRows ? productRows.isSuccess : '에러'}개 상품</div>
+        <div>{saleProductsResponse ? saleProductsResponse.isSuccess : '에러'}개 상품</div>
+        <div>{productRowsResponse ? productRowsResponse.isSuccess : '에러'}개 상품</div>
       </AppContainer>
     </StyleProvider>
   );
