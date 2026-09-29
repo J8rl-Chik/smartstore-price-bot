@@ -18,6 +18,7 @@ export default defineConfig({
             'src/domain/**/*.test.ts',
             'src/utils/**/*.test.ts',
             'src/integrations/**/*.test.ts',
+            'src/main/**/*.test.ts',
           ],
         },
       },
