@@ -22,3 +22,14 @@ test('자동 수정 시작 버튼을 보여준다', async () => {
 
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeVisible();
 });
+
+test('자동 수정 시작 버튼을 클릭하면 onStartButtonClick이 호출된다', async () => {
+  const handleStartButtonClick = vi.fn();
+  const screen = await customRender(
+    <Header onStartButtonClick={handleStartButtonClick} isLoading={false} />,
+  );
+
+  await screen.getByRole('button', { name: '자동 수정 시작' }).click();
+
+  expect(handleStartButtonClick).toHaveBeenCalledOnce();
+});
