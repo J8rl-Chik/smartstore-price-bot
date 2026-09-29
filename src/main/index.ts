@@ -33,6 +33,8 @@ function createWindow(): void {
     },
   });
 
+  mainWindow.webContents.openDevTools();
+
   mainWindow.on('ready-to-show', () => {
     // 로딩이 완전히 끝나면 그때 화면을 보여줍니다.
     mainWindow.show();
