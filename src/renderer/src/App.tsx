@@ -26,6 +26,7 @@ const App = (): React.JSX.Element => {
       window.api.getProductRows(),
     ]);
 
+    // TODO: saleProductsResponse, productRowsResponse의 isSuccess가 false인 경우 예외 처리
     setMatchedSaleProducts(getMatchedSaleProducts(saleProductsResponse, productRowsResponse) ?? []);
     setIsLoading(false);
   };
