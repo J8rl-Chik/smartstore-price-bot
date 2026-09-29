@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
 import StyleProvider from './components/StyleProvider';
+import { getMatchedSaleProducts } from '../../domain/product/getMatchedSaleProducts';
 import type { ProductRowsResponse, SaleProductsResponse } from '../../domain/product/_type';
 
 const AppContainer = styled.div`
