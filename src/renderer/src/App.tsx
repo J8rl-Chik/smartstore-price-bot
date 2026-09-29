@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
 import StyleProvider from './components/StyleProvider';
+import type { ProductRowsResponse, SaleProductsResponse } from '../../domain/product/_type';
 
 const AppContainer = styled.div`
   display: flex;
@@ -12,13 +13,11 @@ const AppContainer = styled.div`
 `;
 
 const App = (): React.JSX.Element => {
-  const [saleProductsResponse, setSaleProductsResponse] = useState<Awaited<
-    ReturnType<typeof window.api.getSaleProducts>
-  > | null>(null);
+  const [saleProductsResponse, setSaleProductsResponse] = useState<SaleProductsResponse | null>(
+    null,
+  );
 
-  const [productRowsResponse, setProductRowsResponse] = useState<Awaited<
-    ReturnType<typeof window.api.getProductRows>
-  > | null>(null);
+  const [productRowsResponse, setProductRowsResponse] = useState<ProductRowsResponse | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
 

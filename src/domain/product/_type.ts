@@ -1,4 +1,5 @@
 import type { DeliveryFeeType } from '../delivery/_type.js';
+import type { SaleProduct } from './saleProduct.js';
 
 // 구글 시트에서 가져온 행들을 프로그램 내에서 편하게 사용할 수 있도록 변환한 형태.
 export interface ProductRow {
@@ -41,3 +42,9 @@ export type RowValues = [
   string,
   string,
 ];
+
+export type SaleProductsResponse =
+  { isSuccess: true; saleProducts: SaleProduct[] } | { isSuccess: false; error: string };
+
+export type ProductRowsResponse =
+  { isSuccess: true; productRows: ProductRow[] } | { isSuccess: false; error: string };
