@@ -27,8 +27,27 @@ const App = (): React.JSX.Element => {
     ]);
 
     // TODO: saleProductsResponse, productRowsResponse의 isSuccess가 false인 경우 예외 처리
-    setMatchedSaleProducts(getMatchedSaleProducts(saleProductsResponse, productRowsResponse) ?? []);
+    const matchedSaleProductsResult =
+      getMatchedSaleProducts(saleProductsResponse, productRowsResponse) ?? [];
+
     setIsLoading(false);
+    setMatchedSaleProducts(matchedSaleProductsResult);
+
+    if (matchedSaleProductsResult.length === 0) {
+      return;
+    }
+
+    await window.api.createLoginPage();
+
+    // TODO: 개발 중 확인용으로 첫 번째 상품만 처리하도록 제한해둠. 추후 slice(0, 1) 제거 필요.
+    for (const saleProduct of matchedSaleProductsResult.slice(0, 1)) {
+      // TODO: updatePrice는 main 프로세스 전용 함수라 여기서 직접 호출 불가. IPC로 노출한 뒤 교체 필요.
+      const updatedSaleProduct = saleProduct;
+
+      setMatchedSaleProducts((prev) =>
+        prev.map((product) => (product === saleProduct ? updatedSaleProduct : product)),
+      );
+    }
   };
 
   return (
