@@ -4,7 +4,7 @@ import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
 import StyleProvider from './components/StyleProvider';
 import { getMatchedSaleProducts } from '../../domain/product/getMatchedSaleProducts';
-import type { ProductRowsResponse, SaleProductsResponse } from '../../domain/product/_type';
+import type { SaleProduct } from '../../domain/product/saleProduct';
 
 const AppContainer = styled.div`
   display: flex;
@@ -14,24 +14,19 @@ const AppContainer = styled.div`
 `;
 
 const App = (): React.JSX.Element => {
-  const [saleProductsResponse, setSaleProductsResponse] = useState<SaleProductsResponse | null>(
-    null,
-  );
-
-  const [productRowsResponse, setProductRowsResponse] = useState<ProductRowsResponse | null>(null);
+  const [matchedSaleProducts, setMatchedSaleProducts] = useState<SaleProduct[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleStartButtonClick = async (): Promise<void> => {
     setIsLoading(true);
 
-    const [saleProductResults, productRowResults] = await Promise.all([
+    const [saleProductsResponse, productRowsResponse] = await Promise.all([
       window.api.getSaleProducts(),
       window.api.getProductRows(),
     ]);
 
-    setSaleProductsResponse(saleProductResults);
-    setProductRowsResponse(productRowResults);
+    setMatchedSaleProducts(getMatchedSaleProducts(saleProductsResponse, productRowsResponse) ?? []);
     setIsLoading(false);
   };
 
@@ -40,8 +35,7 @@ const App = (): React.JSX.Element => {
       <AppContainer>
         <Header onStartButtonClick={handleStartButtonClick} isLoading={isLoading} />
         <ProgressBar />
-        <div>{saleProductsResponse ? saleProductsResponse.isSuccess : '에러'}개 상품</div>
-        <div>{productRowsResponse ? productRowsResponse.isSuccess : '에러'}개 상품</div>
+        <div>{matchedSaleProducts.length}개 매칭된 상품</div>
       </AppContainer>
     </StyleProvider>
   );
