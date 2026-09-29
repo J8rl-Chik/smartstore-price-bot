@@ -7,6 +7,10 @@ import type { ProductRow } from '../domain/product/_type';
 
 export interface IpcEvent {
   createPage: { args: []; returnType: void };
-  getSaleProducts: { args: []; returnType: SaleProduct[] };
+  getSaleProducts: {
+    args: [];
+    returnType:
+      { isSuccess: true; saleProducts: SaleProduct[] } | { isSuccess: false; error: string };
+  };
   getProductRows: { args: []; returnType: ProductRow[] };
 }

@@ -12,9 +12,9 @@ const AppContainer = styled.div`
 `;
 
 const App = (): React.JSX.Element => {
-  const [saleProducts, setSaleProducts] = useState<
-    Awaited<ReturnType<typeof window.api.getSaleProducts>>
-  >([]);
+  const [saleProducts, setSaleProducts] = useState<Awaited<
+    ReturnType<typeof window.api.getSaleProducts>
+  > | null>(null);
 
   const [productRows, setProductRows] = useState<
     Awaited<ReturnType<typeof window.api.getProductRows>>
@@ -40,7 +40,7 @@ const App = (): React.JSX.Element => {
       <AppContainer>
         <Header onStartButtonClick={handleStartButtonClick} isLoading={isLoading} />
         <ProgressBar />
-        <div>{saleProducts.length}개 상품</div>
+        <div>{saleProducts ? saleProducts.isSuccess : '에러'}개 상품</div>
         <div>{productRows.length}개 상품</div>
       </AppContainer>
     </StyleProvider>

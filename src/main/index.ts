@@ -76,7 +76,18 @@ app.whenReady().then(() => {
   });
 
   handleIpc('getSaleProducts', async () => {
-    return shuffleArray(excludeNewlyRegisteredProducts(await getSaleProducts()));
+    try {
+      const saleProducts = shuffleArray(excludeNewlyRegisteredProducts(await getSaleProducts()));
+
+      return { isSuccess: true, saleProducts } as const;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        isSuccess: false,
+        error: error instanceof Error ? error.message : String(`getSaleProducts 에러: ${error}`),
+      };
+    }
   });
 
   handleIpc('getProductRows', async () => {
