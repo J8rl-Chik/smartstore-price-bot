@@ -40,6 +40,7 @@ export const registerIpcHandlers = (): void => {
 
   handleIpc('getProductRows', async () => {
     try {
+      // TODO: 중복 이름을 가진 행이 있는지 확인하는 로직 추가
       const productRows = initRawProductRows(await getProductRows());
 
       return { isSuccess: true, productRows } as const;
