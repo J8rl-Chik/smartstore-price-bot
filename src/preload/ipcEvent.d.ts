@@ -12,5 +12,9 @@ export interface IpcEvent {
     returnType:
       { isSuccess: true; saleProducts: SaleProduct[] } | { isSuccess: false; error: string };
   };
-  getProductRows: { args: []; returnType: ProductRow[] };
+  getProductRows: {
+    args: [];
+    returnType:
+      { isSuccess: true; productRows: ProductRow[] } | { isSuccess: false; error: string };
+  };
 }

@@ -91,7 +91,18 @@ app.whenReady().then(() => {
   });
 
   handleIpc('getProductRows', async () => {
-    return initRawProductRows(await getProductRows());
+    try {
+      const productRows = initRawProductRows(await getProductRows());
+
+      return { isSuccess: true, productRows } as const;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        isSuccess: false,
+        error: error instanceof Error ? error.message : String(`getProductRows 에러: ${error}`),
+      };
+    }
   });
 
   createWindow();

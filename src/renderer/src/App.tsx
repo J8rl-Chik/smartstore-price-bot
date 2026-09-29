@@ -16,9 +16,9 @@ const App = (): React.JSX.Element => {
     ReturnType<typeof window.api.getSaleProducts>
   > | null>(null);
 
-  const [productRows, setProductRows] = useState<
-    Awaited<ReturnType<typeof window.api.getProductRows>>
-  >([]);
+  const [productRows, setProductRows] = useState<Awaited<
+    ReturnType<typeof window.api.getProductRows>
+  > | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,7 +41,7 @@ const App = (): React.JSX.Element => {
         <Header onStartButtonClick={handleStartButtonClick} isLoading={isLoading} />
         <ProgressBar />
         <div>{saleProducts ? saleProducts.isSuccess : '에러'}개 상품</div>
-        <div>{productRows.length}개 상품</div>
+        <div>{productRows ? productRows.isSuccess : '에러'}개 상품</div>
       </AppContainer>
     </StyleProvider>
   );
