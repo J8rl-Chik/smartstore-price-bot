@@ -19,16 +19,13 @@ const StartButtonRoot = styled.button`
   }
 `;
 
-const StartButton = (): React.JSX.Element => {
-  const handleClick = async (): Promise<void> => {
-    const saleProducts = await window.api.getSaleProducts();
-    const productRows = await window.api.getProductRows();
+interface Props {
+  onClick: () => void;
+}
 
-    console.log(saleProducts, productRows);
-  };
-
+const StartButton = ({ onClick }: Props): React.JSX.Element => {
   return (
-    <StartButtonRoot onClick={handleClick}>
+    <StartButtonRoot onClick={onClick}>
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
         <path d="M3 2l7 4-7 4V2z" fill="white" />
       </svg>

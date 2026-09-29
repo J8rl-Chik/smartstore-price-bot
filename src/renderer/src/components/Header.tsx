@@ -32,14 +32,18 @@ const Title = styled.h1`
   color: ${({ theme }) => theme.color.gray900};
 `;
 
-const Header = (): React.JSX.Element => {
+interface HeaderProps {
+  onStartButtonClick: () => void;
+}
+
+const Header = ({ onStartButtonClick }: HeaderProps): React.JSX.Element => {
   return (
     <HeaderContainer>
       <Title>
         <Logo>S</Logo>
         스마트스토어 최저가 봇
       </Title>
-      <StartButton />
+      <StartButton onClick={onStartButtonClick} />
     </HeaderContainer>
   );
 };
