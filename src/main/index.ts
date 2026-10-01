@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { registerIpcHandlers } from './registerIpcHandlers';
+import { installExtension, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -41,7 +42,17 @@ function createWindow(): void {
 }
 
 // Electron 앱이 구동될 준비가 완벽히 끝났을 때
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // 설치에 실패해도 앱은 정상적으로 실행될 수 있도록 부분 예외처리.
+  if (is.dev) {
+    try {
+      const ext = await installExtension(REACT_DEVELOPER_TOOLS);
+      console.log(`Added Extension: ${ext.name}`);
+    } catch (err) {
+      console.log('An error occurred: ', err);
+    }
+  }
+
   /* 
     Windows 운영체제에서 앱의 고유 식별자(ID)를 등록하는 코드입니다.
     Windows 환경과 앱의 원활한 소통을 위해 설정(시스템 알림(Toast Notification)등)
