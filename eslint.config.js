@@ -6,26 +6,21 @@ import eslintConfigPrettier from '@electron-toolkit/eslint-config-prettier';
 import eslintPluginReact from 'eslint-plugin-react';
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
 import eslintPluginReactRefresh from 'eslint-plugin-react-refresh';
+import pluginSecurity from 'eslint-plugin-security';
 
 export default defineConfig([
-  {
-    ignores: ['dist/**'],
-  },
   {
     files: ['**/*.{js,mjs,cjs}'],
     plugins: { js },
     extends: ['js/recommended'],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
-  {
-    files: ['**/*.ts'],
-    extends: [tseslint.configs.recommended],
-    languageOptions: { globals: { ...globals.node } },
-  },
+
+  pluginSecurity.configs.recommended,
 
   // 1. 검사 제외 대상 (무시할 폴더들)
   // 외부 라이브러리(node_modules)나 빌드 결과물(dist, out) 폴더는 소스 코드가 아니므로 감시하지 않습니다.
-  { ignores: ['**/node_modules', '**/dist', '**/out'] },
+  { ignores: ['**/node_modules', '**/dist', '**/out', '**/rateLimitTest', '**/coverage'] },
 
   // 2. TypeScript 권장 규칙 적용
   // Electron 툴킷에서 제공하는 타입스크립트용 기본 표준 규칙들을 가져와 적용합니다.
@@ -79,6 +74,11 @@ export default defineConfig([
     },
   },
 
+  // 7. Prettier와의 충돌 방지 설정 (★마지막에 두는 것이 중요!)
+  // 코드 감시관(ESLint)과 코드 정렬원(Prettier)이 서로 싸우지 않도록 만듭니다.
+  // Prettier가 정렬해 줄 띄어쓰기나 괄호 관련 문법 규칙들은 ESLint가 간섭하지 않고 눈감아주게 만듭니다.
+  eslintConfigPrettier,
+
   {
     rules: {
       'prettier/prettier': [
@@ -89,9 +89,4 @@ export default defineConfig([
       ],
     },
   },
-
-  // 7. Prettier와의 충돌 방지 설정 (★마지막에 두는 것이 중요!)
-  // 코드 감시관(ESLint)과 코드 정렬원(Prettier)이 서로 싸우지 않도록 만듭니다.
-  // Prettier가 정렬해 줄 띄어쓰기나 괄호 관련 문법 규칙들은 ESLint가 간섭하지 않고 눈감아주게 만듭니다.
-  eslintConfigPrettier,
 ]);
