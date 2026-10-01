@@ -5,6 +5,7 @@
   "main": "./out/main/index.cjs",
   "type": "module",
   "scripts": {
+    "lint": "eslint",
     "start:cli": "node dist/app.js",
     "start:electron": "electron .",
     "build:cli": "tsc -p tsconfig.base.json",
