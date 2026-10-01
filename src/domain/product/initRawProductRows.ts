@@ -16,7 +16,7 @@ export const fillEmptyCell = (row: EmptyRowValues): RowValues => {
   const columnLength = 12;
   const filledRowValues = Array.from(
     { length: columnLength },
-    (_, columnIndex) => row[columnIndex] ?? '',
+    (_, columnIndex) => row.at(columnIndex) ?? '',
   );
 
   return filledRowValues as RowValues;

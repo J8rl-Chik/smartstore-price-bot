@@ -43,15 +43,17 @@ export const validateFeeType = (feeType: string): DeliveryFeeType => {
 
 // TODO: convert가 적절한 표현인지 확인.
 export const convertToRawProductRow = (rowVaues: RowValues): RawProductRow => {
-  const entries = (Object.keys(COLUMN) as ColumnKey[]).map((columnKey): [ColumnKey, string] => {
-    const value = rowVaues[COLUMN[columnKey]];
+  const entries = (Object.entries(COLUMN) as [ColumnKey, number][]).map(
+    ([columnKey, columnIndex]): [ColumnKey, string] => {
+      const value = rowVaues.at(columnIndex);
 
-    if (value === undefined) {
-      throw new Error(`행에 undefined 값이 있습니다.`);
-    }
+      if (value === undefined) {
+        throw new Error(`행에 undefined 값이 있습니다.`);
+      }
 
-    return [columnKey, value];
-  });
+      return [columnKey, value];
+    },
+  );
 
   return Object.fromEntries(entries) as RawProductRow;
 };

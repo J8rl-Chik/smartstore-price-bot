@@ -6,8 +6,8 @@ const shuffleArray = <T>(array: T[]): T[] => {
 
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
     const randomIndex = Math.floor(Math.random() * (index + 1));
-    const current = shuffled[index];
-    const swapTarget = shuffled[randomIndex];
+    const current = shuffled.at(index);
+    const swapTarget = shuffled.at(randomIndex);
 
     if (current === undefined || swapTarget === undefined) {
       throw new Error('배열 인덱스 범위를 벗어났습니다.');
