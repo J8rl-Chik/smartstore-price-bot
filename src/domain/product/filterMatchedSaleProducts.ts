@@ -1,5 +1,5 @@
-import { getProductName, type SaleProduct } from './saleProduct.js';
-import type { ProductRow } from './_type.js';
+import { getProductName } from './saleProduct.js';
+import type { ProductRow, SaleProduct } from './_type.js';
 
 export const filterMatchedSaleProducts = (
   saleProducts: SaleProduct[],

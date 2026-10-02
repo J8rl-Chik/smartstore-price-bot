@@ -4,9 +4,8 @@ import {
   getOriginProductNo,
   getProductName,
   isNewlyRegisteredProduct,
-  type SaleProduct,
-  type ProductChannel,
 } from './saleProduct.js';
+import type { ProductChannel, SaleProduct } from './_type.js';
 
 const createSaleProduct = (productChannel: Partial<ProductChannel>): SaleProduct => ({
   channelProducts: [

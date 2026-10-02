@@ -1,5 +1,14 @@
 import type { DeliveryFeeType } from '../delivery/_type.js';
-import type { SaleProduct } from './saleProduct.js';
+
+export interface ProductChannel {
+  name: string;
+  originProductNo: number;
+  sellerManagementCode?: string;
+}
+
+export interface SaleProduct {
+  channelProducts: ProductChannel[];
+}
 
 // 구글 시트에서 가져온 행들을 프로그램 내에서 편하게 사용할 수 있도록 변환한 형태.
 export interface ProductRow {

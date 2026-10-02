@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { getMatchedSaleProducts } from './getMatchedSaleProducts.js';
 import { DELIVERY_FEE_TYPE } from '../delivery/delivery.js';
-import type { SaleProduct } from './saleProduct.js';
-import type { ProductRow, ProductRowsResponse, SaleProductsResponse } from './_type.js';
+import type {
+  ProductRow,
+  ProductRowsResponse,
+  SaleProduct,
+  SaleProductsResponse,
+} from './_type.js';
 
 const createSaleProduct = (name: string): SaleProduct => ({
   channelProducts: [{ name, originProductNo: 12345 }],

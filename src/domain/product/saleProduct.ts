@@ -1,12 +1,4 @@
-export interface ProductChannel {
-  name: string;
-  originProductNo: number;
-  sellerManagementCode?: string;
-}
-
-export interface SaleProduct {
-  channelProducts: ProductChannel[];
-}
+import type { ProductChannel, SaleProduct } from './_type.js';
 
 // 현재 단일 채널로만 상품을 판매하므로 channelProducts는 요소가 1개다.
 const getFirstChannelProduct = (saleProduct: SaleProduct): ProductChannel => {
