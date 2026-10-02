@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { IpcEvent } from '../preload/ipcEvent';
+import { IpcEvent } from '../preload/_type';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';

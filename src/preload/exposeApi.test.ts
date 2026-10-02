@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { exposeApi } from './exposeApi';
-import type { IpcEvent } from './ipcEvent';
+import type { IpcEvent } from './_type';
 
 // preload가 renderer에 노출하는 api의 형태. 채널 이름과 반환 타입은 IpcEvent에서 파생한다.
 type Api = { [Channel in keyof IpcEvent]: () => Promise<IpcEvent[Channel]['returnType']> };
