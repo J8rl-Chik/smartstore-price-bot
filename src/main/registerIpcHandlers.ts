@@ -12,11 +12,11 @@ import shuffleArray from '../utils/shuffleArray';
 const handleIpc = <E extends keyof IpcEvent>(
   event: E,
   handler: (
-    ...args: IpcEvent[E]['args']
-  ) => IpcEvent[E]['returnType'] | Promise<IpcEvent[E]['returnType']>,
+    ...args: Parameters<IpcEvent[E]>
+  ) => ReturnType<IpcEvent[E]> | Awaited<ReturnType<IpcEvent[E]>>,
 ): void => {
   // ipcMain.handle 콜백의 첫 번째 인자(IpcMainInvokeEvent)는 렌더러가 보낸 값이 아니므로 제외하고 나머지만 handler에 전달한다.
-  ipcMain.handle(event, (_event, ...args) => handler(...(args as IpcEvent[E]['args'])));
+  ipcMain.handle(event, (_event, ...args) => handler(...(args as Parameters<IpcEvent[E]>)));
 };
 
 export const registerIpcHandlers = (): void => {
