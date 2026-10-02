@@ -58,4 +58,5 @@ export type SaleProductsResponse =
 export type ProductRowsResponse =
   { isSuccess: true; productRows: ProductRow[] } | { isSuccess: false; error: string };
 
-export interface TargetProduct extends Omit<ProductChannel, 'sellerManagementCode'>, ProductRow {}
+export interface TargetProduct
+  extends Omit<ProductChannel, 'sellerManagementCode'>, Omit<ProductRow, 'activate'> {}
