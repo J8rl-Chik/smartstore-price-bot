@@ -91,6 +91,17 @@ describe('exposeApi', () => {
     expect(result).toBe('getProductRows 결과');
   });
 
+  it('getTargetProducts를 호출하면 getTargetProducts 채널로 invoke를 호출하고 결과를 반환한다', async () => {
+    setContextIsolated(true);
+    mockInvoke.mockResolvedValue('getTargetProducts 결과');
+
+    const api = getExposedApi();
+    const result = await api.getTargetProducts();
+
+    expect(mockInvoke).toHaveBeenCalledWith('getTargetProducts');
+    expect(result).toBe('getTargetProducts 결과');
+  });
+
   it('contextBridge 노출 중 예외가 발생하면 콘솔에 로깅한다', () => {
     setContextIsolated(true);
 

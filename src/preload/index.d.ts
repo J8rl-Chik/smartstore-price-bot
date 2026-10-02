@@ -9,6 +9,8 @@ declare global {
       createLoginPage: () => Promise<IpcEvent['createLoginPage']['returnType']>;
       getSaleProducts: () => Promise<IpcEvent['getSaleProducts']['returnType']>;
       getProductRows: () => Promise<IpcEvent['getProductRows']['returnType']>;
+      getTargetProducts: () => Promise<IpcEvent['getTargetProducts']['returnType']>;
     };
   }
 }
+// const d = 2;

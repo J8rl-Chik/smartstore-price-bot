@@ -11,6 +11,8 @@ const api = {
   getSaleProducts: () => ipcRenderer.invoke('getSaleProducts'),
   // renderer -> main으로 'getProductRows' 요청을 보내 구글 시트 상품 목록을 가져온다.
   getProductRows: () => ipcRenderer.invoke('getProductRows'),
+  // renderer -> main으로 'getTargetProducts' 요청을 보내 네이버 판매 상품과 구글 시트 행을 합친 가격 수정 대상 목록을 가져온다.
+  getTargetProducts: () => ipcRenderer.invoke('getTargetProducts'),
 };
 
 /**
