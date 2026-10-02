@@ -85,9 +85,7 @@ src/
 ```ts
 const handleIpc = <E extends keyof IpcEvent>(
   event: E,
-  handler: (
-    ...args: IpcEvent[E]['args']
-  ) => IpcEvent[E]['returnType'] | Promise<IpcEvent[E]['returnType']>,
+  handler: (...args: Parameters<IpcEvent[E]>) => ReturnType<IpcEvent[E]>,
 ): void => {
   /* ... */
 };

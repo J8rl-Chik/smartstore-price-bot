@@ -31,7 +31,7 @@ description: 이 프로젝트에서 vitest로 테스트를 작성하는 컨벤�
 // 쓰지 않는다
 it.each([
   ['createLoginPage', (api: Api) => api.createLoginPage()],
-  ['getSaleProducts', (api: Api) => api.getSaleProducts()],
+  ['getTargetProducts', (api: Api) => api.getTargetProducts()],
 ])('%s를 호출하면 같은 이름의 채널로 invoke를 호출한다', async (channel, callApi) => {
   // ...
 });
@@ -45,12 +45,12 @@ it('createLoginPage를 호출하면 createLoginPage 채널로 invoke를 호출�
   expect(mockInvoke).toHaveBeenCalledWith('createLoginPage');
 });
 
-it('getSaleProducts를 호출하면 getSaleProducts 채널로 invoke를 호출한다', async () => {
+it('getTargetProducts를 호출하면 getTargetProducts 채널로 invoke를 호출한다', async () => {
   const api = getExposedApi();
 
-  await api.getSaleProducts();
+  await api.getTargetProducts();
 
-  expect(mockInvoke).toHaveBeenCalledWith('getSaleProducts');
+  expect(mockInvoke).toHaveBeenCalledWith('getTargetProducts');
 });
 ```
 
