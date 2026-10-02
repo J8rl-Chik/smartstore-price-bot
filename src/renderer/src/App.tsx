@@ -3,8 +3,7 @@ import styled from 'styled-components';
 import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
 import StyleProvider from './components/StyleProvider';
-import { getMatchedSaleProducts } from '../../domain/product/getMatchedSaleProducts';
-import type { SaleProduct } from '../../domain/product/saleProduct';
+import type { TargetProduct } from '../../domain/product/_type';
 
 const AppContainer = styled.div`
   display: flex;
@@ -14,38 +13,38 @@ const AppContainer = styled.div`
 `;
 
 const App = (): React.JSX.Element => {
-  const [matchedSaleProducts, setMatchedSaleProducts] = useState<SaleProduct[]>([]);
+  const [targetProducts, setTargetProducts] = useState<TargetProduct[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleStartButtonClick = async (): Promise<void> => {
     setIsLoading(true);
 
-    const [saleProductsResponse, productRowsResponse] = await Promise.all([
-      window.api.getSaleProducts(),
-      window.api.getProductRows(),
-    ]);
+    const targetProductsResponse = await window.api.getTargetProducts();
 
-    // TODO: saleProductsResponse, productRowsResponse의 isSuccess가 false인 경우 예외 처리
-    const matchedSaleProductsResult =
-      getMatchedSaleProducts(saleProductsResponse, productRowsResponse) ?? [];
+    // TODO: targetProductsResponse의 isSuccess가 false인 경우 예외 처리
+    const targetProductsResult = targetProductsResponse.isSuccess
+      ? targetProductsResponse.targetProducts
+      : [];
 
     setIsLoading(false);
-    setMatchedSaleProducts(matchedSaleProductsResult);
+    setTargetProducts(targetProductsResult);
 
-    if (matchedSaleProductsResult.length === 0) {
+    console.log(targetProductsResult);
+
+    if (targetProductsResult.length === 0) {
       return;
     }
 
     await window.api.createLoginPage();
 
     // TODO: 개발 중 확인용으로 첫 번째 상품만 처리하도록 제한해둠. 추후 slice(0, 1) 제거 필요.
-    for (const saleProduct of matchedSaleProductsResult.slice(0, 1)) {
+    for (const targetProduct of targetProductsResult.slice(0, 1)) {
       // TODO: updatePrice는 main 프로세스 전용 함수라 여기서 직접 호출 불가. IPC로 노출한 뒤 교체 필요.
-      const updatedSaleProduct = saleProduct;
+      const updatedTargetProduct = targetProduct;
 
-      setMatchedSaleProducts((prev) =>
-        prev.map((product) => (product === saleProduct ? updatedSaleProduct : product)),
+      setTargetProducts((prev) =>
+        prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
       );
     }
   };
@@ -55,7 +54,7 @@ const App = (): React.JSX.Element => {
       <AppContainer>
         <Header onStartButtonClick={handleStartButtonClick} isLoading={isLoading} />
         <ProgressBar />
-        <div>{matchedSaleProducts.length}개 매칭된 상품</div>
+        <div>{targetProducts.length}개 매칭된 상품</div>
       </AppContainer>
     </StyleProvider>
   );
