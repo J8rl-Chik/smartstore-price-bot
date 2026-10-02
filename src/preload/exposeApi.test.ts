@@ -69,28 +69,6 @@ describe('exposeApi', () => {
     expect(result).toBe('createLoginPage 결과');
   });
 
-  it('getSaleProducts를 호출하면 getSaleProducts 채널로 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('getSaleProducts 결과');
-
-    const api = getExposedApi();
-    const result = await api.getSaleProducts();
-
-    expect(mockInvoke).toHaveBeenCalledWith('getSaleProducts');
-    expect(result).toBe('getSaleProducts 결과');
-  });
-
-  it('getProductRows를 호출하면 getProductRows 채널로 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('getProductRows 결과');
-
-    const api = getExposedApi();
-    const result = await api.getProductRows();
-
-    expect(mockInvoke).toHaveBeenCalledWith('getProductRows');
-    expect(result).toBe('getProductRows 결과');
-  });
-
   it('getTargetProducts를 호출하면 getTargetProducts 채널로 invoke를 호출하고 결과를 반환한다', async () => {
     setContextIsolated(true);
     mockInvoke.mockResolvedValue('getTargetProducts 결과');

@@ -26,37 +26,6 @@ export const registerIpcHandlers = (): void => {
     await loginNaver(page);
   });
 
-  handleIpc('getSaleProducts', async () => {
-    try {
-      const saleProducts = shuffleArray(excludeNewlyRegisteredProducts(await getSaleProducts()));
-
-      return { isSuccess: true, saleProducts } as const;
-    } catch (error) {
-      console.error(error);
-
-      return {
-        isSuccess: false,
-        error: error instanceof Error ? error.message : String(`getSaleProducts 에러: ${error}`),
-      } as const;
-    }
-  });
-
-  handleIpc('getProductRows', async () => {
-    try {
-      // TODO: 중복 이름을 가진 행이 있는지 확인하는 로직 추가
-      const productRows = initRawProductRows(await getProductRows());
-
-      return { isSuccess: true, productRows } as const;
-    } catch (error) {
-      console.error(error);
-
-      return {
-        isSuccess: false,
-        error: error instanceof Error ? error.message : String(`getProductRows 에러: ${error}`),
-      } as const;
-    }
-  });
-
   handleIpc('getTargetProducts', async () => {
     try {
       const [saleProducts, rawProductRows] = await Promise.all([

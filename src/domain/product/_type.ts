@@ -52,12 +52,6 @@ export type RowValues = [
   string,
 ];
 
-export type SaleProductsResponse =
-  { isSuccess: true; saleProducts: SaleProduct[] } | { isSuccess: false; error: string };
-
-export type ProductRowsResponse =
-  { isSuccess: true; productRows: ProductRow[] } | { isSuccess: false; error: string };
-
 export interface TargetProduct
   extends Omit<ProductChannel, 'sellerManagementCode'>, Omit<ProductRow, 'activate'> {}
 

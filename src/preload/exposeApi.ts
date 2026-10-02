@@ -7,10 +7,6 @@ import { electronAPI } from '@electron-toolkit/preload';
 const api = {
   // renderer -> main으로 'createLoginPage' 요청을 보내 Puppeteer 브라우저 페이지 생성 및 네이버 로그인을 트리거한다.
   createLoginPage: () => ipcRenderer.invoke('createLoginPage'),
-  // renderer -> main으로 'getSaleProducts' 요청을 보내 네이버 판매 상품 목록을 가져온다.
-  getSaleProducts: () => ipcRenderer.invoke('getSaleProducts'),
-  // renderer -> main으로 'getProductRows' 요청을 보내 구글 시트 상품 목록을 가져온다.
-  getProductRows: () => ipcRenderer.invoke('getProductRows'),
   // renderer -> main으로 'getTargetProducts' 요청을 보내 네이버 판매 상품과 구글 시트 행을 합친 가격 수정 대상 목록을 가져온다.
   getTargetProducts: () => ipcRenderer.invoke('getTargetProducts'),
 };

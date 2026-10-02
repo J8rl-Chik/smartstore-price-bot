@@ -1,9 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload';
-import type {
-  ProductRowsResponse,
-  SaleProductsResponse,
-  TargetProductsResponse,
-} from '../domain/product/_type';
+import type { TargetProductsResponse } from '../domain/product/_type';
 
 // main <-> renderer가 양방향(invoke/handle)으로 주고받는 IPC 채널을 함수 형태로 정의한다.
 // 매개변수는 요청 인자, 반환값(Promise)은 응답 타입이다.
@@ -11,8 +7,6 @@ import type {
 // ipcMain.handle이 자동으로 넘겨주는 값이라 렌더러가 보내는 인자가 아니다.
 export interface IpcEvent {
   createLoginPage: () => Promise<void>;
-  getSaleProducts: () => Promise<SaleProductsResponse>;
-  getProductRows: () => Promise<ProductRowsResponse>;
   getTargetProducts: () => Promise<TargetProductsResponse>;
 }
 
