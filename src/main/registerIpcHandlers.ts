@@ -11,9 +11,7 @@ import shuffleArray from '../utils/shuffleArray';
 // 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼
 const handleIpc = <E extends keyof IpcEvent>(
   event: E,
-  handler: (
-    ...args: Parameters<IpcEvent[E]>
-  ) => ReturnType<IpcEvent[E]> | Awaited<ReturnType<IpcEvent[E]>>,
+  handler: (...args: Parameters<IpcEvent[E]>) => ReturnType<IpcEvent[E]>,
 ): void => {
   // ipcMain.handle 콜백의 첫 번째 인자(IpcMainInvokeEvent)는 렌더러가 보낸 값이 아니므로 제외하고 나머지만 handler에 전달한다.
   ipcMain.handle(event, (_event, ...args) => handler(...(args as Parameters<IpcEvent[E]>)));
@@ -37,7 +35,7 @@ export const registerIpcHandlers = (): void => {
       return {
         isSuccess: false,
         error: error instanceof Error ? error.message : String(`getSaleProducts 에러: ${error}`),
-      };
+      } as const;
     }
   });
 
@@ -53,7 +51,7 @@ export const registerIpcHandlers = (): void => {
       return {
         isSuccess: false,
         error: error instanceof Error ? error.message : String(`getProductRows 에러: ${error}`),
-      };
+      } as const;
     }
   });
 };
