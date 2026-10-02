@@ -8,6 +8,8 @@ const mockGetSaleProducts = vi.fn();
 const mockGetProductRows = vi.fn();
 const mockExcludeNewlyRegisteredProducts = vi.fn();
 const mockInitRawProductRows = vi.fn();
+const mockFindDuplicateProductNames = vi.fn();
+const mockCreateTargetProducts = vi.fn();
 const mockShuffleArray = vi.fn();
 
 vi.mock('electron', () => ({
@@ -39,6 +41,14 @@ vi.mock(import('../domain/product/initRawProductRows'), () => ({
   initRawProductRows: (...args: unknown[]) => mockInitRawProductRows(...args),
 }));
 
+vi.mock(import('../domain/product/findDuplicateProductNames'), () => ({
+  findDuplicateProductNames: (...args: unknown[]) => mockFindDuplicateProductNames(...args),
+}));
+
+vi.mock(import('../domain/product/createTargetProducts'), () => ({
+  createTargetProducts: (...args: unknown[]) => mockCreateTargetProducts(...args),
+}));
+
 vi.mock(import('../utils/shuffleArray'), () => ({
   default: (...args: unknown[]) => mockShuffleArray(...args),
 }));
@@ -68,6 +78,8 @@ describe('registerIpcHandlers', () => {
     mockGetProductRows.mockReset();
     mockExcludeNewlyRegisteredProducts.mockReset();
     mockInitRawProductRows.mockReset();
+    mockFindDuplicateProductNames.mockReset();
+    mockCreateTargetProducts.mockReset();
     mockShuffleArray.mockReset();
   });
 
@@ -149,6 +161,95 @@ describe('registerIpcHandlers', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(error);
     expect(result).toEqual({ isSuccess: false, error: error.message });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('getTargetProducts 성공 시 판매 상품과 시트 행을 가공해 합친 목록과 중복 이름을 isSuccess: true로 반환한다', async () => {
+    const rawSaleProducts = [{ id: 'raw' }];
+    const filteredSaleProducts = [{ id: 'filtered' }];
+    const shuffledSaleProducts = [{ id: 'shuffled' }];
+    const rawProductRows = [['상품A']];
+    const productRows = [{ name: '상품A' }];
+    const targetProducts = [{ name: '상품A', originProductNo: 111 }];
+    const duplicateProductNames = ['상품A'];
+
+    mockGetSaleProducts.mockResolvedValue(rawSaleProducts);
+    mockExcludeNewlyRegisteredProducts.mockReturnValue(filteredSaleProducts);
+    mockShuffleArray.mockReturnValue(shuffledSaleProducts);
+    mockGetProductRows.mockResolvedValue(rawProductRows);
+    mockInitRawProductRows.mockReturnValue(productRows);
+    mockFindDuplicateProductNames.mockReturnValue(duplicateProductNames);
+    mockCreateTargetProducts.mockReturnValue(targetProducts);
+
+    const result = await invokeHandler('getTargetProducts');
+
+    expect(mockExcludeNewlyRegisteredProducts).toHaveBeenCalledWith(rawSaleProducts);
+    expect(mockShuffleArray).toHaveBeenCalledWith(filteredSaleProducts);
+    expect(mockInitRawProductRows).toHaveBeenCalledWith(rawProductRows);
+    expect(mockFindDuplicateProductNames).toHaveBeenCalledWith(productRows);
+    expect(mockCreateTargetProducts).toHaveBeenCalledWith(shuffledSaleProducts, productRows);
+    expect(result).toEqual({ isSuccess: true, targetProducts, duplicateProductNames });
+  });
+
+  it('getTargetProducts는 판매 상품과 시트 행을 동시에 요청한다', () => {
+    /**
+     * 두 조회를 영원히 끝나지 않는 Promise로 만든 뒤 핸들러를 실행한다.
+     * 동시에 요청(Promise.all)하면 한쪽이 끝나지 않아도 두 함수가 모두 호출된다.
+     * 순서대로 요청(await를 두 번 나눠 씀)하면 앞의 조회에서 멈춰 뒤의 함수는 호출되지 않는다.
+     * 핸들러의 결과는 기다리지 않으므로 void로 호출한다.
+     */
+    mockGetSaleProducts.mockReturnValue(new Promise(() => {}));
+    mockGetProductRows.mockReturnValue(new Promise(() => {}));
+
+    void invokeHandler('getTargetProducts');
+
+    expect(mockGetSaleProducts).toHaveBeenCalled();
+    expect(mockGetProductRows).toHaveBeenCalled();
+  });
+
+  it('getTargetProducts에서 getSaleProducts가 예외를 던지면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
+    const error = new Error('네이버 판매 상품 목록을 가져오지 못했습니다.');
+    mockGetSaleProducts.mockRejectedValue(error);
+    mockGetProductRows.mockResolvedValue([]);
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('getTargetProducts');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(result).toEqual({ isSuccess: false, error: error.message });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('getTargetProducts에서 getProductRows가 예외를 던지면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
+    const error = new Error('Google Sheets에서 상품 목록을 가져오지 못했습니다.');
+    mockGetSaleProducts.mockResolvedValue([]);
+    mockGetProductRows.mockRejectedValue(error);
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('getTargetProducts');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(result).toEqual({ isSuccess: false, error: error.message });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('getTargetProducts에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
+    mockGetSaleProducts.mockRejectedValue('알 수 없는 문제');
+    mockGetProductRows.mockResolvedValue([]);
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('getTargetProducts');
+
+    expect(result).toEqual({
+      isSuccess: false,
+      error: 'getTargetProducts 에러: 알 수 없는 문제',
+    });
 
     consoleErrorSpy.mockRestore();
   });

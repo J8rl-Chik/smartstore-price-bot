@@ -62,4 +62,5 @@ export interface TargetProduct
   extends Omit<ProductChannel, 'sellerManagementCode'>, Omit<ProductRow, 'activate'> {}
 
 export type TargetProductsResponse =
-  { isSuccess: true; targetProducts: TargetProduct[] } | { isSuccess: false; error: string };
+  | { isSuccess: true; targetProducts: TargetProduct[]; duplicateProductNames: string[] }
+  | { isSuccess: false; error: string };

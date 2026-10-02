@@ -6,6 +6,8 @@ import getSaleProducts from '../integrations/smartStore/getSaleProducts';
 import getProductRows from '../integrations/googleSheets/getProductRows';
 import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
 import { initRawProductRows } from '../domain/product/initRawProductRows';
+import { createTargetProducts } from '../domain/product/createTargetProducts';
+import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
 import shuffleArray from '../utils/shuffleArray';
 
 // 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼
@@ -51,6 +53,29 @@ export const registerIpcHandlers = (): void => {
       return {
         isSuccess: false,
         error: error instanceof Error ? error.message : String(`getProductRows 에러: ${error}`),
+      } as const;
+    }
+  });
+
+  handleIpc('getTargetProducts', async () => {
+    try {
+      const [saleProducts, rawProductRows] = await Promise.all([
+        getSaleProducts(),
+        getProductRows(),
+      ]);
+
+      const shuffledSaleProducts = shuffleArray(excludeNewlyRegisteredProducts(saleProducts));
+      const productRows = initRawProductRows(rawProductRows);
+      const duplicateProductNames = findDuplicateProductNames(productRows);
+      const targetProducts = createTargetProducts(shuffledSaleProducts, productRows);
+
+      return { isSuccess: true, targetProducts, duplicateProductNames } as const;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        isSuccess: false,
+        error: error instanceof Error ? error.message : String(`getTargetProducts 에러: ${error}`),
       } as const;
     }
   });
