@@ -20,12 +20,10 @@ const App = (): React.JSX.Element => {
   const handleStartButtonClick = async (): Promise<void> => {
     setIsLoading(true);
 
-    const targetProductsResponse = await window.api.getTargetProducts();
+    const response = await window.api.getTargetProducts();
 
-    // TODO: targetProductsResponse의 isSuccess가 false인 경우 예외 처리
-    const targetProductsResult = targetProductsResponse.isSuccess
-      ? targetProductsResponse.targetProducts
-      : [];
+    // TODO: response의 isSuccess가 false인 경우 예외 처리
+    const targetProductsResult = response.isSuccess ? response.targetProducts : [];
 
     setIsLoading(false);
     setTargetProducts(targetProductsResult);
