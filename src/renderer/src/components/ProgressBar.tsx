@@ -74,21 +74,23 @@ const ProgressTrack = styled.progress`
   }
 `;
 
-const ProgressBar = (): React.JSX.Element => {
-  const total = 108;
-  const checked = 63;
+interface ProgressBarProps {
+  total: number;
+  current: number;
+  // 가격 수정 중인 상품 이름. 없으면 대기 중으로 표시한다.
+  productName?: string;
+}
 
-  return (
-    <ProgressContainer>
-      <StatusRow>
-        <StatusText>대기 중</StatusText>
-        <ProgressCount>
-          {checked} / {total} 확인 중
-        </ProgressCount>
-      </StatusRow>
-      <ProgressTrack value={checked} max={total} />
-    </ProgressContainer>
-  );
-};
+const ProgressBar = ({ total, current, productName }: ProgressBarProps): React.JSX.Element => (
+  <ProgressContainer>
+    <StatusRow>
+      <StatusText>{productName ?? '대기 중'}</StatusText>
+      <ProgressCount>
+        {current} / {total} 확인 중
+      </ProgressCount>
+    </StatusRow>
+    <ProgressTrack value={current} max={total} />
+  </ProgressContainer>
+);
 
 export default ProgressBar;

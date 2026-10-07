@@ -18,6 +18,9 @@ const App = (): React.JSX.Element => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // 가격 수정 중인 상품의 targetProducts 인덱스. 수정 중이 아니면 null.
+  const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+
   const handleStartButtonClick = async (): Promise<void> => {
     setIsLoading(true);
 
@@ -37,30 +40,44 @@ const App = (): React.JSX.Element => {
 
     await window.api.createLoginPage();
 
-    for (const targetProduct of targetProductsResult) {
-      // TODO: updatePrice는 main 프로세스 전용 함수라 여기서 직접 호출 불가. IPC로 노출한 뒤 교체 필요.
-      const updatedTargetProduct = targetProduct;
+    try {
+      for (const [index, targetProduct] of targetProductsResult.entries()) {
+        setCurrentIndex(index);
 
-      const sellersResponse = await window.api.getSellers(
-        targetProduct.catalogURL,
-        targetProduct.name,
-      );
+        // TODO: updatePrice는 main 프로세스 전용 함수라 여기서 직접 호출 불가. IPC로 노출한 뒤 교체 필요.
+        const updatedTargetProduct = targetProduct;
 
-      console.log(sellersResponse);
+        const sellersResponse = await window.api.getSellers(
+          targetProduct.catalogURL,
+          targetProduct.name,
+        );
 
-      setTargetProducts((prev) =>
-        prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
-      );
+        console.log(sellersResponse);
 
-      await delaySeconds(5);
+        setTargetProducts((prev) =>
+          prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
+        );
+
+        await delaySeconds(5);
+      }
+    } finally {
+      setCurrentIndex(null);
     }
   };
+
+  // 진행 상태는 별도 state로 두지 않고 targetProducts와 currentIndex에서 계산한다.
+  const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
+  const currentOrder = currentIndex === null ? 0 : currentIndex + 1;
 
   return (
     <StyleProvider>
       <AppContainer>
         <Header onStartButtonClick={handleStartButtonClick} isLoading={isLoading} />
-        <ProgressBar />
+        <ProgressBar
+          total={targetProducts.length}
+          current={currentOrder}
+          productName={currentProduct?.name}
+        />
         <div>{targetProducts.length}개 매칭된 상품</div>
       </AppContainer>
     </StyleProvider>
