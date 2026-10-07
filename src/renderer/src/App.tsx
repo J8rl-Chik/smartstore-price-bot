@@ -4,6 +4,7 @@ import Header from './components/Header';
 import ProgressBar from './components/ProgressBar';
 import StyleProvider from './components/StyleProvider';
 import type { TargetProduct } from '../../domain/product/_type';
+import delaySeconds from '../../utils/delaySeconds';
 
 const AppContainer = styled.div`
   display: flex;
@@ -36,8 +37,7 @@ const App = (): React.JSX.Element => {
 
     await window.api.createLoginPage();
 
-    // TODO: 개발 중 확인용으로 첫 번째 상품만 처리하도록 제한해둠. 추후 slice(0, 1) 제거 필요.
-    for (const targetProduct of targetProductsResult.slice(0, 1)) {
+    for (const targetProduct of targetProductsResult) {
       // TODO: updatePrice는 main 프로세스 전용 함수라 여기서 직접 호출 불가. IPC로 노출한 뒤 교체 필요.
       const updatedTargetProduct = targetProduct;
 
@@ -51,6 +51,8 @@ const App = (): React.JSX.Element => {
       setTargetProducts((prev) =>
         prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
       );
+
+      await delaySeconds(5);
     }
   };
 
