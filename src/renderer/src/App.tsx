@@ -74,8 +74,8 @@ const App = (): React.JSX.Element => {
       <AppContainer>
         <Header onStartButtonClick={handleStartButtonClick} isLoading={isLoading} />
         <ProgressBar
-          total={targetProducts.length}
-          current={currentOrder}
+          totalCount={targetProducts.length}
+          currentOrder={currentOrder}
           productName={currentProduct?.name}
         />
         <div>{targetProducts.length}개 매칭된 상품</div>
