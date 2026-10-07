@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import type { Page } from 'puppeteer';
 import { IpcEvent } from '../preload/_type';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
@@ -20,8 +21,15 @@ const handleIpc = <E extends keyof IpcEvent>(
 };
 
 export const registerIpcHandlers = (): void => {
+  /**
+   * 로그인 이후 가격 수집 핸들러가 같은 페이지를 쓰도록 핸들러 간에 공유한다.
+   * TODO: page 공유 상태를 싱글톤 패턴으로 분리하는 리팩토링을 고려한다.
+   */
+  let page: Page | null = null;
+
+  // TODO: 로그인 페이지 생성에 실패했을 때의 예외 처리를 추가한다.
   handleIpc('createLoginPage', async () => {
-    const { page } = await createPage();
+    ({ page } = await createPage());
 
     await loginNaver(page);
   });
