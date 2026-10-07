@@ -4,6 +4,7 @@ import { IpcEvent } from '../preload/_type';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
+import getSellersInPuppeteer from '../integrations/puppeteer/getSellersInPuppeteer';
 import getProductRows from '../integrations/googleSheets/getProductRows';
 import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
 import { initRawProductRows } from '../domain/product/initRawProductRows';
@@ -24,6 +25,7 @@ export const registerIpcHandlers = (): void => {
   /**
    * 로그인 이후 가격 수집 핸들러가 같은 페이지를 쓰도록 핸들러 간에 공유한다.
    * TODO: page 공유 상태를 싱글톤 패턴으로 분리하는 리팩토링을 고려한다.
+   * TODO: browser를 닫을 수 있도록 browser와 page를 하나로 묶어 보관하고, 종료 시 browser.close()를 호출한다.
    */
   let page: Page | null = null;
 
@@ -53,6 +55,25 @@ export const registerIpcHandlers = (): void => {
       return {
         isSuccess: false,
         error: error instanceof Error ? error.message : String(`getTargetProducts 에러: ${error}`),
+      } as const;
+    }
+  });
+
+  handleIpc('getSellers', async (catalogURL, productName) => {
+    if (!page) {
+      return { isSuccess: false, error: '로그인 페이지가 생성되지 않았습니다.' } as const;
+    }
+
+    try {
+      const sellers = await getSellersInPuppeteer(page, catalogURL, productName);
+
+      return { isSuccess: true, sellers } as const;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        isSuccess: false,
+        error: error instanceof Error ? error.message : String(`getSellers 에러: ${error}`),
       } as const;
     }
   });

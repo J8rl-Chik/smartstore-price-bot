@@ -4,6 +4,7 @@ import { registerIpcHandlers } from './registerIpcHandlers';
 const mockHandle = vi.fn();
 const mockCreatePage = vi.fn();
 const mockLoginNaver = vi.fn();
+const mockGetSellersInPuppeteer = vi.fn();
 const mockGetSaleProducts = vi.fn();
 const mockGetProductRows = vi.fn();
 const mockExcludeNewlyRegisteredProducts = vi.fn();
@@ -22,6 +23,10 @@ vi.mock(import('../integrations/puppeteer/createPage'), () => ({
 
 vi.mock(import('../integrations/puppeteer/loginNaver'), () => ({
   default: (...args: unknown[]) => mockLoginNaver(...args),
+}));
+
+vi.mock(import('../integrations/puppeteer/getSellersInPuppeteer'), () => ({
+  default: (...args: unknown[]) => mockGetSellersInPuppeteer(...args),
 }));
 
 vi.mock(import('../integrations/smartStore/getSaleProducts'), () => ({
@@ -53,27 +58,40 @@ vi.mock(import('../utils/shuffleArray'), () => ({
   default: (...args: unknown[]) => mockShuffleArray(...args),
 }));
 
-// registerIpcHandlers()를 실행해 채널을 등록시킨 뒤, ipcMain.handle에 등록된 콜백 중
-// 해당 채널의 콜백을 찾아 직접 호출한다. IpcMainInvokeEvent는 handler에 전달되지 않으므로 빈 객체로 대체한다.
-const invokeHandler = (channel: string): unknown => {
+/**
+ * registerIpcHandlers()를 한 번만 실행해 채널을 등록시킨 뒤, ipcMain.handle에 등록된 콜백 중
+ * 해당 채널의 콜백을 찾아 직접 호출하는 함수를 반환한다.
+ * IpcMainInvokeEvent는 handler에 전달되지 않으므로 빈 객체로 대체한다.
+ *
+ * page 변수는 registerIpcHandlers() 호출마다 새로 만들어져 같은 호출에서 등록된 핸들러끼리만 공유된다.
+ * 그래서 createLoginPage로 채운 page를 getSellers가 읽는 것처럼 핸들러 간 공유 상태를 검증하려면
+ * registerIpcHandlers()가 한 번만 호출된 상태에서 여러 채널을 호출해야 하고, 이때 이 함수를 쓴다.
+ */
+const createInvoker = (): ((channel: string, ...args: unknown[]) => unknown) => {
   registerIpcHandlers();
 
-  const call = mockHandle.mock.calls.find(([registeredChannel]) => registeredChannel === channel);
+  return (channel, ...args) => {
+    const call = mockHandle.mock.calls.find(([registeredChannel]) => registeredChannel === channel);
 
-  if (!call) {
-    throw new Error(`${channel} 채널이 등록되지 않았습니다.`);
-  }
+    if (!call) {
+      throw new Error(`${channel} 채널이 등록되지 않았습니다.`);
+    }
 
-  const [, callback] = call;
+    const [, callback] = call;
 
-  return callback({});
+    return callback({}, ...args);
+  };
 };
+
+const invokeHandler = (channel: string, ...args: unknown[]): unknown =>
+  createInvoker()(channel, ...args);
 
 describe('registerIpcHandlers', () => {
   afterEach(() => {
     mockHandle.mockReset();
     mockCreatePage.mockReset();
     mockLoginNaver.mockReset();
+    mockGetSellersInPuppeteer.mockReset();
     mockGetSaleProducts.mockReset();
     mockGetProductRows.mockReset();
     mockExcludeNewlyRegisteredProducts.mockReset();
@@ -178,6 +196,62 @@ describe('registerIpcHandlers', () => {
       isSuccess: false,
       error: 'getTargetProducts 에러: 알 수 없는 문제',
     });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('getSellers는 createLoginPage로 만든 페이지와 인자로 판매처를 조회해 isSuccess: true로 반환한다', async () => {
+    const page = { name: 'fake-page' };
+    const sellers = [{ name: '판매처A', price: 1000 }];
+    mockCreatePage.mockResolvedValue({ browser: {}, page });
+    mockGetSellersInPuppeteer.mockResolvedValue(sellers);
+
+    const invoke = createInvoker();
+    await invoke('createLoginPage');
+    const result = await invoke('getSellers', 'https://catalog.url', '상품A');
+
+    expect(mockGetSellersInPuppeteer).toHaveBeenCalledWith(page, 'https://catalog.url', '상품A');
+    expect(result).toEqual({ isSuccess: true, sellers });
+  });
+
+  it('getSellers는 로그인 페이지가 없으면 조회하지 않고 isSuccess: false를 반환한다', async () => {
+    const result = await invokeHandler('getSellers', 'https://catalog.url', '상품A');
+
+    expect(mockGetSellersInPuppeteer).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      isSuccess: false,
+      error: '로그인 페이지가 생성되지 않았습니다.',
+    });
+  });
+
+  it('getSellers에서 getSellersInPuppeteer가 예외를 던지면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
+    const error = new Error('네이버 판매처 목록을 가져오지 못했습니다.');
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+    mockGetSellersInPuppeteer.mockRejectedValue(error);
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const invoke = createInvoker();
+    await invoke('createLoginPage');
+    const result = await invoke('getSellers', 'https://catalog.url', '상품A');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(result).toEqual({ isSuccess: false, error: error.message });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('getSellers에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+    mockGetSellersInPuppeteer.mockRejectedValue('알 수 없는 문제');
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const invoke = createInvoker();
+    await invoke('createLoginPage');
+    const result = await invoke('getSellers', 'https://catalog.url', '상품A');
+
+    expect(result).toEqual({ isSuccess: false, error: 'getSellers 에러: 알 수 없는 문제' });
 
     consoleErrorSpy.mockRestore();
   });
