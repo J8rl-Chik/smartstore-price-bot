@@ -54,6 +54,11 @@ const App = (): React.JSX.Element => {
 
         console.log(sellersResponse);
 
+        // TODO: 임시 조치. 실패하면 순회를 중단한다. 브라우저 종료 같은 치명적인 실패와 개별 상품의 일시적 실패를 구분해 처리해야 한다.
+        if (!sellersResponse.isSuccess) {
+          break;
+        }
+
         setTargetProducts((prev) =>
           prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
         );
