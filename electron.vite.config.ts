@@ -14,6 +14,9 @@ export default defineConfig({
           format: 'cjs',
         },
       },
+      externalizeDeps: {
+        include: ['jsdom'],
+      },
     },
   },
 
