@@ -9,6 +9,9 @@ const api = {
   createLoginPage: () => ipcRenderer.invoke('createLoginPage'),
   // renderer -> main으로 'getTargetProducts' 요청을 보내 네이버 판매 상품과 구글 시트 행을 합친 가격 수정 대상 목록을 가져온다.
   getTargetProducts: () => ipcRenderer.invoke('getTargetProducts'),
+  // renderer -> main으로 'getSellers' 요청을 보내 상품의 카탈로그 페이지에서 네이버 판매처 목록을 가져온다.
+  getSellers: (catalogURL: string, productName: string) =>
+    ipcRenderer.invoke('getSellers', catalogURL, productName),
 };
 
 /**

@@ -41,6 +41,13 @@ const App = (): React.JSX.Element => {
       // TODO: updatePrice는 main 프로세스 전용 함수라 여기서 직접 호출 불가. IPC로 노출한 뒤 교체 필요.
       const updatedTargetProduct = targetProduct;
 
+      const sellersResponse = await window.api.getSellers(
+        targetProduct.catalogURL,
+        targetProduct.name,
+      );
+
+      console.log(sellersResponse);
+
       setTargetProducts((prev) =>
         prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
       );
