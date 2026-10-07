@@ -3,6 +3,7 @@ googleSheetKey.json
 .env
 dist
 coverage
+.vitest
 config
 logs
 docs
