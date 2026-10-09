@@ -30,23 +30,8 @@ const Cell = styled.td<{ $isRight?: boolean }>`
   text-align: ${({ $isRight }) => ($isRight ? 'right' : 'left')};
 `;
 
-const NameCell = styled.div`
-  display: flex;
-  gap: 16px;
-  align-items: center;
+const NameCell = styled(Cell)`
   font-weight: 500;
-`;
-
-const ProductIcon = styled.span`
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  color: ${({ theme }) => theme.color.gray400};
-  background: ${({ theme }) => theme.color.gray100};
-  border-radius: 8px;
 `;
 
 const SetPrice = styled.span`
@@ -71,25 +56,7 @@ const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}
 
 const ProductRow = ({ product }: ProductRowProps): React.JSX.Element => (
   <ProductRowContainer>
-    <Cell>
-      <NameCell>
-        <ProductIcon aria-hidden="true">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          >
-            <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
-            <path d="M4 7.5l8 4.5 8-4.5M12 12v9" />
-          </svg>
-        </ProductIcon>
-        {product.name}
-      </NameCell>
-    </Cell>
+    <NameCell>{product.name}</NameCell>
     <Cell $isRight>
       <SetPrice>{formatPrice(product.setPrice)}</SetPrice>
     </Cell>
