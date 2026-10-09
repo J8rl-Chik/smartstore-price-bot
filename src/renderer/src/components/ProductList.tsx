@@ -44,7 +44,7 @@ const Table = styled.table`
   border-collapse: collapse;
 `;
 
-const HeaderCell = styled.th<{ $isRight?: boolean }>`
+const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $isRight?: boolean }>`
   padding: 16px 0;
   font-size: 12px;
   font-weight: 400;
