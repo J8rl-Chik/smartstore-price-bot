@@ -1,6 +1,11 @@
 import styled from 'styled-components';
 import StartButton from './StartButton';
 
+interface HeaderProps {
+  onStartButtonClick: () => void;
+  isLoading: boolean;
+}
+
 const HeaderContainer = styled.header`
   display: flex;
   align-items: center;
@@ -31,11 +36,6 @@ const Title = styled.h1`
   font-weight: 700;
   color: ${({ theme }) => theme.color.gray900};
 `;
-
-interface HeaderProps {
-  onStartButtonClick: () => void;
-  isLoading: boolean;
-}
 
 const Header = ({ onStartButtonClick, isLoading }: HeaderProps): React.JSX.Element => {
   return (

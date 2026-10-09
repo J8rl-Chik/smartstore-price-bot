@@ -1,5 +1,12 @@
 import styled, { keyframes } from 'styled-components';
 
+interface ProgressBarProps {
+  totalCount: number;
+  currentOrder: number;
+  // 가격 수정 중인 상품 이름. 없으면 대기 중으로 표시한다.
+  productName?: string;
+}
+
 const shimmer = keyframes`
   // 그라디언트가 오른쪽 -> 왼쪽으로 이동.
   0% {
@@ -73,13 +80,6 @@ const ProgressTrack = styled.progress`
     animation: ${shimmer} 1.5s ease-in-out infinite;
   }
 `;
-
-interface ProgressBarProps {
-  totalCount: number;
-  currentOrder: number;
-  // 가격 수정 중인 상품 이름. 없으면 대기 중으로 표시한다.
-  productName?: string;
-}
 
 const ProgressBar = ({
   totalCount,

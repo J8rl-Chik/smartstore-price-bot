@@ -1,5 +1,10 @@
 import styled from 'styled-components';
 
+interface Props {
+  onClick: () => void;
+  isLoading: boolean;
+}
+
 const StartButtonRoot = styled.button`
   display: flex;
   gap: 8px;
@@ -23,11 +28,6 @@ const StartButtonRoot = styled.button`
     background: ${({ theme }) => theme.color.gray300};
   }
 `;
-
-interface Props {
-  onClick: () => void;
-  isLoading: boolean;
-}
 
 const StartButton = ({ onClick, isLoading }: Props): React.JSX.Element => {
   return (

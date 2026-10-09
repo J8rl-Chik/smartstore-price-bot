@@ -2,6 +2,10 @@ import styled from 'styled-components';
 import ProductRow from './ProductRow';
 import type { ProductListItem } from './ProductRow';
 
+interface ProductListProps {
+  products: ProductListItem[];
+}
+
 const ProductListContainer = styled.section`
   margin-bottom: 24px;
 `;
@@ -48,10 +52,6 @@ const HeaderCell = styled.th<{ $isRight?: boolean }>`
   text-align: ${({ $isRight }) => ($isRight ? 'right' : 'left')};
   border-bottom: 1px solid ${({ theme }) => theme.color.gray200};
 `;
-
-interface ProductListProps {
-  products: ProductListItem[];
-}
 
 const ProductList = ({ products }: ProductListProps): React.JSX.Element => (
   <ProductListContainer>

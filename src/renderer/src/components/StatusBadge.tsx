@@ -2,6 +2,10 @@ import styled from 'styled-components';
 
 export type ProductStatus = 'normal' | 'needUpdate' | 'error';
 
+interface StatusBadgeProps {
+  status: ProductStatus;
+}
+
 const STATUS_LABEL: Record<ProductStatus, string> = {
   normal: '정상',
   needUpdate: '업데이트 필요',
@@ -24,10 +28,6 @@ const StatusBadgeRoot = styled.span<{ $status: ProductStatus }>`
     ]};
   border-radius: 8px;
 `;
-
-interface StatusBadgeProps {
-  status: ProductStatus;
-}
 
 const StatusBadge = ({ status }: StatusBadgeProps): React.JSX.Element => (
   <StatusBadgeRoot $status={status}>{STATUS_LABEL[status]}</StatusBadgeRoot>

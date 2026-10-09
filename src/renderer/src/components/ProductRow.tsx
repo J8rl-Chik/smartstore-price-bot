@@ -2,6 +2,21 @@ import styled from 'styled-components';
 import StatusBadge from './StatusBadge';
 import type { ProductStatus } from './StatusBadge';
 
+export interface ProductListItem {
+  id: number;
+  name: string;
+  setPrice: number;
+  currentPrice: number;
+  // 수정가가 아직 없으면 null. "—"로 표시한다.
+  updatedPrice: number | null;
+  status: ProductStatus;
+  updatedAt: string;
+}
+
+interface ProductRowProps {
+  product: ProductListItem;
+}
+
 const ProductRowRoot = styled.tr`
   &:not(:last-child) td {
     border-bottom: 1px solid ${({ theme }) => theme.color.gray100};
@@ -51,21 +66,6 @@ const UpdatedAt = styled.span`
   font-size: 13px;
   color: ${({ theme }) => theme.color.gray400};
 `;
-
-export interface ProductListItem {
-  id: number;
-  name: string;
-  setPrice: number;
-  currentPrice: number;
-  // 수정가가 아직 없으면 null. "—"로 표시한다.
-  updatedPrice: number | null;
-  status: ProductStatus;
-  updatedAt: string;
-}
-
-interface ProductRowProps {
-  product: ProductListItem;
-}
 
 const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}원`;
 
