@@ -10,27 +10,11 @@ const ProductListContainer = styled.section`
   margin-bottom: 24px;
 `;
 
-const ProductListHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-`;
-
 const Title = styled.h2`
-  margin: 0;
+  margin: 0 0 12px;
   font-size: 16px;
   font-weight: 700;
   color: ${({ theme }) => theme.color.gray900};
-`;
-
-const ViewAllButton = styled.button`
-  padding: 0;
-  font-size: 13px;
-  color: ${({ theme }) => theme.color.gray500};
-  cursor: pointer;
-  background: none;
-  border: none;
 `;
 
 const TableCard = styled.div`
@@ -55,10 +39,7 @@ const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $isRight?: boolean }>`
 
 const ProductList = ({ products }: ProductListProps): React.JSX.Element => (
   <ProductListContainer>
-    <ProductListHeader>
-      <Title>상품 목록</Title>
-      <ViewAllButton type="button">전체보기 &gt;</ViewAllButton>
-    </ProductListHeader>
+    <Title>상품 목록</Title>
     <TableCard>
       <Table>
         <thead>
