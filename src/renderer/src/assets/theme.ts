@@ -22,6 +22,7 @@ const THEME = {
     red300: '#fca5a5',
     red500: '#ef4444',
     red600: '#dc2626',
+    orange50: '#fff7ed',
     orange500: '#f97316',
     white: '#ffffff',
   },
