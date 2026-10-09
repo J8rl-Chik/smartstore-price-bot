@@ -5,7 +5,7 @@ interface Props {
   isLoading: boolean;
 }
 
-const StartButtonRoot = styled.button`
+const StartButtonContainer = styled.button`
   display: flex;
   gap: 8px;
   align-items: center;
@@ -31,12 +31,12 @@ const StartButtonRoot = styled.button`
 
 const StartButton = ({ onClick, isLoading }: Props): React.JSX.Element => {
   return (
-    <StartButtonRoot onClick={onClick} disabled={isLoading}>
+    <StartButtonContainer onClick={onClick} disabled={isLoading}>
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
         <path d="M3 2l7 4-7 4V2z" fill="white" />
       </svg>
       자동 수정 시작
-    </StartButtonRoot>
+    </StartButtonContainer>
   );
 };
 

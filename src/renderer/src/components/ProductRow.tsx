@@ -17,7 +17,7 @@ interface ProductRowProps {
   product: ProductListItem;
 }
 
-const ProductRowRoot = styled.tr`
+const ProductRowContainer = styled.tr`
   &:not(:last-child) td {
     border-bottom: 1px solid ${({ theme }) => theme.color.gray100};
   }
@@ -70,7 +70,7 @@ const UpdatedAt = styled.span`
 const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}원`;
 
 const ProductRow = ({ product }: ProductRowProps): React.JSX.Element => (
-  <ProductRowRoot>
+  <ProductRowContainer>
     <Cell>
       <NameCell>
         <ProductIcon aria-hidden="true">
@@ -107,7 +107,7 @@ const ProductRow = ({ product }: ProductRowProps): React.JSX.Element => (
     <Cell $isRight>
       <UpdatedAt>{product.updatedAt}</UpdatedAt>
     </Cell>
-  </ProductRowRoot>
+  </ProductRowContainer>
 );
 
 export default ProductRow;
