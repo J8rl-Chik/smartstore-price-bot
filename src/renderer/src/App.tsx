@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import Header from './components/Header';
+import ProductList from './components/ProductList';
+import type { ProductListItem } from './components/ProductRow';
 import ProgressBar from './components/ProgressBar';
 import StyleProvider from './components/StyleProvider';
 import type { TargetProduct } from '../../domain/product/_type';
@@ -12,6 +14,64 @@ const AppContainer = styled.div`
   font-family: ${({ theme }) => theme.font.kr};
   background: ${({ theme }) => theme.color.gray100};
 `;
+
+// TODO: UI 확인용 더미 데이터. 가격 수정 결과를 받아오면 targetProducts 기반의 실제 데이터로 교체 필요.
+const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
+  {
+    id: 1,
+    name: '무선 이어폰 프로',
+    setPrice: 42900,
+    currentPrice: 42900,
+    updatedPrice: 42900,
+    status: 'normal',
+    updatedAt: '2분 전',
+  },
+  {
+    id: 2,
+    name: '블루투스 스피커 미니',
+    setPrice: 35000,
+    currentPrice: 35000,
+    updatedPrice: 33800,
+    status: 'needUpdate',
+    updatedAt: '1시간 전',
+  },
+  {
+    id: 3,
+    name: '접이식 우산',
+    setPrice: 18900,
+    currentPrice: 18900,
+    updatedPrice: 18900,
+    status: 'normal',
+    updatedAt: '1분 전',
+  },
+  {
+    id: 4,
+    name: '스테인리스 텀블러',
+    setPrice: 24500,
+    currentPrice: 24500,
+    updatedPrice: null,
+    status: 'error',
+    updatedAt: '3시간 전',
+  },
+  {
+    id: 5,
+    name: 'USB-C 멀티허브',
+    setPrice: 56000,
+    currentPrice: 56000,
+    updatedPrice: 52300,
+    status: 'needUpdate',
+    updatedAt: '45분 전',
+  },
+  {
+    id: 6,
+    name: '캠핑 의자',
+    setPrice: 63900,
+    currentPrice: 63900,
+    updatedPrice: 63900,
+    status: 'normal',
+    updatedAt: '8분 전',
+  },
+];
 
 const App = (): React.JSX.Element => {
   const [targetProducts, setTargetProducts] = useState<TargetProduct[]>([]);
@@ -81,7 +141,7 @@ const App = (): React.JSX.Element => {
           currentOrder={currentOrder}
           productName={currentProduct?.name}
         />
-        <div>{targetProducts.length}개 매칭된 상품</div>
+        <ProductList products={DUMMY_PRODUCT_LIST_ITEMS} />
       </AppContainer>
     </StyleProvider>
   );
