@@ -20,7 +20,16 @@ export default defineConfig([
 
   // 1. 검사 제외 대상 (무시할 폴더들)
   // 외부 라이브러리(node_modules)나 빌드 결과물(dist, out) 폴더는 소스 코드가 아니므로 감시하지 않습니다.
-  { ignores: ['**/node_modules', '**/dist', '**/out', '**/rateLimitTest', '**/coverage'] },
+  {
+    ignores: [
+      '**/node_modules',
+      '**/dist',
+      '**/out',
+      '**/rateLimitTest',
+      '**/coverage',
+      '**/config',
+    ],
+  },
 
   // 2. TypeScript 권장 규칙 적용
   // Electron 툴킷에서 제공하는 타입스크립트용 기본 표준 규칙들을 가져와 적용합니다.
