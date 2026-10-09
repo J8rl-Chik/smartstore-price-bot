@@ -66,6 +66,43 @@ const Logo = styled.span`
 - 컴포넌트의 최상위 요소는 가능하면 의미에 맞는 HTML 시맨틱 태그를 쓴다 (예: 화면 헤더 영역은 `styled.div` 대신 `styled.header`).
 - 그 아래 스타일용 요소는 **인라인 성격**(아이콘/글자 하나짜리 배지, 짧은 텍스트 조각)이면 `span`, **블록/레이아웃 컨테이너** 성격이면 `div`을 쓴다.
 
+## type, interface는 import 바로 다음에 둔다
+
+`type`, `interface` 선언은 styled-component나 컴포넌트 코드 중간에 끼워 두지 않고, 파일 맨 위 import 구문 바로 다음에 모아서 배치한다.
+타입을 먼저 보면 그 컴포넌트가 받는 props와 다루는 데이터 모양을 파일을 읽기 시작할 때 바로 알 수 있다.
+
+**Before:**
+
+```tsx
+import styled from 'styled-components';
+
+const Title = styled.h2`
+  font-size: 16px;
+`;
+
+interface ProductListProps {
+  products: ProductListItem[];
+}
+
+const ProductList = ({ products }: ProductListProps) => ( ... );
+```
+
+**After:**
+
+```tsx
+import styled from 'styled-components';
+
+interface ProductListProps {
+  products: ProductListItem[];
+}
+
+const Title = styled.h2`
+  font-size: 16px;
+`;
+
+const ProductList = ({ products }: ProductListProps) => ( ... );
+```
+
 ## 적용 시 체크리스트
 
 새 styled-component를 만들거나 기존 걸 검토할 때 아래를 순서대로 점검한다:
@@ -74,3 +111,4 @@ const Logo = styled.span`
 2. 이름이 스타일 특성이 아니라 그 요소의 역할/의미를 설명하는가?
 3. 재사용되지 않는데 스타일만 감싸는 자식 컴포넌트가 있는가? 있다면 부모에 합칠 수 있는가?
 4. 최상위 태그가 시맨틱하게 적절한가? 하위 요소는 inline(`span`)/block(`div`) 중 의미에 맞는 쪽을 골랐는가?
+5. `type`, `interface` 선언이 코드 중간이 아니라 import 바로 다음에 있는가?
