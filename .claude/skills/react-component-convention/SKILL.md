@@ -23,6 +23,11 @@ description: 이 프로젝트(src/renderer/src)의 React + styled-components UI 
 - `PrimaryBtn` → `StartButton` (그 버튼이 하는 일: 자동 수정을 "시작"하는 버튼)
 - `HeaderBrand` → `HeaderTitle`, `LogoBadge` → `Logo`, `PageTitle` → `Title`
 
+컴포넌트의 최상위 요소를 감싸는 styled-component는 `~Root`가 아니라 `~Container`로 짓는다.
+
+- `ProductRowRoot` → `ProductRowContainer`, `StartButtonRoot` → `StartButtonContainer`
+- 기존 예: `HeaderContainer`, `ProgressContainer`
+
 ## 스타일만 감싸는 자식은 부모에 합친다
 
 자식 styled-component가 별도 로직/재사용 없이 텍스트 스타일(폰트 크기, 색상 등)만 추가하는 래퍼라면, 부모 컴포넌트에 그 스타일을 합치고 자식은 제거한다.
@@ -108,7 +113,7 @@ const ProductList = ({ products }: ProductListProps) => ( ... );
 새 styled-component를 만들거나 기존 걸 검토할 때 아래를 순서대로 점검한다:
 
 1. 이 화면을 더 작은 섹션으로 나눌 수 있는가? 나눌 수 있다면 별도 파일로 분리했는가? 로직 없이 정적 UI부터 만들고 있는가?
-2. 이름이 스타일 특성이 아니라 그 요소의 역할/의미를 설명하는가?
+2. 이름이 스타일 특성이 아니라 그 요소의 역할/의미를 설명하는가? 최상위 요소를 감싸는 이름이 `~Root`가 아니라 `~Container`인가?
 3. 재사용되지 않는데 스타일만 감싸는 자식 컴포넌트가 있는가? 있다면 부모에 합칠 수 있는가?
 4. 최상위 태그가 시맨틱하게 적절한가? 하위 요소는 inline(`span`)/block(`div`) 중 의미에 맞는 쪽을 골랐는가?
 5. `type`, `interface` 선언이 코드 중간이 아니라 import 바로 다음에 있는가?
