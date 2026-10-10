@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import ProductList from './ProductList';
-import type { ProductListItem } from './ProductRow';
+import ProductTable from './ProductTable';
+import type { ProductListItem } from './ProductTableRow';
 import { customRender } from '../customRender';
 
 const PRODUCTS: ProductListItem[] = [
@@ -34,14 +34,14 @@ const PRODUCTS: ProductListItem[] = [
 ];
 
 test('상품 목록 제목을 테이블의 이름으로 보여준다', async () => {
-  const screen = await customRender(<ProductList products={PRODUCTS} />);
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
 
   await expect.element(screen.getByRole('table', { name: '상품 목록' })).toBeVisible();
   await expect.element(screen.getByText('상품 목록')).toBeVisible();
 });
 
 test('테이블 컬럼 헤더를 보여준다', async () => {
-  const screen = await customRender(<ProductList products={PRODUCTS} />);
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
 
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('columnheader', { name: '설정가' })).toBeVisible();
@@ -52,7 +52,7 @@ test('테이블 컬럼 헤더를 보여준다', async () => {
 });
 
 test('상품마다 한 행씩 보여준다', async () => {
-  const screen = await customRender(<ProductList products={PRODUCTS} />);
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
 
   // 헤더 행 1개 + 상품 행 3개.
   await expect.element(screen.getByRole('row').nth(3)).toBeVisible();
@@ -62,7 +62,7 @@ test('상품마다 한 행씩 보여준다', async () => {
 });
 
 test('상품이 없으면 헤더 행만 보여준다', async () => {
-  const screen = await customRender(<ProductList products={[]} />);
+  const screen = await customRender(<ProductTable products={[]} />);
 
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('cell')).not.toBeInTheDocument();

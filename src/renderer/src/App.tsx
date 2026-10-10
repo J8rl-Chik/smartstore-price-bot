@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import Header from './components/Header';
-import ProductList from './components/ProductList';
-import type { ProductListItem } from './components/ProductRow';
+import ProductTable from './components/ProductTable';
+import type { ProductListItem } from './components/ProductTableRow';
 import ProgressBar from './components/ProgressBar';
 import StyleProvider from './components/StyleProvider';
 import type { TargetProduct } from '../../domain/product/_type';
@@ -141,7 +141,7 @@ const App = (): React.JSX.Element => {
           currentOrder={currentOrder}
           productName={currentProduct?.name}
         />
-        <ProductList products={DUMMY_PRODUCT_LIST_ITEMS} />
+        <ProductTable products={DUMMY_PRODUCT_LIST_ITEMS} />
       </AppContainer>
     </StyleProvider>
   );

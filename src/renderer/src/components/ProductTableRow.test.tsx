@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import ProductRow from './ProductRow';
-import type { ProductListItem } from './ProductRow';
+import ProductTableRow from './ProductTableRow';
+import type { ProductListItem } from './ProductTableRow';
 import { customRender } from '../customRender';
 
 const PRODUCT: ProductListItem = {
@@ -18,7 +18,7 @@ const renderRow = (product: ProductListItem) =>
   customRender(
     <table>
       <tbody>
-        <ProductRow product={product} />
+        <ProductTableRow product={product} />
       </tbody>
     </table>,
   );

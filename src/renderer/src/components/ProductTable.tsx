@@ -1,8 +1,8 @@
 import styled from 'styled-components';
-import ProductRow from './ProductRow';
-import type { ProductListItem } from './ProductRow';
+import ProductTableRow from './ProductTableRow';
+import type { ProductListItem } from './ProductTableRow';
 
-interface ProductListProps {
+interface ProductTableProps {
   products: ProductListItem[];
 }
 
@@ -10,7 +10,7 @@ interface ProductListProps {
  * border-collapse: collapse에서는 table의 padding이 적용되지 않는다.
  * 카드 여백을 table에 직접 주기 위해 separate(기본값)와 border-spacing: 0을 쓴다.
  */
-const ProductListContainer = styled.table`
+const ProductTableContainer = styled.table`
   width: 100%;
   padding: 8px 20px;
   margin-bottom: 24px;
@@ -36,8 +36,8 @@ const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $isRight?: boolean }>`
   border-bottom: 1px solid ${({ theme }) => theme.color.gray200};
 `;
 
-const ProductList = ({ products }: ProductListProps): React.JSX.Element => (
-  <ProductListContainer>
+const ProductTable = ({ products }: ProductTableProps): React.JSX.Element => (
+  <ProductTableContainer>
     <Title>상품 목록</Title>
     <thead>
       <tr>
@@ -51,10 +51,10 @@ const ProductList = ({ products }: ProductListProps): React.JSX.Element => (
     </thead>
     <tbody>
       {products.map((product) => (
-        <ProductRow key={product.id} product={product} />
+        <ProductTableRow key={product.id} product={product} />
       ))}
     </tbody>
-  </ProductListContainer>
+  </ProductTableContainer>
 );
 
-export default ProductList;
+export default ProductTable;

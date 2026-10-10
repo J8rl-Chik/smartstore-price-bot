@@ -13,11 +13,11 @@ export interface ProductListItem {
   updatedAt: string;
 }
 
-interface ProductRowProps {
+interface ProductTableRowProps {
   product: ProductListItem;
 }
 
-const ProductRowContainer = styled.tr`
+const ProductTableRowContainer = styled.tr`
   &:not(:last-child) td {
     border-bottom: 1px solid ${({ theme }) => theme.color.gray100};
   }
@@ -54,8 +54,8 @@ const UpdatedAt = styled.span`
 
 const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}원`;
 
-const ProductRow = ({ product }: ProductRowProps): React.JSX.Element => (
-  <ProductRowContainer>
+const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element => (
+  <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
     <Cell $isRight>
       <SetPrice>{formatPrice(product.setPrice)}</SetPrice>
@@ -74,7 +74,7 @@ const ProductRow = ({ product }: ProductRowProps): React.JSX.Element => (
     <Cell $isRight>
       <UpdatedAt>{product.updatedAt}</UpdatedAt>
     </Cell>
-  </ProductRowContainer>
+  </ProductTableRowContainer>
 );
 
-export default ProductRow;
+export default ProductTableRow;
