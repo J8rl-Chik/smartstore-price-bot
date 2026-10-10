@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import ProductRow from './ProductRow';
 import type { ProductListItem } from './ProductRow';
+import ProductTableCell from './ProductTableCell';
 
 interface ProductListProps {
   products: ProductListItem[];
@@ -27,12 +28,10 @@ const Title = styled.caption`
   text-align: left;
 `;
 
-const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $isRight?: boolean }>`
-  padding: 16px 0;
+const HeaderCell = styled(ProductTableCell).attrs({ as: 'th', scope: 'col' })`
   font-size: 12px;
   font-weight: 400;
   color: ${({ theme }) => theme.color.gray500};
-  text-align: ${({ $isRight }) => ($isRight ? 'right' : 'left')};
   border-bottom: 1px solid ${({ theme }) => theme.color.gray200};
 `;
 

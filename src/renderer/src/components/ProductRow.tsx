@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import ProductTableCell from './ProductTableCell';
 import StatusBadge from './StatusBadge';
 import type { ProductStatus } from './StatusBadge';
 
@@ -23,11 +24,9 @@ const ProductRowContainer = styled.tr`
   }
 `;
 
-const Cell = styled.td<{ $isRight?: boolean }>`
-  padding: 16px 0;
+const Cell = styled(ProductTableCell)`
   font-size: 14px;
   color: ${({ theme }) => theme.color.gray900};
-  text-align: ${({ $isRight }) => ($isRight ? 'right' : 'left')};
 `;
 
 const NameCell = styled(Cell)`
