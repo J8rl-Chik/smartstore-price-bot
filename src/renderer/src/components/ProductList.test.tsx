@@ -33,10 +33,11 @@ const PRODUCTS: ProductListItem[] = [
   },
 ];
 
-test('상품 목록 제목을 보여준다', async () => {
+test('상품 목록 제목을 테이블의 이름으로 보여준다', async () => {
   const screen = await customRender(<ProductList products={PRODUCTS} />);
 
-  await expect.element(screen.getByRole('heading', { level: 2, name: '상품 목록' })).toBeVisible();
+  await expect.element(screen.getByRole('table', { name: '상품 목록' })).toBeVisible();
+  await expect.element(screen.getByText('상품 목록')).toBeVisible();
 });
 
 test('테이블 컬럼 헤더를 보여준다', async () => {
