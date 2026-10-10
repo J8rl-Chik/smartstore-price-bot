@@ -7,8 +7,8 @@ interface ProductListProps {
 }
 
 /**
- * border-collapse: collapse에서는 table의 padding과 border-radius가 적용되지 않는다.
- * 카드 모양(여백, 둥근 모서리)을 table에 직접 주기 위해 separate와 border-spacing: 0을 쓴다.
+ * border-collapse: collapse에서는 table의 padding이 적용되지 않는다.
+ * 카드 여백을 table에 직접 주기 위해 separate(기본값)와 border-spacing: 0을 쓴다.
  */
 const ProductListContainer = styled.table`
   width: 100%;
