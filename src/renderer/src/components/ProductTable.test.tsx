@@ -51,11 +51,14 @@ test('테이블 컬럼 헤더를 보여준다', async () => {
   await expect.element(screen.getByRole('columnheader', { name: '수정 시간' })).toBeVisible();
 });
 
-test('상품마다 한 행씩 보여준다', async () => {
+test('헤더 행과 상품 행으로 구성된다', async () => {
   const screen = await customRender(<ProductTable products={PRODUCTS} />);
+  const thead = screen.getByRole('rowgroup').nth(0); // rowgroup은 thead, tbody 순서로 2개다.
+  const tbody = screen.getByRole('rowgroup').nth(1);
 
-  // 헤더 행 1개 + 상품 행 3개.
-  await expect.element(screen.getByRole('row').nth(3)).toBeVisible();
+  expect(thead.getByRole('row').elements()).toHaveLength(1);
+  expect(tbody.getByRole('row').elements()).toHaveLength(PRODUCTS.length);
+
   await expect.element(screen.getByRole('cell', { name: '무선 이어폰 프로' })).toBeVisible();
   await expect.element(screen.getByRole('cell', { name: '블루투스 스피커 미니' })).toBeVisible();
   await expect.element(screen.getByRole('cell', { name: '스테인리스 텀블러' })).toBeVisible();
