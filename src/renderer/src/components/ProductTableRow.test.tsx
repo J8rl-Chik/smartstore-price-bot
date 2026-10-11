@@ -10,7 +10,7 @@ const PRODUCT: ProductListItem = {
   currentPrice: 34000,
   updatedPrice: 33800,
   status: 'needUpdate',
-  updatedAt: '1시간 전',
+  updatedAt: '13:34:48',
 };
 
 // tr은 table > tbody 안에서만 유효한 마크업이라 감싸서 렌더링한다.
@@ -47,5 +47,5 @@ test('상태 뱃지와 수정 시간을 보여준다', async () => {
   const screen = await renderRow(PRODUCT);
 
   await expect.element(screen.getByText('업데이트 필요')).toBeVisible();
-  await expect.element(screen.getByText('1시간 전')).toBeVisible();
+  await expect.element(screen.getByText('13:34:48')).toBeVisible();
 });

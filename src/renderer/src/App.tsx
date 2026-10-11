@@ -24,7 +24,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
     currentPrice: 42900,
     updatedPrice: 42900,
     status: 'normal',
-    updatedAt: '2분 전',
+    updatedAt: '14:32:05',
   },
   {
     id: 2,
@@ -33,7 +33,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
     currentPrice: 35000,
     updatedPrice: 33800,
     status: 'needUpdate',
-    updatedAt: '1시간 전',
+    updatedAt: '13:34:48',
   },
   {
     id: 3,
@@ -42,7 +42,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
     currentPrice: 18900,
     updatedPrice: 18900,
     status: 'normal',
-    updatedAt: '1분 전',
+    updatedAt: '14:33:21',
   },
   {
     id: 4,
@@ -51,7 +51,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
     currentPrice: 24500,
     updatedPrice: null,
     status: 'error',
-    updatedAt: '3시간 전',
+    updatedAt: '11:35:09',
   },
   {
     id: 5,
@@ -60,7 +60,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
     currentPrice: 56000,
     updatedPrice: 52300,
     status: 'needUpdate',
-    updatedAt: '45분 전',
+    updatedAt: '13:49:30',
   },
   {
     id: 6,
@@ -69,7 +69,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
     currentPrice: 63900,
     updatedPrice: 63900,
     status: 'normal',
-    updatedAt: '8분 전',
+    updatedAt: '14:26:54',
   },
 ];
 

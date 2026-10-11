@@ -11,7 +11,7 @@ const PRODUCTS: ProductListItem[] = [
     currentPrice: 42900,
     updatedPrice: 42900,
     status: 'normal',
-    updatedAt: '2분 전',
+    updatedAt: '14:32:05',
   },
   {
     id: 2,
@@ -20,7 +20,7 @@ const PRODUCTS: ProductListItem[] = [
     currentPrice: 35000,
     updatedPrice: 33800,
     status: 'needUpdate',
-    updatedAt: '1시간 전',
+    updatedAt: '13:34:48',
   },
   {
     id: 3,
@@ -29,7 +29,7 @@ const PRODUCTS: ProductListItem[] = [
     currentPrice: 24500,
     updatedPrice: null,
     status: 'error',
-    updatedAt: '3시간 전',
+    updatedAt: '11:35:09',
   },
 ];
 
