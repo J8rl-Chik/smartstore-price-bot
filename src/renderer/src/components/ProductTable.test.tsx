@@ -103,10 +103,10 @@ test('수정가 열의 너비는 12%이다', async () => {
   expect(await getColumnWidthRatio('col-updated-price')).toBeCloseTo(0.12);
 });
 
-test('상태 열의 너비는 10%이다', async () => {
-  expect(await getColumnWidthRatio('col-status')).toBeCloseTo(0.1);
+test('상태 열의 너비는 12%이다', async () => {
+  expect(await getColumnWidthRatio('col-status')).toBeCloseTo(0.12);
 });
 
-test('수정 시간 열의 너비는 12%이다', async () => {
-  expect(await getColumnWidthRatio('col-updated-at')).toBeCloseTo(0.12);
+test('수정 시간 열의 너비는 10%이다', async () => {
+  expect(await getColumnWidthRatio('col-updated-at')).toBeCloseTo(0.1);
 });

@@ -47,8 +47,8 @@ const ProductTable = ({ products }: ProductTableProps): React.JSX.Element => (
       <Column data-testid="col-set-price" $width="12%" />
       <Column data-testid="col-current-price" $width="12%" />
       <Column data-testid="col-updated-price" $width="12%" />
-      <Column data-testid="col-status" $width="10%" />
-      <Column data-testid="col-updated-at" $width="12%" />
+      <Column data-testid="col-status" $width="12%" />
+      <Column data-testid="col-updated-at" $width="10%" />
     </colgroup>
     <thead>
       <tr>
