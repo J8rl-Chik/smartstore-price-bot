@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import StatusBadge from './StatusBadge';
 import type { ProductStatus } from './StatusBadge';
 
@@ -23,33 +23,46 @@ const ProductTableRowContainer = styled.tr`
   }
 `;
 
-const Cell = styled.td<{ $isRight?: boolean }>`
-  padding: 16px 0;
+const cell = css`
+  padding: 16px;
   font-size: 14px;
   color: ${({ theme }) => theme.color.gray900};
-  text-align: ${({ $isRight }) => ($isRight ? 'right' : 'left')};
+  text-align: left;
 `;
 
-const NameCell = styled(Cell)`
+const NameCell = styled.td`
+  ${cell}
   font-weight: 500;
 `;
 
-const SetPrice = styled.span`
+const SetPriceCell = styled.td`
+  ${cell}
   color: ${({ theme }) => theme.color.gray400};
+  text-align: right;
 `;
 
-const CurrentPrice = styled.span`
+const CurrentPriceCell = styled.td`
+  ${cell}
   font-weight: 700;
+  text-align: right;
 `;
 
-const UpdatedPrice = styled.span`
+const UpdatedPriceCell = styled.td`
+  ${cell}
   font-weight: 700;
   color: ${({ theme }) => theme.color.blue500};
+  text-align: right;
 `;
 
-const UpdatedAt = styled.span`
+const StatusCell = styled.td`
+  ${cell}
+`;
+
+const UpdatedAtCell = styled.td`
+  ${cell}
   font-size: 13px;
   color: ${({ theme }) => theme.color.gray400};
+  text-align: right;
 `;
 
 const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}원`;
@@ -57,23 +70,15 @@ const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}
 const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element => (
   <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
-    <Cell $isRight>
-      <SetPrice>{formatPrice(product.setPrice)}</SetPrice>
-    </Cell>
-    <Cell $isRight>
-      <CurrentPrice>{formatPrice(product.currentPrice)}</CurrentPrice>
-    </Cell>
-    <Cell $isRight>
-      <UpdatedPrice>
-        {product.updatedPrice === null ? '—' : formatPrice(product.updatedPrice)}
-      </UpdatedPrice>
-    </Cell>
-    <Cell>
+    <SetPriceCell>{formatPrice(product.setPrice)}</SetPriceCell>
+    <CurrentPriceCell>{formatPrice(product.currentPrice)}</CurrentPriceCell>
+    <UpdatedPriceCell>
+      {product.updatedPrice === null ? '—' : formatPrice(product.updatedPrice)}
+    </UpdatedPriceCell>
+    <StatusCell>
       <StatusBadge status={product.status} />
-    </Cell>
-    <Cell $isRight>
-      <UpdatedAt>{product.updatedAt}</UpdatedAt>
-    </Cell>
+    </StatusCell>
+    <UpdatedAtCell>{product.updatedAt}</UpdatedAtCell>
   </ProductTableRowContainer>
 );
 
