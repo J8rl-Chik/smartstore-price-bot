@@ -7,12 +7,10 @@ interface ProductTableProps {
 }
 
 /**
- * border-collapse: collapse에서는 table의 padding이 적용되지 않는다.
- * 카드 여백을 table에 직접 주기 위해 separate(기본값)와 border-spacing: 0을 쓴다.
+ * border-collapse는 기본값(separate)을 쓰므로 셀 사이 간격이 생기지 않도록 border-spacing: 0을 준다.
  */
 const ProductTableContainer = styled.table`
   width: 100%;
-  padding: 8px 20px;
   margin-bottom: 24px;
   border-spacing: 0;
   background: ${({ theme }) => theme.color.white};
@@ -28,7 +26,7 @@ const Title = styled.caption`
 `;
 
 const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $isRight?: boolean }>`
-  padding: 16px 0;
+  padding: 16px;
   font-size: 12px;
   font-weight: 400;
   color: ${({ theme }) => theme.color.gray500};
