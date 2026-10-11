@@ -13,15 +13,7 @@ const PRODUCT: ProductListItem = {
   updatedAt: '13:34:48',
 };
 
-// tr은 table > tbody 안에서만 유효한 마크업이라 감싸서 렌더링한다.
-const renderRow = (product: ProductListItem) =>
-  customRender(
-    <table>
-      <tbody>
-        <ProductTableRow product={product} />
-      </tbody>
-    </table>,
-  );
+const renderRow = (product: ProductListItem) => customRender(<ProductTableRow product={product} />);
 
 test('상품 이름을 보여준다', async () => {
   const screen = await renderRow(PRODUCT);
