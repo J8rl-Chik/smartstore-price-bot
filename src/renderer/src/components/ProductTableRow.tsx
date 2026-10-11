@@ -56,6 +56,7 @@ const UpdatedPriceCell = styled.td`
 
 const StatusCell = styled.td`
   ${cell}
+  text-align: center;
 `;
 
 const UpdatedAtCell = styled.td`
