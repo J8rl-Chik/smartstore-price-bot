@@ -2,6 +2,8 @@ import styled from 'styled-components';
 import ProductTableRow from './ProductTableRow';
 import type { ProductListItem } from './ProductTableRow';
 
+type TextAlign = 'left' | 'center' | 'right';
+
 interface ProductTableProps {
   products: ProductListItem[];
 }
@@ -30,12 +32,12 @@ const Column = styled.col<{ $width?: string }>`
   width: ${({ $width }) => $width};
 `;
 
-const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $isRight?: boolean }>`
+const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $align?: TextAlign }>`
   padding: 16px;
   font-size: 12px;
   font-weight: 400;
   color: ${({ theme }) => theme.color.gray500};
-  text-align: ${({ $isRight }) => ($isRight ? 'right' : 'left')};
+  text-align: ${({ $align = 'right' }) => $align};
   border-bottom: 1px solid ${({ theme }) => theme.color.gray200};
 `;
 
@@ -52,12 +54,12 @@ const ProductTable = ({ products }: ProductTableProps): React.JSX.Element => (
     </colgroup>
     <thead>
       <tr>
-        <HeaderCell>제품명</HeaderCell>
-        <HeaderCell $isRight>설정가</HeaderCell>
-        <HeaderCell $isRight>현재가</HeaderCell>
-        <HeaderCell $isRight>수정가</HeaderCell>
-        <HeaderCell>상태</HeaderCell>
-        <HeaderCell $isRight>수정 시간</HeaderCell>
+        <HeaderCell $align="left">제품명</HeaderCell>
+        <HeaderCell>설정가</HeaderCell>
+        <HeaderCell>현재가</HeaderCell>
+        <HeaderCell>수정가</HeaderCell>
+        <HeaderCell $align="center">상태</HeaderCell>
+        <HeaderCell>수정 시간</HeaderCell>
       </tr>
     </thead>
     <tbody>
