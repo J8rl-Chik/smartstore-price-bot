@@ -33,6 +33,16 @@ const PRODUCTS: ProductListItem[] = [
   },
 ];
 
+// getComputedStyle은 width를 %가 아닌 px로 돌려주므로, 뷰포트 크기에 영향받지 않도록
+// 렌더링된 열 너비를 테이블 너비에 대한 비율로 구한다.
+const getColumnWidthRatio = async (testId: string): Promise<number> => {
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+  const table = screen.getByRole('table', { name: '상품 목록' }).element();
+  const column = screen.getByTestId(testId).element();
+
+  return column.getBoundingClientRect().width / table.getBoundingClientRect().width;
+};
+
 test('상품 목록 제목을 테이블의 이름으로 보여준다', async () => {
   const screen = await customRender(<ProductTable products={PRODUCTS} />);
 
@@ -71,38 +81,30 @@ test('상품이 없으면 헤더 행만 보여준다', async () => {
   await expect.element(screen.getByRole('cell')).not.toBeInTheDocument();
 });
 
-test('제품명 열의 너비는 58%이다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
-
-  await expect.element(screen.getByTestId('col-name')).toHaveStyle('width: 58%');
+/**
+ * 열 너비는 서브픽셀(소수) 단위로 계산되어 비율이 정확히 떨어지지 않을 수 있다.
+ * toBeCloseTo의 자릿수(numDigits) 기본값은 2이고, |실제 - 기대값| < 0.005이면 통과한다.
+ */
+test('제품명 열의 너비는 42%이다', async () => {
+  expect(await getColumnWidthRatio('col-name')).toBeCloseTo(0.42);
 });
 
 test('설정가 열의 너비는 12%이다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
-
-  await expect.element(screen.getByTestId('col-set-price')).toHaveStyle('width: 12%');
+  expect(await getColumnWidthRatio('col-set-price')).toBeCloseTo(0.12);
 });
 
 test('현재가 열의 너비는 12%이다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
-
-  await expect.element(screen.getByTestId('col-current-price')).toHaveStyle('width: 12%');
+  expect(await getColumnWidthRatio('col-current-price')).toBeCloseTo(0.12);
 });
 
 test('수정가 열의 너비는 12%이다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
-
-  await expect.element(screen.getByTestId('col-updated-price')).toHaveStyle('width: 12%');
+  expect(await getColumnWidthRatio('col-updated-price')).toBeCloseTo(0.12);
 });
 
 test('상태 열의 너비는 10%이다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
-
-  await expect.element(screen.getByTestId('col-status')).toHaveStyle('width: 10%');
+  expect(await getColumnWidthRatio('col-status')).toBeCloseTo(0.1);
 });
 
 test('수정 시간 열의 너비는 12%이다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
-
-  await expect.element(screen.getByTestId('col-updated-at')).toHaveStyle('width: 12%');
+  expect(await getColumnWidthRatio('col-updated-at')).toBeCloseTo(0.12);
 });

@@ -43,7 +43,7 @@ const ProductTable = ({ products }: ProductTableProps): React.JSX.Element => (
   <ProductTableContainer>
     <Title>상품 목록</Title>
     <colgroup>
-      <Column data-testid="col-name" $width="58%" />
+      <Column data-testid="col-name" $width="42%" />
       <Column data-testid="col-set-price" $width="12%" />
       <Column data-testid="col-current-price" $width="12%" />
       <Column data-testid="col-updated-price" $width="12%" />
