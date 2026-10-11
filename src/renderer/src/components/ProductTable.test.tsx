@@ -33,16 +33,6 @@ const PRODUCTS: ProductListItem[] = [
   },
 ];
 
-// getComputedStyle은 width를 %가 아닌 px로 돌려주므로, 뷰포트 크기에 영향받지 않도록
-// 렌더링된 열 너비를 테이블 너비에 대한 비율로 구한다.
-const getColumnWidthRatio = async (testId: string): Promise<number> => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
-  const table = screen.getByRole('table', { name: '상품 목록' }).element();
-  const column = screen.getByTestId(testId).element();
-
-  return column.getBoundingClientRect().width / table.getBoundingClientRect().width;
-};
-
 test('상품 목록 제목을 테이블의 이름으로 보여준다', async () => {
   const screen = await customRender(<ProductTable products={PRODUCTS} />);
 
@@ -80,6 +70,18 @@ test('상품이 없으면 헤더 행만 보여준다', async () => {
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('cell')).not.toBeInTheDocument();
 });
+
+/**
+ * getComputedStyle은 width를 %가 아닌 px로 돌려주므로, 뷰포트 크기에 영향받지 않도록
+ * 렌더링된 열 너비를 테이블 너비에 대한 비율로 구한다.
+ */
+const getColumnWidthRatio = async (testId: string): Promise<number> => {
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+  const table = screen.getByRole('table', { name: '상품 목록' }).element();
+  const column = screen.getByTestId(testId).element();
+
+  return column.getBoundingClientRect().width / table.getBoundingClientRect().width;
+};
 
 /**
  * 열 너비는 서브픽셀(소수) 단위로 계산되어 비율이 정확히 떨어지지 않을 수 있다.
