@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 export type ProductStatus = 'normal' | 'needUpdate' | 'error';
 
@@ -6,7 +6,7 @@ interface StatusBadgeProps {
   status: ProductStatus;
 }
 
-const BaseBadge = styled.span`
+const baseBadge = css`
   display: inline-block;
   padding: 4px 10px;
   font-size: 12px;
@@ -15,17 +15,20 @@ const BaseBadge = styled.span`
   border-radius: 8px;
 `;
 
-const NormalBadge = styled(BaseBadge)`
+const NormalBadge = styled.span`
+  ${baseBadge}
   color: ${({ theme }) => theme.color.blue500};
   background: ${({ theme }) => theme.color.blue50};
 `;
 
-const NeedUpdateBadge = styled(BaseBadge)`
+const NeedUpdateBadge = styled.span`
+  ${baseBadge}
   color: ${({ theme }) => theme.color.orange500};
   background: ${({ theme }) => theme.color.orange50};
 `;
 
-const ErrorBadge = styled(BaseBadge)`
+const ErrorBadge = styled.span`
+  ${baseBadge}
   color: ${({ theme }) => theme.color.red500};
   background: ${({ theme }) => theme.color.red50};
 `;
