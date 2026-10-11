@@ -20,6 +20,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
   {
     id: 1,
     name: '무선 이어폰 프로',
+    deliveryFee: 3000,
     setPrice: 42900,
     currentPrice: 42900,
     updatedPrice: 42900,
@@ -29,6 +30,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
   {
     id: 2,
     name: '블루투스 스피커 미니',
+    deliveryFee: 0,
     setPrice: 35000,
     currentPrice: 35000,
     updatedPrice: 33800,
@@ -38,6 +40,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
   {
     id: 3,
     name: '접이식 우산',
+    deliveryFee: 2500,
     setPrice: 18900,
     currentPrice: 18900,
     updatedPrice: 18900,
@@ -47,6 +50,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
   {
     id: 4,
     name: '스테인리스 텀블러',
+    deliveryFee: 3000,
     setPrice: 24500,
     currentPrice: 24500,
     updatedPrice: null,
@@ -56,6 +60,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
   {
     id: 5,
     name: 'USB-C 멀티허브',
+    deliveryFee: 0,
     setPrice: 56000,
     currentPrice: 56000,
     updatedPrice: 52300,
@@ -65,6 +70,7 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
   {
     id: 6,
     name: '캠핑 의자',
+    deliveryFee: 3500,
     setPrice: 63900,
     currentPrice: 63900,
     updatedPrice: 63900,
@@ -75,7 +81,6 @@ const DUMMY_PRODUCT_LIST_ITEMS: ProductListItem[] = [
 
 const App = (): React.JSX.Element => {
   const [targetProducts, setTargetProducts] = useState<TargetProduct[]>([]);
-
   const [isLoading, setIsLoading] = useState(false);
 
   // 가격 수정 중인 상품의 targetProducts 인덱스. 수정 중이 아니면 null.

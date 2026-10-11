@@ -7,6 +7,7 @@ const PRODUCTS: ProductListItem[] = [
   {
     id: 1,
     name: '무선 이어폰 프로',
+    deliveryFee: 3000,
     setPrice: 42900,
     currentPrice: 42900,
     updatedPrice: 42900,
@@ -16,6 +17,7 @@ const PRODUCTS: ProductListItem[] = [
   {
     id: 2,
     name: '블루투스 스피커 미니',
+    deliveryFee: 0,
     setPrice: 35000,
     currentPrice: 35000,
     updatedPrice: 33800,
@@ -25,6 +27,7 @@ const PRODUCTS: ProductListItem[] = [
   {
     id: 3,
     name: '스테인리스 텀블러',
+    deliveryFee: 3000,
     setPrice: 24500,
     currentPrice: 24500,
     updatedPrice: null,
@@ -44,6 +47,7 @@ test('테이블 컬럼 헤더를 보여준다', async () => {
   const screen = await customRender(<ProductTable products={PRODUCTS} />);
 
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
+  await expect.element(screen.getByRole('columnheader', { name: '배송비' })).toBeVisible();
   await expect.element(screen.getByRole('columnheader', { name: '설정가' })).toBeVisible();
   await expect.element(screen.getByRole('columnheader', { name: '현재가' })).toBeVisible();
   await expect.element(screen.getByRole('columnheader', { name: '수정가' })).toBeVisible();
@@ -87,8 +91,12 @@ const getColumnWidthRatio = async (testId: string): Promise<number> => {
  * 열 너비는 서브픽셀(소수) 단위로 계산되어 비율이 정확히 떨어지지 않을 수 있다.
  * toBeCloseTo의 자릿수(numDigits) 기본값은 2이고, |실제 - 기대값| < 0.005이면 통과한다.
  */
-test('제품명 열의 너비는 42%이다', async () => {
-  expect(await getColumnWidthRatio('col-name')).toBeCloseTo(0.42);
+test('제품명 열의 너비는 32%이다', async () => {
+  expect(await getColumnWidthRatio('col-name')).toBeCloseTo(0.32);
+});
+
+test('배송비 열의 너비는 10%이다', async () => {
+  expect(await getColumnWidthRatio('col-delivery-fee')).toBeCloseTo(0.1);
 });
 
 test('설정가 열의 너비는 12%이다', async () => {

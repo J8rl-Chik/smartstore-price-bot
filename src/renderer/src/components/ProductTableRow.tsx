@@ -5,6 +5,7 @@ import type { ProductStatus } from './StatusBadge';
 export interface ProductListItem {
   id: number;
   name: string;
+  deliveryFee: number;
   setPrice: number;
   currentPrice: number;
   // 수정가가 아직 없으면 null. "—"로 표시한다.
@@ -33,6 +34,12 @@ const cell = css`
 const NameCell = styled.td`
   ${cell}
   font-weight: 500;
+`;
+
+const DeliveryFeeCell = styled.td`
+  ${cell}
+  color: ${({ theme }) => theme.color.gray400};
+  text-align: right;
 `;
 
 const SetPriceCell = styled.td`
@@ -71,6 +78,7 @@ const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}
 const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element => (
   <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
+    <DeliveryFeeCell>{formatPrice(product.deliveryFee)}</DeliveryFeeCell>
     <SetPriceCell>{formatPrice(product.setPrice)}</SetPriceCell>
     <CurrentPriceCell>{formatPrice(product.currentPrice)}</CurrentPriceCell>
     <UpdatedPriceCell>
