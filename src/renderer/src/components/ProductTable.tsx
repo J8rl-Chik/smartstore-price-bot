@@ -12,6 +12,7 @@ interface ProductTableProps {
 const ProductTableContainer = styled.table`
   width: 100%;
   margin-bottom: 24px;
+  table-layout: fixed;
   border-spacing: 0;
   background: ${({ theme }) => theme.color.white};
   border-radius: 16px;
@@ -23,6 +24,10 @@ const Title = styled.caption`
   font-weight: 700;
   color: ${({ theme }) => theme.color.gray900};
   text-align: left;
+`;
+
+const Column = styled.col<{ $width?: string }>`
+  width: ${({ $width }) => $width};
 `;
 
 const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $isRight?: boolean }>`
@@ -37,6 +42,14 @@ const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $isRight?: boolean }>`
 const ProductTable = ({ products }: ProductTableProps): React.JSX.Element => (
   <ProductTableContainer>
     <Title>상품 목록</Title>
+    <colgroup>
+      <Column data-testid="col-name" $width="58%" />
+      <Column data-testid="col-set-price" $width="12%" />
+      <Column data-testid="col-current-price" $width="12%" />
+      <Column data-testid="col-updated-price" $width="12%" />
+      <Column data-testid="col-status" $width="10%" />
+      <Column data-testid="col-updated-at" $width="12%" />
+    </colgroup>
     <thead>
       <tr>
         <HeaderCell>제품명</HeaderCell>

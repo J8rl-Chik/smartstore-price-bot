@@ -70,3 +70,39 @@ test('상품이 없으면 헤더 행만 보여준다', async () => {
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('cell')).not.toBeInTheDocument();
 });
+
+test('제품명 열의 너비는 58%이다', async () => {
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+
+  await expect.element(screen.getByTestId('col-name')).toHaveStyle('width: 58%');
+});
+
+test('설정가 열의 너비는 12%이다', async () => {
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+
+  await expect.element(screen.getByTestId('col-set-price')).toHaveStyle('width: 12%');
+});
+
+test('현재가 열의 너비는 12%이다', async () => {
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+
+  await expect.element(screen.getByTestId('col-current-price')).toHaveStyle('width: 12%');
+});
+
+test('수정가 열의 너비는 12%이다', async () => {
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+
+  await expect.element(screen.getByTestId('col-updated-price')).toHaveStyle('width: 12%');
+});
+
+test('상태 열의 너비는 10%이다', async () => {
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+
+  await expect.element(screen.getByTestId('col-status')).toHaveStyle('width: 10%');
+});
+
+test('수정 시간 열의 너비는 12%이다', async () => {
+  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+
+  await expect.element(screen.getByTestId('col-updated-at')).toHaveStyle('width: 12%');
+});
