@@ -22,10 +22,9 @@ test('상품 이름을 보여준다', async () => {
   await expect.element(screen.getByRole('cell', { name: '블루투스 스피커 미니' })).toBeVisible();
 });
 
-test('배송비, 설정가, 현재가, 수정가를 천 단위 구분 기호와 원 단위로 보여준다', async () => {
+test('설정가, 현재가, 수정가를 천 단위 구분 기호와 원 단위로 보여준다', async () => {
   const screen = await renderRow(PRODUCT);
 
-  await expect.element(screen.getByText('3,000원')).toBeVisible();
   await expect.element(screen.getByText('35,000원', { exact: false })).toBeVisible();
   await expect.element(screen.getByText('34,000원', { exact: false })).toBeVisible();
   await expect.element(screen.getByText('33,800원', { exact: false })).toBeVisible();

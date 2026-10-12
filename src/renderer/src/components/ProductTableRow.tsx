@@ -37,12 +37,6 @@ const NameCell = styled.td`
   font-weight: 500;
 `;
 
-const DeliveryFeeCell = styled.td`
-  ${cell}
-  color: ${({ theme }) => theme.color.gray400};
-  text-align: right;
-`;
-
 const SetPriceCell = styled.td`
   ${cell}
   color: ${({ theme }) => theme.color.gray500};
@@ -79,7 +73,6 @@ const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}
 const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element => (
   <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
-    <DeliveryFeeCell>{formatPrice(product.deliveryFee)}</DeliveryFeeCell>
     <SetPriceCell>
       {formatPrice(product.setPrice)}
       <DeliveryFeeInfo price={product.setPrice} deliveryFee={product.deliveryFee} />

@@ -45,18 +45,16 @@ const ProductTable = ({ products }: ProductTableProps): React.JSX.Element => (
   <ProductTableContainer>
     <Title>상품 목록</Title>
     <colgroup>
-      <Column data-testid="col-name" $width="32%" />
-      <Column data-testid="col-delivery-fee" $width="10%" />
-      <Column data-testid="col-set-price" $width="12%" />
-      <Column data-testid="col-current-price" $width="12%" />
-      <Column data-testid="col-updated-price" $width="12%" />
-      <Column data-testid="col-status" $width="12%" />
-      <Column data-testid="col-updated-at" $width="10%" />
+      <Column data-testid="col-name" $width="44%" />
+      <Column data-testid="col-set-price" $width="14%" />
+      <Column data-testid="col-current-price" $width="14%" />
+      <Column data-testid="col-updated-price" $width="14%" />
+      <Column data-testid="col-status" $width="10%" />
+      <Column data-testid="col-updated-at" $width="4%" />
     </colgroup>
     <thead>
       <tr>
         <HeaderCell $align="left">제품명</HeaderCell>
-        <HeaderCell>배송비</HeaderCell>
         <HeaderCell>설정가</HeaderCell>
         <HeaderCell>현재가</HeaderCell>
         <HeaderCell>수정가</HeaderCell>
