@@ -1,4 +1,5 @@
 import styled, { css } from 'styled-components';
+import DeliveryFeeInfo from './DeliveryFeeInfo';
 import StatusBadge from './StatusBadge';
 import type { ProductStatus } from './StatusBadge';
 
@@ -79,10 +80,23 @@ const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element =
   <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
     <DeliveryFeeCell>{formatPrice(product.deliveryFee)}</DeliveryFeeCell>
-    <SetPriceCell>{formatPrice(product.setPrice)}</SetPriceCell>
-    <CurrentPriceCell>{formatPrice(product.currentPrice)}</CurrentPriceCell>
+    <SetPriceCell>
+      {formatPrice(product.setPrice)}
+      <DeliveryFeeInfo price={product.setPrice} deliveryFee={product.deliveryFee} />
+    </SetPriceCell>
+    <CurrentPriceCell>
+      {formatPrice(product.currentPrice)}
+      <DeliveryFeeInfo price={product.currentPrice} deliveryFee={product.deliveryFee} />
+    </CurrentPriceCell>
     <UpdatedPriceCell>
-      {product.updatedPrice === null ? '—' : formatPrice(product.updatedPrice)}
+      {product.updatedPrice === null ? (
+        '—'
+      ) : (
+        <>
+          {formatPrice(product.updatedPrice)}
+          <DeliveryFeeInfo price={product.updatedPrice} deliveryFee={product.deliveryFee} />
+        </>
+      )}
     </UpdatedPriceCell>
     <StatusCell>
       <StatusBadge status={product.status} />
