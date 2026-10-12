@@ -42,20 +42,18 @@ const mockTargetProducts = (targetProducts: TargetProduct[]): void => {
   });
 };
 
+window.api = {
+  createLoginPage: mockCreateLoginPage,
+  getTargetProducts: mockGetTargetProducts,
+  getSellers: mockGetSellers,
+};
+
 beforeEach(() => {
   vi.resetAllMocks();
-  // 훅이 가져온 상품 목록을 console.log로 출력하므로 테스트 출력이 지저분해지지 않게 막는다.
-  vi.spyOn(console, 'log').mockImplementation(() => {});
 
   mockDelaySeconds.mockResolvedValue(undefined);
   mockCreateLoginPage.mockResolvedValue(undefined);
   mockGetSellers.mockResolvedValue({ isSuccess: true, sellers: [] });
-
-  window.api = {
-    createLoginPage: mockCreateLoginPage,
-    getTargetProducts: mockGetTargetProducts,
-    getSellers: mockGetSellers,
-  };
 });
 
 test('처음에는 상품과 진행 상태가 비어 있다', async () => {
@@ -76,7 +74,7 @@ test('start를 호출하면 가져온 상품 목록을 targetProducts에 저장�
   expect(result.current.targetProducts).toEqual([FIRST_PRODUCT, SECOND_PRODUCT]);
 });
 
-test('act 없이 start를 호출하면 상품 목록을 가져오는 동안 isLoading이 true이고 끝나면 false이다', async () => {
+test('start를 호출하면 상품 목록을 가져오는 동안 isLoading이 true이고 끝나면 false이다', async () => {
   // 테스트에서 getTargetProducts의 대기를 직접 풀 수 있도록 풀어주는 함수를 담아 둘 변수이다.
   let resolveGetTargetProducts!: () => void;
 
@@ -92,28 +90,38 @@ test('act 없이 start를 호출하면 상품 목록을 가져오는 동안 isLo
     }),
   );
   // 훅을 렌더링한다. 이 시점의 isLoading은 초기값 false이다.
-  const { result } = await renderHook(() => useTargetProductsUpdate());
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  // act가 끝난 뒤에도 start의 Promise를 쓸 수 있도록 act 바깥에 선언해 둔다.
+  let startPromise!: Promise<void>;
 
   /**
-   * act 없이 start를 호출한다. setIsLoading(true)를 호출하고 getTargetProducts에서 대기하며 멈춘다.
-   * start는 아직 끝나지 않았으므로 Promise만 변수에 받아 두고 나중에 await한다.
+   * act 안에서 start를 호출한다. setIsLoading(true)를 호출하고 getTargetProducts에서 대기하며 멈춘다.
+   * 콜백이 start의 Promise를 반환하면 act가 그 Promise를 기다리며 멈추므로, 블록 본문으로 쓰고 Promise는 변수에 받아 둔다.
    */
-  const startPromise = result.current.start();
+  await act(() => {
+    startPromise = result.current.start();
+  });
 
-  // setIsLoading(true)의 렌더링은 act 없이는 시점을 알 수 없어서, isLoading이 true로 보일 때까지 반복 확인한다.
-  await vi.waitFor(() => expect(result.current.isLoading).toBe(true));
+  // act가 끝나면 쌓여 있던 상태 변경이 렌더링되므로, 바로 isLoading이 true로 읽힌다.
+  expect(result.current.isLoading).toBe(true);
 
-  // 대기 중이던 Promise를 끝낸다. start가 이어서 실행되어 setIsLoading(false)를 호출하고 상품이 없어 return한다.
-  resolveGetTargetProducts();
-  // start 함수가 끝날 때까지 기다린다. 보장되는 건 함수의 종료뿐이고 React의 렌더링 완료는 아니다.
-  await startPromise;
+  /**
+   * 대기 중이던 Promise를 끝낸다. start가 이어서 실행되어 setIsLoading(false)를 호출하고 상품이 없어 return한다.
+   * act는 start가 끝나기를 기다린 뒤 상태 변경을 렌더링하고 반환한다.
+   */
+  await act(async () => {
+    resolveGetTargetProducts();
+    await startPromise;
+  });
 
-  // 렌더링이 아직이면 이전 값 true로 읽히므로, isLoading이 false로 렌더링될 때까지 반복 확인한다.
-  await vi.waitFor(() => expect(result.current.isLoading).toBe(false));
+  // act가 렌더링까지 끝내고 반환했으므로, 바로 isLoading이 false로 읽힌다.
+  expect(result.current.isLoading).toBe(false);
 });
 
 test('act로 감싼 start가 끝나면 isLoading이 false이다', async () => {
   mockTargetProducts([]);
+
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
   await act(() => result.current.start());
@@ -121,67 +129,86 @@ test('act로 감싼 start가 끝나면 isLoading이 false이다', async () => {
   expect(result.current.isLoading).toBe(false);
 });
 
-// test('상품이 없으면 로그인 페이지를 만들지 않는다', async () => {
-//   mockTargetProducts([]);
-//   const { result, act } = await renderHook(() => useTargetProductsUpdate());
+test('상품이 없으면 로그인 페이지를 만들지 않는다', async () => {
+  mockTargetProducts([]);
 
-//   await act(() => result.current.start());
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-//   expect(mockCreateLoginPage).not.toHaveBeenCalled();
-//   expect(mockGetSellers).not.toHaveBeenCalled();
-// });
+  await act(() => result.current.start());
 
-// test('상품이 있으면 로그인 페이지를 만들고 상품마다 판매처를 가져온다', async () => {
-//   mockTargetProducts([FIRST_PRODUCT, SECOND_PRODUCT]);
-//   const { result, act } = await renderHook(() => useTargetProductsUpdate());
+  expect(mockCreateLoginPage).not.toHaveBeenCalled();
+  expect(mockGetSellers).not.toHaveBeenCalled();
+});
 
-//   await act(() => result.current.start());
+test('상품이 있으면 로그인 페이지를 만들고 상품마다 판매처를 가져온다', async () => {
+  mockTargetProducts([FIRST_PRODUCT, SECOND_PRODUCT]);
 
-//   expect(mockCreateLoginPage).toHaveBeenCalledOnce();
-//   expect(mockGetSellers).toHaveBeenCalledTimes(2);
-//   expect(mockGetSellers).toHaveBeenNthCalledWith(1, FIRST_PRODUCT.catalogURL, FIRST_PRODUCT.name);
-//   expect(mockGetSellers).toHaveBeenNthCalledWith(2, SECOND_PRODUCT.catalogURL, SECOND_PRODUCT.name);
-// });
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-// test('판매처를 가져오는 데 실패하면 나머지 상품을 순회하지 않는다', async () => {
-//   mockTargetProducts([FIRST_PRODUCT, SECOND_PRODUCT]);
-//   mockGetSellers.mockResolvedValueOnce({ isSuccess: false, error: '실패' });
-//   const { result, act } = await renderHook(() => useTargetProductsUpdate());
+  await act(() => result.current.start());
 
-//   await act(() => result.current.start());
+  expect(mockCreateLoginPage).toHaveBeenCalledOnce();
+  expect(mockGetSellers).toHaveBeenCalledTimes(2);
+  expect(mockGetSellers).toHaveBeenNthCalledWith(1, FIRST_PRODUCT.catalogURL, FIRST_PRODUCT.name);
+  expect(mockGetSellers).toHaveBeenNthCalledWith(2, SECOND_PRODUCT.catalogURL, SECOND_PRODUCT.name);
+});
 
-//   expect(mockGetSellers).toHaveBeenCalledOnce();
-// });
+test('판매처를 가져오는 데 실패하면 나머지 상품을 순회하지 않는다', async () => {
+  mockTargetProducts([FIRST_PRODUCT, SECOND_PRODUCT]);
+  mockGetSellers.mockResolvedValueOnce({ isSuccess: false, error: '실패' });
 
-// test('순회 중에는 현재 상품과 순서를 알려주고, 끝나면 초기화한다', async () => {
-//   mockTargetProducts([FIRST_PRODUCT]);
-//   let finishDelay!: () => void;
-//   mockDelaySeconds.mockReturnValue(
-//     new Promise<void>((resolve) => {
-//       finishDelay = resolve;
-//     }),
-//   );
-//   const { result, act } = await renderHook(() => useTargetProductsUpdate());
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-//   const startPromise = act(() => result.current.start());
+  await act(() => result.current.start());
 
-//   await vi.waitFor(() => expect(result.current.currentOrder).toBe(1));
-//   expect(result.current.currentProduct).toEqual(FIRST_PRODUCT);
+  expect(mockGetSellers).toHaveBeenCalledOnce();
+  expect(mockDelaySeconds).not.toHaveBeenCalledOnce();
+});
 
-//   finishDelay();
-//   await startPromise;
+test('순회 중에는 현재 상품과 순서를 알려주고, 끝나면 초기화한다', async () => {
+  let finishDelay!: () => void;
 
-//   expect(result.current.currentOrder).toBe(0);
-//   expect(result.current.currentProduct).toBeUndefined();
-// });
+  mockTargetProducts([FIRST_PRODUCT]);
+  mockDelaySeconds.mockReturnValue(
+    new Promise<void>((resolve) => {
+      finishDelay = resolve;
+    }),
+  );
 
-// test('순회 중 에러가 나도 진행 상태를 초기화한다', async () => {
-//   mockTargetProducts([FIRST_PRODUCT]);
-//   mockGetSellers.mockRejectedValue(new Error('브라우저 종료'));
-//   const { result, act } = await renderHook(() => useTargetProductsUpdate());
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-//   await expect(act(() => result.current.start())).rejects.toThrow('브라우저 종료');
+  // act가 끝난 뒤에도 start의 Promise를 쓸 수 있도록 act 바깥에 선언해 둔다.
+  let startPromise!: Promise<void>;
 
-//   expect(result.current.currentOrder).toBe(0);
-//   expect(result.current.currentProduct).toBeUndefined();
-// });
+  /**
+   * start를 시작만 시키고 act를 끝낸다. 목 함수들은 바로 끝나므로 start는 delaySeconds의 대기 지점까지 진행하고, act가 그 순회 중 상태를 렌더링한다.
+   * 콜백이 start의 Promise를 반환하면 act가 delaySeconds의 대기가 끝나기를 기다리며 멈추므로, 블록 본문으로 쓴다.
+   */
+  await act(() => {
+    startPromise = result.current.start();
+  });
+
+  expect(result.current.currentOrder).toBe(1);
+  expect(result.current.currentProduct).toEqual(FIRST_PRODUCT);
+
+  await act(async () => {
+    finishDelay();
+
+    await startPromise;
+  });
+
+  expect(result.current.currentOrder).toBe(0);
+  expect(result.current.currentProduct).toBeUndefined();
+});
+
+test('순회 중 에러가 나도 진행 상태를 초기화한다', async () => {
+  mockTargetProducts([FIRST_PRODUCT]);
+  mockGetSellers.mockRejectedValue(new Error('브라우저 종료'));
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await expect(act(() => result.current.start())).rejects.toThrow('브라우저 종료');
+
+  expect(result.current.currentOrder).toBe(0);
+  expect(result.current.currentProduct).toBeUndefined();
+});
