@@ -90,8 +90,8 @@ const getColumnWidthRatio = async (testId: string): Promise<number> => {
  * 열 너비는 서브픽셀(소수) 단위로 계산되어 비율이 정확히 떨어지지 않을 수 있다.
  * toBeCloseTo의 자릿수(numDigits) 기본값은 2이고, |실제 - 기대값| < 0.005이면 통과한다.
  */
-test('제품명 열의 너비는 44%이다', async () => {
-  expect(await getColumnWidthRatio('col-name')).toBeCloseTo(0.44);
+test('제품명 열의 너비는 38%이다', async () => {
+  expect(await getColumnWidthRatio('col-name')).toBeCloseTo(0.38);
 });
 
 test('설정가 열의 너비는 14%이다', async () => {
@@ -110,6 +110,6 @@ test('상태 열의 너비는 10%이다', async () => {
   expect(await getColumnWidthRatio('col-status')).toBeCloseTo(0.1);
 });
 
-test('수정 시간 열의 너비는 4%이다', async () => {
-  expect(await getColumnWidthRatio('col-updated-at')).toBeCloseTo(0.04);
+test('수정 시간 열의 너비는 10%이다', async () => {
+  expect(await getColumnWidthRatio('col-updated-at')).toBeCloseTo(0.1);
 });
