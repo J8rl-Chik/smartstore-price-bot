@@ -45,7 +45,7 @@ const DeliveryFeeCell = styled.td`
 
 const SetPriceCell = styled.td`
   ${cell}
-  color: ${({ theme }) => theme.color.gray400};
+  color: ${({ theme }) => theme.color.gray500};
   text-align: right;
 `;
 
