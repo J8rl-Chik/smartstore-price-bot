@@ -11,6 +11,7 @@ import { initRawProductRows } from '../domain/product/initRawProductRows';
 import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
 import { filterExcludedSellers } from '../domain/seller/filterExcludedSellers';
+import { calculateTargetPrice } from '../domain/price/price';
 import shuffleArray from '../utils/shuffleArray';
 import validateEnv from '../utils/validateEnv';
 
@@ -99,6 +100,21 @@ export const registerIpcHandlers = (): void => {
       return {
         isSuccess: false,
         error: error instanceof Error ? error.message : String(`filterSellers 에러: ${error}`),
+      } as const;
+    }
+  });
+
+  handleIpc('getTargetPrice', async (prices, freeDeliveryPrice) => {
+    try {
+      const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
+
+      return { isSuccess: true, targetPrice } as const;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        isSuccess: false,
+        error: error instanceof Error ? error.message : String(`getTargetPrice 에러: ${error}`),
       } as const;
     }
   });

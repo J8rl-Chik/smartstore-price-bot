@@ -14,6 +14,7 @@ const mockCreateTargetProducts = vi.fn();
 const mockShuffleArray = vi.fn();
 const mockFilterExcludedSellers = vi.fn();
 const mockValidateEnv = vi.fn();
+const mockCalculateTargetPrice = vi.fn();
 
 vi.mock('electron', () => ({
   ipcMain: { handle: (...args: unknown[]) => mockHandle(...args) },
@@ -58,6 +59,10 @@ vi.mock(import('../domain/product/createTargetProducts'), () => ({
 
 vi.mock(import('../domain/seller/filterExcludedSellers'), () => ({
   filterExcludedSellers: (...args: unknown[]) => mockFilterExcludedSellers(...args),
+}));
+
+vi.mock(import('../domain/price/price'), () => ({
+  calculateTargetPrice: (...args: unknown[]) => mockCalculateTargetPrice(...args),
 }));
 
 vi.mock(import('../utils/shuffleArray'), () => ({
@@ -111,6 +116,7 @@ describe('registerIpcHandlers', () => {
     mockShuffleArray.mockReset();
     mockFilterExcludedSellers.mockReset();
     mockValidateEnv.mockReset();
+    mockCalculateTargetPrice.mockReset();
   });
 
   it('createLoginPage 채널을 호출하면 페이지를 생성하고 네이버에 로그인한다', async () => {
@@ -323,6 +329,54 @@ describe('registerIpcHandlers', () => {
     const result = await invokeHandler('filterSellers', [], []);
 
     expect(result).toEqual({ isSuccess: false, error: 'filterSellers 에러: 알 수 없는 문제' });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('getTargetPrice는 가격 목록과 무료배송 기준가로 계산한 목표 가격을 isSuccess: true로 반환한다', async () => {
+    mockCalculateTargetPrice.mockReturnValue(42990);
+
+    const result = await invokeHandler('getTargetPrice', [43000, 45000], 30000);
+
+    expect(mockCalculateTargetPrice).toHaveBeenCalledWith([43000, 45000], 30000);
+    expect(result).toEqual({ isSuccess: true, targetPrice: 42990 });
+  });
+
+  it('getTargetPrice는 가격 목록이 비어 있어도 계산 결과를 isSuccess: true로 반환한다', async () => {
+    mockCalculateTargetPrice.mockReturnValue(30000);
+
+    const result = await invokeHandler('getTargetPrice', [], 30000);
+
+    expect(mockCalculateTargetPrice).toHaveBeenCalledWith([], 30000);
+    expect(result).toEqual({ isSuccess: true, targetPrice: 30000 });
+  });
+
+  it('getTargetPrice에서 계산 중 예외가 발생하면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
+    const error = new Error('계산 실패');
+    mockCalculateTargetPrice.mockImplementation(() => {
+      throw error;
+    });
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('getTargetPrice', [43000], 30000);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(result).toEqual({ isSuccess: false, error: error.message });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('getTargetPrice에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
+    mockCalculateTargetPrice.mockImplementation(() => {
+      throw '알 수 없는 문제';
+    });
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('getTargetPrice', [43000], 30000);
+
+    expect(result).toEqual({ isSuccess: false, error: 'getTargetPrice 에러: 알 수 없는 문제' });
 
     consoleErrorSpy.mockRestore();
   });
