@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { addVirtualPrice } from '../../../domain/price/addVirtualPrice';
 import type { TargetProduct } from '../../../domain/product/_type';
 import delaySeconds from '../../../utils/delaySeconds';
 
@@ -56,6 +57,9 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
         if (!filteredSellersResponse.isSuccess) {
           break;
         }
+
+        const sellerPrices = filteredSellersResponse.sellers.map(({ price }) => price);
+        const prices = addVirtualPrice(sellerPrices, targetProduct.virtualPrice);
 
         setTargetProducts((prev) =>
           prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
