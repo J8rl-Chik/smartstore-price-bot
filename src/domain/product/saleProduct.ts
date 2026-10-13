@@ -17,6 +17,15 @@ export const getProductName = (saleProduct: SaleProduct): string =>
 export const getOriginProductNo = (saleProduct: SaleProduct): number =>
   getFirstChannelProduct(saleProduct).originProductNo;
 
+export const getSalePrice = (saleProduct: SaleProduct): number =>
+  getFirstChannelProduct(saleProduct).salePrice;
+
+export const getStockQuantity = (saleProduct: SaleProduct): number =>
+  getFirstChannelProduct(saleProduct).stockQuantity;
+
+export const getDeliveryFee = (saleProduct: SaleProduct): number =>
+  getFirstChannelProduct(saleProduct).deliveryFee;
+
 export const isNewlyRegisteredProduct = (saleProduct: SaleProduct): boolean => {
   return Boolean(getFirstChannelProduct(saleProduct).sellerManagementCode?.includes('신규'));
 };

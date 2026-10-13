@@ -3,6 +3,9 @@ import type { DeliveryFeeType } from '../delivery/_type.js';
 export interface ProductChannel {
   name: string;
   originProductNo: number;
+  salePrice: number;
+  stockQuantity: number;
+  deliveryFee: number;
   sellerManagementCode?: string;
 }
 

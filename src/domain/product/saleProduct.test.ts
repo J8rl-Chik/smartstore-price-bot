@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   excludeNewlyRegisteredProducts,
+  getDeliveryFee,
   getOriginProductNo,
   getProductName,
+  getSalePrice,
+  getStockQuantity,
   isNewlyRegisteredProduct,
 } from './saleProduct.js';
 import type { ProductChannel, SaleProduct } from './_type.js';
@@ -12,6 +15,9 @@ const createSaleProduct = (productChannel: Partial<ProductChannel>): SaleProduct
     {
       name: '테스트 상품',
       originProductNo: 12345,
+      salePrice: 10000,
+      stockQuantity: 10,
+      deliveryFee: 3000,
       ...productChannel,
     },
   ],
@@ -32,6 +38,45 @@ describe('getOriginProductNo', () => {
     const saleProduct = createSaleProduct({ originProductNo });
 
     expect(getOriginProductNo(saleProduct)).toBe(originProductNo);
+  });
+});
+
+describe('getSalePrice', () => {
+  it('channelProducts[0]의 salePrice를 반환한다', () => {
+    const salePrice = 42900;
+    const saleProduct = createSaleProduct({ salePrice });
+
+    expect(getSalePrice(saleProduct)).toBe(salePrice);
+  });
+});
+
+describe('getStockQuantity', () => {
+  it('channelProducts[0]의 stockQuantity를 반환한다', () => {
+    const stockQuantity = 25;
+    const saleProduct = createSaleProduct({ stockQuantity });
+
+    expect(getStockQuantity(saleProduct)).toBe(stockQuantity);
+  });
+
+  it('재고가 0이면 0을 반환한다', () => {
+    const saleProduct = createSaleProduct({ stockQuantity: 0 });
+
+    expect(getStockQuantity(saleProduct)).toBe(0);
+  });
+});
+
+describe('getDeliveryFee', () => {
+  it('channelProducts[0]의 deliveryFee를 반환한다', () => {
+    const deliveryFee = 2500;
+    const saleProduct = createSaleProduct({ deliveryFee });
+
+    expect(getDeliveryFee(saleProduct)).toBe(deliveryFee);
+  });
+
+  it('무료배송이면 0을 반환한다', () => {
+    const saleProduct = createSaleProduct({ deliveryFee: 0 });
+
+    expect(getDeliveryFee(saleProduct)).toBe(0);
   });
 });
 
@@ -76,6 +121,18 @@ describe('에러: channelProducts가 비어 있는 경우', () => {
 
   it('getOriginProductNo 호출 시 에러를 던진다', () => {
     expect(() => getOriginProductNo(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+  });
+
+  it('getSalePrice 호출 시 에러를 던진다', () => {
+    expect(() => getSalePrice(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+  });
+
+  it('getStockQuantity 호출 시 에러를 던진다', () => {
+    expect(() => getStockQuantity(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+  });
+
+  it('getDeliveryFee 호출 시 에러를 던진다', () => {
+    expect(() => getDeliveryFee(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
   });
 
   it('isNewlyRegisteredProduct 호출 시 에러를 던진다', () => {
