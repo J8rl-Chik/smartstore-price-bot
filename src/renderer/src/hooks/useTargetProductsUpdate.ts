@@ -48,6 +48,15 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
           break;
         }
 
+        const filteredSellersResponse = await window.api.filterSellers(
+          sellersResponse.sellers,
+          targetProduct.excludedSellerNames,
+        );
+
+        if (!filteredSellersResponse.isSuccess) {
+          break;
+        }
+
         setTargetProducts((prev) =>
           prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
         );

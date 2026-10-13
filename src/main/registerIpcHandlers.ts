@@ -10,7 +10,9 @@ import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
 import { initRawProductRows } from '../domain/product/initRawProductRows';
 import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
+import { filterExcludedSellers } from '../domain/seller/filterExcludedSellers';
 import shuffleArray from '../utils/shuffleArray';
+import validateEnv from '../utils/validateEnv';
 
 // 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼
 const handleIpc = <E extends keyof IpcEvent>(
@@ -74,6 +76,25 @@ export const registerIpcHandlers = (): void => {
       return {
         isSuccess: false,
         error: error instanceof Error ? error.message : String(`getSellers 에러: ${error}`),
+      } as const;
+    }
+  });
+
+  // 내 스토어 이름은 환경 변수라 main에서만 읽을 수 있어, 필터링을 main에서 처리한다.
+  handleIpc('filterSellers', async (sellers, excludedSellerNames) => {
+    try {
+      const myStoreName = validateEnv('SMART_STORE_NAME');
+
+      return {
+        isSuccess: true,
+        sellers: filterExcludedSellers(sellers, [...excludedSellerNames, myStoreName]),
+      } as const;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        isSuccess: false,
+        error: error instanceof Error ? error.message : String(`filterSellers 에러: ${error}`),
       } as const;
     }
   });

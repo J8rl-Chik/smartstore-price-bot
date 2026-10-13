@@ -12,6 +12,8 @@ const mockInitRawProductRows = vi.fn();
 const mockFindDuplicateProductNames = vi.fn();
 const mockCreateTargetProducts = vi.fn();
 const mockShuffleArray = vi.fn();
+const mockFilterExcludedSellers = vi.fn();
+const mockValidateEnv = vi.fn();
 
 vi.mock('electron', () => ({
   ipcMain: { handle: (...args: unknown[]) => mockHandle(...args) },
@@ -54,8 +56,16 @@ vi.mock(import('../domain/product/createTargetProducts'), () => ({
   createTargetProducts: (...args: unknown[]) => mockCreateTargetProducts(...args),
 }));
 
+vi.mock(import('../domain/seller/filterExcludedSellers'), () => ({
+  filterExcludedSellers: (...args: unknown[]) => mockFilterExcludedSellers(...args),
+}));
+
 vi.mock(import('../utils/shuffleArray'), () => ({
   default: (...args: unknown[]) => mockShuffleArray(...args),
+}));
+
+vi.mock(import('../utils/validateEnv'), () => ({
+  default: (...args: unknown[]) => mockValidateEnv(...args),
 }));
 
 /**
@@ -99,6 +109,8 @@ describe('registerIpcHandlers', () => {
     mockFindDuplicateProductNames.mockReset();
     mockCreateTargetProducts.mockReset();
     mockShuffleArray.mockReset();
+    mockFilterExcludedSellers.mockReset();
+    mockValidateEnv.mockReset();
   });
 
   it('createLoginPage 채널을 호출하면 페이지를 생성하고 네이버에 로그인한다', async () => {
@@ -252,6 +264,54 @@ describe('registerIpcHandlers', () => {
     const result = await invoke('getSellers', 'https://catalog.url', '상품A');
 
     expect(result).toEqual({ isSuccess: false, error: 'getSellers 에러: 알 수 없는 문제' });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('filterSellers는 제외 판매처와 SMART_STORE_NAME 환경 변수의 내 스토어를 뺀 판매처를 isSuccess: true로 반환한다', async () => {
+    const sellers = [
+      { name: '판매처A', price: 1000 },
+      { name: '제외 판매처', price: 900 },
+      { name: '내 스토어', price: 800 },
+    ];
+    const filteredSellers = [{ name: '판매처A', price: 1000 }];
+    mockValidateEnv.mockReturnValue('내 스토어');
+    mockFilterExcludedSellers.mockReturnValue(filteredSellers);
+
+    const result = await invokeHandler('filterSellers', sellers, ['제외 판매처']);
+
+    expect(mockValidateEnv).toHaveBeenCalledWith('SMART_STORE_NAME');
+    expect(mockFilterExcludedSellers).toHaveBeenCalledWith(sellers, ['제외 판매처', '내 스토어']);
+    expect(result).toEqual({ isSuccess: true, sellers: filteredSellers });
+  });
+
+  it('filterSellers에서 SMART_STORE_NAME 환경 변수가 없으면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
+    const error = new Error('환경 변수 SMART_STORE_NAME가 설정되지 않았습니다.');
+    mockValidateEnv.mockImplementation(() => {
+      throw error;
+    });
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('filterSellers', [], []);
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(mockFilterExcludedSellers).not.toHaveBeenCalled();
+    expect(result).toEqual({ isSuccess: false, error: error.message });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('filterSellers에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
+    mockValidateEnv.mockImplementation(() => {
+      throw '알 수 없는 문제';
+    });
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('filterSellers', [], []);
+
+    expect(result).toEqual({ isSuccess: false, error: 'filterSellers 에러: 알 수 없는 문제' });
 
     consoleErrorSpy.mockRestore();
   });

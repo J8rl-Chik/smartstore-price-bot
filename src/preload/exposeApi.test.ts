@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { exposeApi } from './exposeApi';
+import type { Seller } from '../domain/seller/filterExcludedSellers';
 import type { IpcEvent } from './_type';
 
 // preload가 renderer에 노출하는 api의 형태. IpcEvent와 같은 모양이다.
@@ -89,6 +90,20 @@ describe('exposeApi', () => {
 
     expect(mockInvoke).toHaveBeenCalledWith('getSellers', 'https://catalog.url', '상품A');
     expect(result).toBe('getSellers 결과');
+  });
+
+  it('filterSellers를 호출하면 filterSellers 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
+    setContextIsolated(true);
+    mockInvoke.mockResolvedValue('filterSellers 결과');
+
+    const sellers: Seller[] = [
+      { name: '판매처A', price: 1000, deliveryFee: 0, deliveryFeeType: '무료' },
+    ];
+    const api = getExposedApi();
+    const result = await api.filterSellers(sellers, ['제외 판매처']);
+
+    expect(mockInvoke).toHaveBeenCalledWith('filterSellers', sellers, ['제외 판매처']);
+    expect(result).toBe('filterSellers 결과');
   });
 
   it('contextBridge 노출 중 예외가 발생하면 콘솔에 로깅한다', () => {

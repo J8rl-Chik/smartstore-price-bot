@@ -13,6 +13,7 @@ export interface IpcEvent {
   createLoginPage: () => Promise<void>;
   getTargetProducts: () => Promise<TargetProductsResponse>;
   getSellers: (catalogURL: string, productName: string) => Promise<SellersResponse>;
+  filterSellers: (sellers: Seller[], excludedSellerNames: string[]) => Promise<SellersResponse>;
 }
 
 // 선언 병합으로 전역 Window 인터페이스에 electron, api 프로퍼티를 추가한다.

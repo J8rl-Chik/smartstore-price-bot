@@ -2,6 +2,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 // electron-toolkit이 제공하는 공통 헬퍼(ipcRenderer 래퍼 등)
 import { electronAPI } from '@electron-toolkit/preload';
+import type { Seller } from '../domain/seller/filterExcludedSellers';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
 const api = {
@@ -12,6 +13,9 @@ const api = {
   // renderer -> main으로 'getSellers' 요청을 보내 상품의 카탈로그 페이지에서 네이버 판매처 목록을 가져온다.
   getSellers: (catalogURL: string, productName: string) =>
     ipcRenderer.invoke('getSellers', catalogURL, productName),
+  // renderer -> main으로 'filterSellers' 요청을 보내 판매처 목록에서 내 스토어와 제외 판매처를 뺀 최종 비교 대상 판매처 목록을 가져온다.
+  filterSellers: (sellers: Seller[], excludedSellerNames: string[]) =>
+    ipcRenderer.invoke('filterSellers', sellers, excludedSellerNames),
 };
 
 /**
