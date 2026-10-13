@@ -226,6 +226,17 @@ describe('registerIpcHandlers', () => {
     expect(result).toEqual({ isSuccess: true, sellers });
   });
 
+  it('getSellers는 조회한 판매처가 없으면 상품 이름이 담긴 메시지와 함께 isSuccess: false를 반환한다', async () => {
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+    mockGetSellersInPuppeteer.mockResolvedValue([]);
+
+    const invoke = createInvoker();
+    await invoke('createLoginPage');
+    const result = await invoke('getSellers', 'https://catalog.url', '상품A');
+
+    expect(result).toEqual({ isSuccess: false, error: '상품A: 가격 목록이 없습니다.' });
+  });
+
   it('getSellers는 로그인 페이지가 없으면 조회하지 않고 isSuccess: false를 반환한다', async () => {
     const result = await invokeHandler('getSellers', 'https://catalog.url', '상품A');
 

@@ -69,6 +69,10 @@ export const registerIpcHandlers = (): void => {
     try {
       const sellers = await getSellersInPuppeteer(page, catalogURL, productName);
 
+      if (sellers.length === 0) {
+        return { isSuccess: false, error: `${productName}: 가격 목록이 없습니다.` } as const;
+      }
+
       return { isSuccess: true, sellers } as const;
     } catch (error) {
       console.error(error);
