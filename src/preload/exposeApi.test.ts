@@ -106,6 +106,17 @@ describe('exposeApi', () => {
     expect(result).toBe('filterSellers 결과');
   });
 
+  it('getTargetPrice를 호출하면 getTargetPrice 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
+    setContextIsolated(true);
+    mockInvoke.mockResolvedValue('getTargetPrice 결과');
+
+    const api = getExposedApi();
+    const result = await api.getTargetPrice([42000, 43000], 30000);
+
+    expect(mockInvoke).toHaveBeenCalledWith('getTargetPrice', [42000, 43000], 30000);
+    expect(result).toBe('getTargetPrice 결과');
+  });
+
   it('contextBridge 노출 중 예외가 발생하면 콘솔에 로깅한다', () => {
     setContextIsolated(true);
 

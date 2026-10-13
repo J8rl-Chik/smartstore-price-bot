@@ -16,6 +16,9 @@ const api = {
   // renderer -> main으로 'filterSellers' 요청을 보내 판매처 목록에서 내 스토어와 제외 판매처를 뺀 최종 비교 대상 판매처 목록을 가져온다.
   filterSellers: (sellers: Seller[], excludedSellerNames: string[]) =>
     ipcRenderer.invoke('filterSellers', sellers, excludedSellerNames),
+  // renderer -> main으로 'getTargetPrice' 요청을 보내 비교 대상 가격 목록과 무료배송 기준가로 계산한 목표 가격을 가져온다.
+  getTargetPrice: (prices: number[], freeDeliveryPrice: number) =>
+    ipcRenderer.invoke('getTargetPrice', prices, freeDeliveryPrice),
 };
 
 /**

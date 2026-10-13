@@ -5,6 +5,9 @@ import type { Seller } from '../domain/seller/filterExcludedSellers';
 export type SellersResponse =
   { isSuccess: true; sellers: Seller[] } | { isSuccess: false; error: string };
 
+export type TargetPriceResponse =
+  { isSuccess: true; targetPrice: number } | { isSuccess: false; error: string };
+
 // main <-> renderer가 양방향(invoke/handle)으로 주고받는 IPC 채널을 함수 형태로 정의한다.
 // 매개변수는 요청 인자, 반환값(Promise)은 응답 타입이다.
 // 매개변수는 렌더러가 실제로 보내는 값만 담는다. IpcMainInvokeEvent는
@@ -14,6 +17,7 @@ export interface IpcEvent {
   getTargetProducts: () => Promise<TargetProductsResponse>;
   getSellers: (catalogURL: string, productName: string) => Promise<SellersResponse>;
   filterSellers: (sellers: Seller[], excludedSellerNames: string[]) => Promise<SellersResponse>;
+  getTargetPrice: (prices: number[], freeDeliveryPrice: number) => Promise<TargetPriceResponse>;
 }
 
 // 선언 병합으로 전역 Window 인터페이스에 electron, api 프로퍼티를 추가한다.

@@ -60,6 +60,14 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
 
         const sellerPrices = filteredSellersResponse.sellers.map(({ price }) => price);
         const prices = addVirtualPrice(sellerPrices, targetProduct.virtualPrice);
+        const targetPriceResponse = await window.api.getTargetPrice(
+          prices,
+          targetProduct.freeDeliveryPrice,
+        );
+
+        if (!targetPriceResponse.isSuccess) {
+          break;
+        }
 
         setTargetProducts((prev) =>
           prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
