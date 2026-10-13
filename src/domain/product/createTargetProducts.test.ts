@@ -4,7 +4,16 @@ import { DELIVERY_FEE_TYPE } from '../delivery/delivery.js';
 import type { ProductRow, SaleProduct } from './_type.js';
 
 const createSaleProduct = (name: string, originProductNo = 12345): SaleProduct => ({
-  channelProducts: [{ name, originProductNo, sellerManagementCode: '관리코드' }],
+  channelProducts: [
+    {
+      name,
+      originProductNo,
+      salePrice: 10000,
+      stockQuantity: 10,
+      deliveryFee: 3000,
+      sellerManagementCode: '관리코드',
+    },
+  ],
 });
 
 const createProductRow = (name: string, productPrice = 0): ProductRow => ({
@@ -28,6 +37,9 @@ describe('createTargetProducts', () => {
       {
         name: '무선 이어폰',
         originProductNo: 111,
+        salePrice: 10000,
+        stockQuantity: 10,
+        deliveryFee: 3000,
         catalogURL: 'https://example.com',
         feeType: DELIVERY_FEE_TYPE.FREE,
         freeDeliveryPrice: 30000,

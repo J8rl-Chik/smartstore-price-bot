@@ -1,4 +1,10 @@
-import { getOriginProductNo, getProductName } from './saleProduct.js';
+import {
+  getDeliveryFee,
+  getOriginProductNo,
+  getProductName,
+  getSalePrice,
+  getStockQuantity,
+} from './saleProduct.js';
 import type { ProductRow, SaleProduct, TargetProduct } from './_type.js';
 
 /**
@@ -22,6 +28,9 @@ export const createTargetProducts = (
     targetProducts.push({
       name,
       originProductNo: getOriginProductNo(saleProduct),
+      salePrice: getSalePrice(saleProduct),
+      stockQuantity: getStockQuantity(saleProduct),
+      deliveryFee: getDeliveryFee(saleProduct),
       catalogURL: productRow.catalogURL,
       feeType: productRow.feeType,
       freeDeliveryPrice: productRow.freeDeliveryPrice,
