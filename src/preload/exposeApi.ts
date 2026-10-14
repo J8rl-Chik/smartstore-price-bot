@@ -19,6 +19,9 @@ const api: IpcEvent = {
   // renderer -> main으로 'getTargetPrice' 요청을 보내 비교 대상 가격 목록과 무료배송 기준가로 계산한 목표 가격을 가져온다.
   getTargetPrice: (prices, freeDeliveryPrice) =>
     ipcRenderer.invoke('getTargetPrice', prices, freeDeliveryPrice),
+  // renderer -> main으로 'updatePrice' 요청을 보내 상품의 판매가와 배송비를 목표 가격과 배송비 설정에 맞춰 수정한다.
+  updatePrice: (originProductNo, targetPrice, delivery) =>
+    ipcRenderer.invoke('updatePrice', originProductNo, targetPrice, delivery),
 };
 
 /**

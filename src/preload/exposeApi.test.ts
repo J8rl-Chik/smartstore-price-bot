@@ -117,6 +117,20 @@ describe('exposeApi', () => {
     expect(result).toBe('getTargetPrice 결과');
   });
 
+  it('updatePrice를 호출하면 updatePrice 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
+    setContextIsolated(true);
+    mockInvoke.mockResolvedValue('updatePrice 결과');
+
+    const api = getExposedApi();
+    const result = await api.updatePrice(12345, 42900, { feeType: '유료', baseFee: 3000 });
+
+    expect(mockInvoke).toHaveBeenCalledWith('updatePrice', 12345, 42900, {
+      feeType: '유료',
+      baseFee: 3000,
+    });
+    expect(result).toBe('updatePrice 결과');
+  });
+
   it('contextBridge 노출 중 예외가 발생하면 콘솔에 로깅한다', () => {
     setContextIsolated(true);
 

@@ -36,7 +36,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
       for (const [index, targetProduct] of targetProductsResult.entries()) {
         setCurrentIndex(index);
 
-        // TODO: updatePrice는 main 프로세스 전용 함수라 여기서 직접 호출 불가. IPC로 노출한 뒤 교체 필요.
+        // TODO: 가격 수정 결과를 반영한 TargetProduct로 교체 필요.
         const updatedTargetProduct = targetProduct;
 
         const sellersResponse = await window.api.getSellers(
@@ -66,6 +66,16 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
         );
 
         if (!targetPriceResponse.isSuccess) {
+          break;
+        }
+
+        const updatePriceResponse = await window.api.updatePrice(
+          targetProduct.originProductNo,
+          targetPriceResponse.targetPrice,
+          targetProduct.delivery,
+        );
+
+        if (!updatePriceResponse.isSuccess) {
           break;
         }
 

@@ -16,6 +16,7 @@ const mockGetTargetProducts = vi.fn<IpcEvent['getTargetProducts']>();
 const mockGetSellers = vi.fn<IpcEvent['getSellers']>();
 const mockFilterSellers = vi.fn<IpcEvent['filterSellers']>();
 const mockGetTargetPrice = vi.fn<IpcEvent['getTargetPrice']>();
+const mockUpdatePrice = vi.fn<IpcEvent['updatePrice']>();
 
 const SELLERS: Seller[] = [
   { name: '판매처A', price: 42000, deliveryFee: 0, deliveryFeeType: '무료' },
@@ -59,6 +60,7 @@ window.api = {
   getSellers: mockGetSellers,
   filterSellers: mockFilterSellers,
   getTargetPrice: mockGetTargetPrice,
+  updatePrice: mockUpdatePrice,
 };
 
 beforeEach(() => {
@@ -69,6 +71,7 @@ beforeEach(() => {
   mockGetSellers.mockResolvedValue({ isSuccess: true, sellers: [] });
   mockFilterSellers.mockResolvedValue({ isSuccess: true, sellers: [] });
   mockGetTargetPrice.mockResolvedValue({ isSuccess: true, targetPrice: 42900 });
+  mockUpdatePrice.mockResolvedValue({ isSuccess: true, salePrice: 42900, baseFee: undefined });
 });
 
 test('처음에는 상품과 진행 상태가 비어 있다', async () => {
@@ -282,6 +285,51 @@ test('목표 가격을 가져오는 데 실패하면 나머지 상품을 순회�
 
   expect(mockGetSellers).toHaveBeenCalledOnce();
   expect(mockGetTargetPrice).toHaveBeenCalledOnce();
+  expect(mockDelaySeconds).not.toHaveBeenCalled();
+});
+
+test('목표 가격과 상품의 배송비 설정으로 가격 수정을 요청한다', async () => {
+  const firstProduct = createTargetProduct({
+    originProductNo: 1,
+    delivery: { feeType: '유료', baseFee: 3000 },
+  });
+  const secondProduct = createTargetProduct({ originProductNo: 2, delivery: { feeType: '무료' } });
+
+  mockTargetProducts([firstProduct, secondProduct]);
+  mockGetTargetPrice
+    .mockResolvedValueOnce({ isSuccess: true, targetPrice: 42900 })
+    .mockResolvedValueOnce({ isSuccess: true, targetPrice: 51000 });
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => result.current.start());
+
+  expect(mockUpdatePrice).toHaveBeenCalledTimes(2);
+  expect(mockUpdatePrice).toHaveBeenNthCalledWith(1, 1, 42900, { feeType: '유료', baseFee: 3000 });
+  expect(mockUpdatePrice).toHaveBeenNthCalledWith(2, 2, 51000, { feeType: '무료' });
+});
+
+test('목표 가격을 가져오는 데 실패하면 가격 수정을 요청하지 않는다', async () => {
+  mockTargetProducts([FIRST_PRODUCT]);
+  mockGetTargetPrice.mockResolvedValueOnce({ isSuccess: false, error: '실패' });
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => result.current.start());
+
+  expect(mockUpdatePrice).not.toHaveBeenCalled();
+});
+
+test('가격 수정에 실패하면 나머지 상품을 순회하지 않는다', async () => {
+  mockTargetProducts([FIRST_PRODUCT, SECOND_PRODUCT]);
+  mockUpdatePrice.mockResolvedValueOnce({ isSuccess: false, error: '실패' });
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => result.current.start());
+
+  expect(mockGetSellers).toHaveBeenCalledOnce();
+  expect(mockUpdatePrice).toHaveBeenCalledOnce();
   expect(mockDelaySeconds).not.toHaveBeenCalled();
 });
 
