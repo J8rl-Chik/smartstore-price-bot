@@ -21,7 +21,16 @@ describe('getSaleProducts', () => {
 
   it('발급받은 accessToken으로 판매 중 상품 목록을 조회해 가공 없이 그대로 반환한다', async () => {
     const createSaleProduct = (sellerManagementCode?: string): SaleProduct => ({
-      channelProducts: [{ name: '상품', originProductNo: 1, sellerManagementCode }],
+      channelProducts: [
+        {
+          name: '상품',
+          originProductNo: 1,
+          salePrice: 10000,
+          stockQuantity: 10,
+          deliveryFee: 3000,
+          sellerManagementCode,
+        },
+      ],
     });
 
     const existingProduct = createSaleProduct('기존-001');
