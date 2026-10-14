@@ -1,4 +1,4 @@
-import { beforeEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { renderHook } from 'vitest-browser-react';
 import useTargetProductsUpdate from './useTargetProductsUpdate';
 import type { TargetProduct } from '../../../domain/product/_type';
@@ -71,7 +71,11 @@ beforeEach(() => {
   mockGetSellers.mockResolvedValue({ isSuccess: true, sellers: [] });
   mockFilterSellers.mockResolvedValue({ isSuccess: true, sellers: [] });
   mockGetTargetPrice.mockResolvedValue({ isSuccess: true, targetPrice: 42900 });
-  mockUpdatePrice.mockResolvedValue({ isSuccess: true, salePrice: 42900, baseFee: undefined });
+  mockUpdatePrice.mockResolvedValue({ isSuccess: true, salePrice: 42900, baseFee: 0 });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 test('처음에는 상품과 진행 상태가 비어 있다', async () => {
@@ -89,7 +93,63 @@ test('start를 호출하면 가져온 상품 목록을 targetProducts에 저장�
 
   await act(() => result.current.start());
 
-  expect(result.current.targetProducts).toEqual([FIRST_PRODUCT, SECOND_PRODUCT]);
+  expect(result.current.targetProducts.map(({ name }) => name)).toEqual([
+    FIRST_PRODUCT.name,
+    SECOND_PRODUCT.name,
+  ]);
+});
+
+test('가격 수정에 성공하면 해당 상품에 수정 판매가, 기본 배송비, 수정 시간을 done 상태로 반영한다', async () => {
+  const updatedAt = new Date('2026-10-14T14:32:05');
+
+  // Date만 가짜로 바꿔 수정 시간을 고정한다. delaySeconds는 목이라 타이머는 건드리지 않는다.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(updatedAt);
+  mockTargetProducts([FIRST_PRODUCT]);
+  mockUpdatePrice.mockResolvedValue({ isSuccess: true, salePrice: 39900, baseFee: 3000 });
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => result.current.start());
+
+  expect(result.current.targetProducts).toEqual([
+    {
+      ...FIRST_PRODUCT,
+      update: { status: 'done', price: 39900, baseFee: 3000, updatedAt: updatedAt.getTime() },
+    },
+  ]);
+});
+
+test('아직 처리하지 않은 상품은 wait 상태이다', async () => {
+  let finishDelay!: () => void;
+
+  mockTargetProducts([FIRST_PRODUCT, SECOND_PRODUCT]);
+  mockDelaySeconds.mockReturnValue(
+    new Promise<void>((resolve) => {
+      finishDelay = resolve;
+    }),
+  );
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  // act가 끝난 뒤에도 start의 Promise를 쓸 수 있도록 act 바깥에 선언해 둔다.
+  let startPromise!: Promise<void>;
+
+  // 첫 상품을 처리하고 delaySeconds의 대기 지점에서 멈춘 상태를 만든다.
+  await act(() => {
+    startPromise = result.current.start();
+  });
+
+  expect(result.current.targetProducts.map(({ update }) => update.status)).toEqual([
+    'done',
+    'wait',
+  ]);
+
+  await act(async () => {
+    finishDelay();
+
+    await startPromise;
+  });
 });
 
 test('start를 호출하면 상품 목록을 가져오는 동안 isLoading이 true이고 끝나면 false이다', async () => {
@@ -357,7 +417,7 @@ test('순회 중에는 현재 상품과 순서를 알려주고, 끝나면 초기
   });
 
   expect(result.current.currentOrder).toBe(1);
-  expect(result.current.currentProduct).toEqual(FIRST_PRODUCT);
+  expect(result.current.currentProduct).toMatchObject(FIRST_PRODUCT);
 
   await act(async () => {
     finishDelay();

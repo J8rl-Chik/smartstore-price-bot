@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { addVirtualPrice } from '../../../domain/price/addVirtualPrice';
-import type { TargetProduct } from '../../../domain/product/_type';
 import delaySeconds from '../../../utils/delaySeconds';
+import type { TargetProductWithUpdate } from './_type';
 
 interface TargetProductsUpdate {
-  targetProducts: TargetProduct[];
+  targetProducts: TargetProductWithUpdate[];
   isLoading: boolean;
-  currentProduct: TargetProduct | undefined;
+  currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
   start: () => Promise<void>;
 }
 
 const useTargetProductsUpdate = (): TargetProductsUpdate => {
-  const [targetProducts, setTargetProducts] = useState<TargetProduct[]>([]);
+  const [targetProducts, setTargetProducts] = useState<TargetProductWithUpdate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
 
@@ -22,22 +22,25 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     const response = await window.api.getTargetProducts();
     // TODO: response의 isSuccess가 false인 경우 예외 처리
     const targetProductsResult = response.isSuccess ? response.targetProducts : [];
+    const waitingTargetProducts = targetProductsResult.map(
+      (targetProduct): TargetProductWithUpdate => ({
+        ...targetProduct,
+        update: { status: 'wait' },
+      }),
+    );
 
     setIsLoading(false);
-    setTargetProducts(targetProductsResult);
+    setTargetProducts(waitingTargetProducts);
 
-    if (targetProductsResult.length === 0) {
+    if (waitingTargetProducts.length === 0) {
       return;
     }
 
     await window.api.createLoginPage();
 
     try {
-      for (const [index, targetProduct] of targetProductsResult.entries()) {
+      for (const [index, targetProduct] of waitingTargetProducts.entries()) {
         setCurrentIndex(index);
-
-        // TODO: 가격 수정 결과를 반영한 TargetProduct로 교체 필요.
-        const updatedTargetProduct = targetProduct;
 
         const sellersResponse = await window.api.getSellers(
           targetProduct.catalogURL,
@@ -79,8 +82,22 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
           break;
         }
 
+        const updatedTargetProduct: TargetProductWithUpdate = {
+          ...targetProduct,
+          update: {
+            status: 'done',
+            price: updatePriceResponse.salePrice,
+            baseFee: updatePriceResponse.baseFee,
+            updatedAt: Date.now(),
+          },
+        };
+
         setTargetProducts((prev) =>
-          prev.map((target) => (target === targetProduct ? updatedTargetProduct : target)),
+          prev.map((target) =>
+            target.originProductNo === updatedTargetProduct.originProductNo
+              ? updatedTargetProduct
+              : target,
+          ),
         );
 
         await delaySeconds(5);

@@ -413,18 +413,6 @@ describe('registerIpcHandlers', () => {
     expect(result).toEqual({ isSuccess: true, salePrice: 39900, baseFee: 3000 });
   });
 
-  it('updatePrice는 응답에 기본 배송비가 없으면 baseFee를 undefined로 반환한다', async () => {
-    mockBuildPriceWithDeliveryFee.mockReturnValue({
-      deliveryFee: { deliveryFeeType: 'FREE' },
-      salePrice: 42900,
-    });
-    mockUpdatePrice.mockResolvedValue({ salePrice: 42900, deliveryInfo: { deliveryFee: {} } });
-
-    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
-
-    expect(result).toStrictEqual({ isSuccess: true, salePrice: 42900, baseFee: undefined });
-  });
-
   it('updatePrice에서 판매가 계산 중 예외가 발생하면 가격을 수정하지 않고 isSuccess: false와 에러 메시지를 반환한다', async () => {
     const error = new Error('알 수 없는 배송비 유형입니다.');
     mockBuildPriceWithDeliveryFee.mockImplementation(() => {

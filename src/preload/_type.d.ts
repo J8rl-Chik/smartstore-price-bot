@@ -10,8 +10,7 @@ export type TargetPriceResponse =
   { isSuccess: true; targetPrice: number } | { isSuccess: false; error: string };
 
 export type UpdatePriceResponse =
-  | { isSuccess: true; salePrice: number; baseFee: number | undefined }
-  | { isSuccess: false; error: string };
+  { isSuccess: true; salePrice: number; baseFee: number } | { isSuccess: false; error: string };
 
 // main <-> renderer가 양방향(invoke/handle)으로 주고받는 IPC 채널을 함수 형태로 정의한다.
 // 매개변수는 요청 인자, 반환값(Promise)은 응답 타입이다.

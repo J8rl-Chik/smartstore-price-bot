@@ -14,7 +14,7 @@ interface UpdatePriceParam {
 
 export interface UpdatePriceResult extends SmartStoreApiResult {
   salePrice: number;
-  deliveryInfo: { deliveryFee: { baseFee?: number } };
+  deliveryInfo: { deliveryFee: { baseFee: number } };
 }
 
 interface OriginProduct {
