@@ -4,8 +4,10 @@ import { IpcEvent } from '../preload/_type';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
+import updatePrice from '../integrations/smartStore/updatePrice';
 import getSellersInPuppeteer from '../integrations/puppeteer/getSellersInPuppeteer';
 import getProductRows from '../integrations/googleSheets/getProductRows';
+import { buildPriceWithDeliveryFee } from '../domain/delivery/delivery';
 import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
 import { initRawProductRows } from '../domain/product/initRawProductRows';
 import { createTargetProducts } from '../domain/product/createTargetProducts';
@@ -115,6 +117,27 @@ export const registerIpcHandlers = (): void => {
       return {
         isSuccess: false,
         error: error instanceof Error ? error.message : String(`getTargetPrice 에러: ${error}`),
+      } as const;
+    }
+  });
+
+  handleIpc('updatePrice', async (originProductNo, targetPrice, delivery) => {
+    try {
+      const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
+
+      const result = await updatePrice({ productNo: originProductNo, deliveryFee, salePrice });
+
+      return {
+        isSuccess: true,
+        salePrice: result.salePrice,
+        baseFee: result.deliveryInfo.deliveryFee.baseFee,
+      } as const;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        isSuccess: false,
+        error: error instanceof Error ? error.message : String(`updatePrice 에러: ${error}`),
       } as const;
     }
   });

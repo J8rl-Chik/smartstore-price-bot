@@ -15,6 +15,8 @@ const mockShuffleArray = vi.fn();
 const mockFilterExcludedSellers = vi.fn();
 const mockValidateEnv = vi.fn();
 const mockCalculateTargetPrice = vi.fn();
+const mockUpdatePrice = vi.fn();
+const mockBuildPriceWithDeliveryFee = vi.fn();
 
 vi.mock('electron', () => ({
   ipcMain: { handle: (...args: unknown[]) => mockHandle(...args) },
@@ -36,8 +38,16 @@ vi.mock(import('../integrations/smartStore/getSaleProducts'), () => ({
   default: (...args: unknown[]) => mockGetSaleProducts(...args),
 }));
 
+vi.mock(import('../integrations/smartStore/updatePrice'), () => ({
+  default: (...args: unknown[]) => mockUpdatePrice(...args),
+}));
+
 vi.mock(import('../integrations/googleSheets/getProductRows'), () => ({
   default: (...args: unknown[]) => mockGetProductRows(...args),
+}));
+
+vi.mock(import('../domain/delivery/delivery'), () => ({
+  buildPriceWithDeliveryFee: (...args: unknown[]) => mockBuildPriceWithDeliveryFee(...args),
 }));
 
 vi.mock(import('../domain/product/saleProduct'), () => ({
@@ -117,6 +127,8 @@ describe('registerIpcHandlers', () => {
     mockFilterExcludedSellers.mockReset();
     mockValidateEnv.mockReset();
     mockCalculateTargetPrice.mockReset();
+    mockUpdatePrice.mockReset();
+    mockBuildPriceWithDeliveryFee.mockReset();
   });
 
   it('createLoginPage 채널을 호출하면 페이지를 생성하고 네이버에 로그인한다', async () => {
@@ -377,6 +389,89 @@ describe('registerIpcHandlers', () => {
     const result = await invokeHandler('getTargetPrice', [43000], 30000);
 
     expect(result).toEqual({ isSuccess: false, error: 'getTargetPrice 에러: 알 수 없는 문제' });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('updatePrice는 목표 가격과 배송비 설정으로 계산한 판매가와 배송비로 가격을 수정하고 응답의 판매가와 기본 배송비와 함께 isSuccess: true를 반환한다', async () => {
+    const delivery = { feeType: '유료', baseFee: 3000 };
+    const deliveryFee = { deliveryFeeType: 'PAID', deliveryFeePayType: 'PREPAID', baseFee: 3000 };
+    mockBuildPriceWithDeliveryFee.mockReturnValue({ deliveryFee, salePrice: 39900 });
+    mockUpdatePrice.mockResolvedValue({
+      salePrice: 39900,
+      deliveryInfo: { deliveryFee: { baseFee: 3000 } },
+    });
+
+    const result = await invokeHandler('updatePrice', 12345, 42900, delivery);
+
+    expect(mockBuildPriceWithDeliveryFee).toHaveBeenCalledWith(delivery, 42900);
+    expect(mockUpdatePrice).toHaveBeenCalledWith({
+      productNo: 12345,
+      deliveryFee,
+      salePrice: 39900,
+    });
+    expect(result).toEqual({ isSuccess: true, salePrice: 39900, baseFee: 3000 });
+  });
+
+  it('updatePrice는 응답에 기본 배송비가 없으면 baseFee를 undefined로 반환한다', async () => {
+    mockBuildPriceWithDeliveryFee.mockReturnValue({
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 42900,
+    });
+    mockUpdatePrice.mockResolvedValue({ salePrice: 42900, deliveryInfo: { deliveryFee: {} } });
+
+    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
+
+    expect(result).toStrictEqual({ isSuccess: true, salePrice: 42900, baseFee: undefined });
+  });
+
+  it('updatePrice에서 판매가 계산 중 예외가 발생하면 가격을 수정하지 않고 isSuccess: false와 에러 메시지를 반환한다', async () => {
+    const error = new Error('알 수 없는 배송비 유형입니다.');
+    mockBuildPriceWithDeliveryFee.mockImplementation(() => {
+      throw error;
+    });
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(mockUpdatePrice).not.toHaveBeenCalled();
+    expect(result).toEqual({ isSuccess: false, error: error.message });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('updatePrice에서 가격 수정 중 예외가 발생하면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
+    const error = new Error('네이버 상품 가격을 수정하지 못했습니다.');
+    mockBuildPriceWithDeliveryFee.mockReturnValue({
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 42900,
+    });
+    mockUpdatePrice.mockRejectedValue(error);
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(result).toEqual({ isSuccess: false, error: error.message });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('updatePrice에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
+    mockBuildPriceWithDeliveryFee.mockReturnValue({
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 42900,
+    });
+    mockUpdatePrice.mockRejectedValue('알 수 없는 문제');
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
+
+    expect(result).toEqual({ isSuccess: false, error: 'updatePrice 에러: 알 수 없는 문제' });
 
     consoleErrorSpy.mockRestore();
   });

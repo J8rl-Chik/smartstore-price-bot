@@ -12,6 +12,11 @@ interface UpdatePriceParam {
   salePrice: number;
 }
 
+export interface UpdatePriceResult extends SmartStoreApiResult {
+  salePrice: number;
+  deliveryInfo: { deliveryFee: { baseFee?: number } };
+}
+
 interface OriginProduct {
   detailContent?: unknown;
   stockQuantity?: unknown;
@@ -50,7 +55,7 @@ async function updatePrice({
   productNo,
   deliveryFee,
   salePrice,
-}: UpdatePriceParam): Promise<SmartStoreApiResult> {
+}: UpdatePriceParam): Promise<UpdatePriceResult> {
   try {
     const productURL = `https://api.commerce.naver.com/external/v2/products/origin-products/${productNo}`;
     const accessToken = await generateAccessToken();
@@ -80,7 +85,7 @@ async function updatePrice({
         windowChannelProduct,
       }),
     });
-    const result: SmartStoreApiResult = await response.json();
+    const result: UpdatePriceResult = await response.json();
 
     checkSmartStoreApiSucceeded(result);
 
