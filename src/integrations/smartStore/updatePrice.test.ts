@@ -17,7 +17,7 @@ const createOriginProductResult = (override: Record<string, unknown> = {}): Prod
     name: '기존 상품',
     detailContent: '<div>상세페이지</div>',
     stockQuantity: 100,
-    deliveryInfo: { deliveyFee: { deliveryFeeType: 'FREE' } },
+    deliveryInfo: { deliveryFee: { deliveryFeeType: 'PAID', baseFee: 2500 } },
     ...override,
   },
   smartstoreChannelProduct: { channelProductNo: 1 },
