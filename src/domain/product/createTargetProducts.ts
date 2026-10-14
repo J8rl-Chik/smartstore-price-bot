@@ -1,3 +1,4 @@
+import { createDelivery } from '../delivery/delivery.js';
 import {
   getDeliveryFee,
   getOriginProductNo,
@@ -32,10 +33,9 @@ export const createTargetProducts = (
       stockQuantity: getStockQuantity(saleProduct),
       deliveryFee: getDeliveryFee(saleProduct),
       catalogURL: productRow.catalogURL,
-      feeType: productRow.feeType,
+      delivery: createDelivery({ feeType: productRow.feeType, baseFee: productRow.baseFee }),
       freeDeliveryPrice: productRow.freeDeliveryPrice,
       productPrice: productRow.productPrice,
-      baseFee: productRow.baseFee,
       virtualPrice: productRow.virtualPrice,
       excludedSellerNames: productRow.excludedSellerNames,
     });

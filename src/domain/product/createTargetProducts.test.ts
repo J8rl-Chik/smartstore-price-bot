@@ -41,14 +41,22 @@ describe('createTargetProducts', () => {
         stockQuantity: 10,
         deliveryFee: 3000,
         catalogURL: 'https://example.com',
-        feeType: DELIVERY_FEE_TYPE.FREE,
+        delivery: { feeType: DELIVERY_FEE_TYPE.FREE },
         freeDeliveryPrice: 30000,
         productPrice: 10000,
-        baseFee: 3000,
         virtualPrice: null,
         excludedSellerNames: ['제외 판매처'],
       },
     ]);
+  });
+
+  it('배송비 유형이 유료이면 baseFee를 포함한 delivery를 만든다', () => {
+    const saleProducts = [createSaleProduct('무선 이어폰')];
+    const productRows = [{ ...createProductRow('무선 이어폰'), feeType: DELIVERY_FEE_TYPE.PAID }];
+
+    const [targetProduct] = createTargetProducts(saleProducts, productRows);
+
+    expect(targetProduct?.delivery).toEqual({ feeType: DELIVERY_FEE_TYPE.PAID, baseFee: 3000 });
   });
 
   it('일치하는 productRow가 없는 saleProduct는 결과에서 제외한다', () => {
@@ -89,6 +97,8 @@ describe('createTargetProducts', () => {
 
     expect(targetProduct).not.toHaveProperty('activate');
     expect(targetProduct).not.toHaveProperty('sellerManagementCode');
+    expect(targetProduct).not.toHaveProperty('feeType');
+    expect(targetProduct).not.toHaveProperty('baseFee');
   });
 
   it('productRows가 빈 배열이면 빈 배열을 반환한다', () => {

@@ -1,4 +1,4 @@
-import type { DeliveryFeeType } from '../delivery/_type.js';
+import type { Delivery, DeliveryFeeType } from '../delivery/_type.js';
 
 export interface ProductChannel {
   name: string;
@@ -56,7 +56,11 @@ export type RowValues = [
 ];
 
 export interface TargetProduct
-  extends Omit<ProductChannel, 'sellerManagementCode'>, Omit<ProductRow, 'activate'> {}
+  extends
+    Omit<ProductChannel, 'sellerManagementCode'>,
+    Omit<ProductRow, 'activate' | 'feeType' | 'baseFee'> {
+  delivery: Delivery;
+}
 
 export type TargetProductsResponse =
   | { isSuccess: true; targetProducts: TargetProduct[]; duplicateProductNames: string[] }
