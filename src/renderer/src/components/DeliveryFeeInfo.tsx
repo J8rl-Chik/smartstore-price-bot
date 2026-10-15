@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 interface DeliveryFeeInfoProps {
-  // 배송비를 포함한 합계 금액
+  // 배송비를 제외한 제품가
   price: number;
   deliveryFee: number;
 }
@@ -27,7 +27,7 @@ const DeliveryFeeInfo = ({ price, deliveryFee }: DeliveryFeeInfoProps): React.JS
     {deliveryFee === 0 ? (
       <FreeDeliveryBadge>무료배송</FreeDeliveryBadge>
     ) : (
-      `제품 ${formatNumber(price - deliveryFee)} + 배송 ${formatNumber(deliveryFee)}`
+      `제품 ${formatNumber(price)} + 배송 ${formatNumber(deliveryFee)}`
     )}
   </DeliveryFeeInfoContainer>
 );
