@@ -1,9 +1,8 @@
 import styled, { css } from 'styled-components';
-
-export type ProductStatus = 'normal' | 'needUpdate' | 'error';
+import type { ProductUpdateStatus } from '../domain/_type';
 
 interface StatusBadgeProps {
-  status: ProductStatus;
+  status: ProductUpdateStatus;
 }
 
 const baseBadge = css`
@@ -15,16 +14,16 @@ const baseBadge = css`
   border-radius: 8px;
 `;
 
-const NormalBadge = styled.span`
-  ${baseBadge}
-  color: ${({ theme }) => theme.color.blue500};
-  background: ${({ theme }) => theme.color.blue50};
-`;
-
-const NeedUpdateBadge = styled.span`
+const WaitBadge = styled.span`
   ${baseBadge}
   color: ${({ theme }) => theme.color.orange500};
   background: ${({ theme }) => theme.color.orange50};
+`;
+
+const CompleteBadge = styled.span`
+  ${baseBadge}
+  color: ${({ theme }) => theme.color.blue500};
+  background: ${({ theme }) => theme.color.blue50};
 `;
 
 const ErrorBadge = styled.span`
@@ -35,10 +34,10 @@ const ErrorBadge = styled.span`
 
 const StatusBadge = ({ status }: StatusBadgeProps): React.JSX.Element => {
   switch (status) {
-    case 'normal':
-      return <NormalBadge>정상</NormalBadge>;
-    case 'needUpdate':
-      return <NeedUpdateBadge>업데이트 필요</NeedUpdateBadge>;
+    case 'wait':
+      return <WaitBadge>대기</WaitBadge>;
+    case 'complete':
+      return <CompleteBadge>완료</CompleteBadge>;
     case 'error':
       return <ErrorBadge>에러</ErrorBadge>;
   }

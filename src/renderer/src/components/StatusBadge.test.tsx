@@ -2,16 +2,16 @@ import { expect, test } from 'vitest';
 import StatusBadge from './StatusBadge';
 import { customRender } from '../customRender';
 
-test('normal이면 정상으로 보여준다', async () => {
-  const screen = await customRender(<StatusBadge status="normal" />);
+test('wait이면 대기로 보여준다', async () => {
+  const screen = await customRender(<StatusBadge status="wait" />);
 
-  await expect.element(screen.getByText('정상')).toBeVisible();
+  await expect.element(screen.getByText('대기')).toBeVisible();
 });
 
-test('needUpdate이면 업데이트 필요로 보여준다', async () => {
-  const screen = await customRender(<StatusBadge status="needUpdate" />);
+test('complete이면 완료로 보여준다', async () => {
+  const screen = await customRender(<StatusBadge status="complete" />);
 
-  await expect.element(screen.getByText('업데이트 필요')).toBeVisible();
+  await expect.element(screen.getByText('완료')).toBeVisible();
 });
 
 test('error이면 에러로 보여준다', async () => {
