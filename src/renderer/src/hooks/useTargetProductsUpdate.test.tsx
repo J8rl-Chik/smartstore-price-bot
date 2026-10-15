@@ -111,7 +111,7 @@ test('start를 호출하면 가져온 상품 목록을 targetProducts에 저장�
   ]);
 });
 
-test('가격 수정에 성공하면 해당 상품에 수정 판매가, 기본 배송비, 수정 시간을 done 상태로 반영한다', async () => {
+test('가격 수정에 성공하면 해당 상품에 수정 판매가, 기본 배송비, 수정 시간을 complete 상태로 반영한다', async () => {
   const updatedAt = new Date('2026-10-14T14:32:05');
 
   // Date만 가짜로 바꿔 수정 시간을 고정한다. delaySeconds는 목이라 타이머는 건드리지 않는다.
@@ -127,7 +127,7 @@ test('가격 수정에 성공하면 해당 상품에 수정 판매가, 기본 �
   expect(result.current.targetProducts).toEqual([
     {
       ...FIRST_PRODUCT,
-      update: { status: 'done', price: 39900, baseFee: 3000, updatedAt: updatedAt.getTime() },
+      update: { status: 'complete', price: 39900, baseFee: 3000, updatedAt: updatedAt.getTime() },
     },
   ]);
 });
@@ -153,7 +153,7 @@ test('아직 처리하지 않은 상품은 wait 상태이다', async () => {
   });
 
   expect(result.current.targetProducts.map(({ update }) => update.status)).toEqual([
-    'done',
+    'complete',
     'wait',
   ]);
 

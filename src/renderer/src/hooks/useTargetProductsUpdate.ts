@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { addVirtualPrice } from '../../../domain/price/addVirtualPrice';
 import delaySeconds from '../../../utils/delaySeconds';
-import type { TargetProductWithUpdate } from './_type';
+import type { TargetProductWithUpdate } from '../domain/_type';
 
 interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
@@ -85,7 +85,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
         const updatedTargetProduct: TargetProductWithUpdate = {
           ...targetProduct,
           update: {
-            status: 'done',
+            status: 'complete',
             price: updatePriceResponse.salePrice,
             baseFee: updatePriceResponse.baseFee,
             updatedAt: Date.now(),
