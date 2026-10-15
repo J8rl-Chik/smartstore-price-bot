@@ -1,10 +1,5 @@
 import styled from 'styled-components';
-
-interface DeliveryFeeInfoProps {
-  // 배송비를 제외한 제품가
-  price: number;
-  deliveryFee: number;
-}
+import type { PriceWithFee } from '../domain/_type';
 
 const DeliveryFeeInfoContainer = styled.div`
   margin-top: 4px;
@@ -22,7 +17,7 @@ const FreeDeliveryBadge = styled.span`
 
 const formatNumber = (value: number): string => value.toLocaleString('ko-KR');
 
-const DeliveryFeeInfo = ({ price, deliveryFee }: DeliveryFeeInfoProps): React.JSX.Element => (
+const DeliveryFeeInfo = ({ price, deliveryFee }: PriceWithFee): React.JSX.Element => (
   <DeliveryFeeInfoContainer>
     {deliveryFee === 0 ? (
       <FreeDeliveryBadge>무료배송</FreeDeliveryBadge>
