@@ -29,15 +29,19 @@ export const createTargetProducts = (
     targetProducts.push({
       name,
       originProductNo: getOriginProductNo(saleProduct),
-      salePrice: getSalePrice(saleProduct),
-      stockQuantity: getStockQuantity(saleProduct),
-      deliveryFee: getDeliveryFee(saleProduct),
-      catalogURL: productRow.catalogURL,
-      delivery: createDelivery({ feeType: productRow.feeType, baseFee: productRow.baseFee }),
-      freeDeliveryPrice: productRow.freeDeliveryPrice,
-      productPrice: productRow.productPrice,
-      virtualPrice: productRow.virtualPrice,
-      excludedSellerNames: productRow.excludedSellerNames,
+      store: {
+        salePrice: getSalePrice(saleProduct),
+        stockQuantity: getStockQuantity(saleProduct),
+        deliveryFee: getDeliveryFee(saleProduct),
+      },
+      sheet: {
+        catalogURL: productRow.catalogURL,
+        delivery: createDelivery({ feeType: productRow.feeType, baseFee: productRow.baseFee }),
+        freeDeliveryPrice: productRow.freeDeliveryPrice,
+        productPrice: productRow.productPrice,
+        virtualPrice: productRow.virtualPrice,
+        excludedSellerNames: productRow.excludedSellerNames,
+      },
     });
   }
 

@@ -37,15 +37,19 @@ describe('createTargetProducts', () => {
       {
         name: '무선 이어폰',
         originProductNo: 111,
-        salePrice: 10000,
-        stockQuantity: 10,
-        deliveryFee: 3000,
-        catalogURL: 'https://example.com',
-        delivery: { feeType: DELIVERY_FEE_TYPE.FREE },
-        freeDeliveryPrice: 30000,
-        productPrice: 10000,
-        virtualPrice: null,
-        excludedSellerNames: ['제외 판매처'],
+        store: {
+          salePrice: 10000,
+          stockQuantity: 10,
+          deliveryFee: 3000,
+        },
+        sheet: {
+          catalogURL: 'https://example.com',
+          delivery: { feeType: DELIVERY_FEE_TYPE.FREE },
+          freeDeliveryPrice: 30000,
+          productPrice: 10000,
+          virtualPrice: null,
+          excludedSellerNames: ['제외 판매처'],
+        },
       },
     ]);
   });
@@ -56,7 +60,10 @@ describe('createTargetProducts', () => {
 
     const [targetProduct] = createTargetProducts(saleProducts, productRows);
 
-    expect(targetProduct?.delivery).toEqual({ feeType: DELIVERY_FEE_TYPE.PAID, baseFee: 3000 });
+    expect(targetProduct?.sheet.delivery).toEqual({
+      feeType: DELIVERY_FEE_TYPE.PAID,
+      baseFee: 3000,
+    });
   });
 
   it('일치하는 productRow가 없는 saleProduct는 결과에서 제외한다', () => {
@@ -86,7 +93,7 @@ describe('createTargetProducts', () => {
 
     const result = createTargetProducts(saleProducts, productRows);
 
-    expect(result.map(({ productPrice }) => productPrice)).toEqual([10000]);
+    expect(result.map(({ sheet }) => sheet.productPrice)).toEqual([10000]);
   });
 
   it('activate와 sellerManagementCode는 결과에 포함하지 않는다', () => {
@@ -95,10 +102,10 @@ describe('createTargetProducts', () => {
 
     const [targetProduct] = createTargetProducts(saleProducts, productRows);
 
-    expect(targetProduct).not.toHaveProperty('activate');
-    expect(targetProduct).not.toHaveProperty('sellerManagementCode');
-    expect(targetProduct).not.toHaveProperty('feeType');
-    expect(targetProduct).not.toHaveProperty('baseFee');
+    expect(targetProduct?.sheet).not.toHaveProperty('activate');
+    expect(targetProduct?.store).not.toHaveProperty('sellerManagementCode');
+    expect(targetProduct?.sheet).not.toHaveProperty('feeType');
+    expect(targetProduct?.sheet).not.toHaveProperty('baseFee');
   });
 
   it('productRows가 빈 배열이면 빈 배열을 반환한다', () => {

@@ -55,11 +55,14 @@ export type RowValues = [
   string,
 ];
 
-export interface TargetProduct
-  extends
-    Omit<ProductChannel, 'sellerManagementCode'>,
-    Omit<ProductRow, 'activate' | 'feeType' | 'baseFee'> {
-  delivery: Delivery;
+export interface TargetProduct {
+  name: ProductChannel['name'];
+  originProductNo: ProductChannel['originProductNo'];
+  store: Pick<ProductChannel, 'salePrice' | 'stockQuantity' | 'deliveryFee'>;
+  sheet: Pick<
+    ProductRow,
+    'catalogURL' | 'virtualPrice' | 'freeDeliveryPrice' | 'productPrice' | 'excludedSellerNames'
+  > & { delivery: Delivery };
 }
 
 export type TargetProductsResponse =

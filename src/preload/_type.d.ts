@@ -19,7 +19,7 @@ export type UpdatePriceResponse =
 export interface IpcEvent {
   createLoginPage: () => Promise<void>;
   getTargetProducts: () => Promise<TargetProductsResponse>;
-  // TODO: getSellers부터 인자 타입 일부를 TargetProduct 타입에서 import해 TargetProduct['catalogURL'] 같은 프로퍼티 접근 방식으로 대체하는 것을 고려한다.
+  // TODO: getSellers부터 인자 타입 일부를 TargetProduct 타입에서 import해 TargetProduct['sheet']['catalogURL'] 같은 프로퍼티 접근 방식으로 대체하는 것을 고려한다.
   getSellers: (catalogURL: string, productName: string) => Promise<SellersResponse>;
   filterSellers: (sellers: Seller[], excludedSellerNames: string[]) => Promise<SellersResponse>;
   getTargetPrice: (prices: number[], freeDeliveryPrice: number) => Promise<TargetPriceResponse>;

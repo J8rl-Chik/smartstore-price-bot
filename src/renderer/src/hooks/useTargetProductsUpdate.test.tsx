@@ -24,18 +24,30 @@ const SELLERS: Seller[] = [
 ];
 const FILTERED_SELLERS: Seller[] = [SELLERS[1]];
 
-const createTargetProduct = (overrides: Partial<TargetProduct> = {}): TargetProduct => ({
+interface TargetProductOverrides extends Partial<Pick<TargetProduct, 'name' | 'originProductNo'>> {
+  sheet?: Partial<TargetProduct['sheet']>;
+}
+
+const createTargetProduct = ({
+  sheet,
+  ...overrides
+}: TargetProductOverrides = {}): TargetProduct => ({
   name: '무선 이어폰 프로',
   originProductNo: 1,
-  salePrice: 42900,
-  stockQuantity: 10,
-  deliveryFee: 0,
-  catalogURL: 'https://catalog.example/1',
-  delivery: { feeType: '무료' },
-  freeDeliveryPrice: 0,
-  productPrice: 42900,
-  virtualPrice: null,
-  excludedSellerNames: [],
+  store: {
+    salePrice: 42900,
+    stockQuantity: 10,
+    deliveryFee: 0,
+  },
+  sheet: {
+    catalogURL: 'https://catalog.example/1',
+    delivery: { feeType: '무료' },
+    freeDeliveryPrice: 0,
+    productPrice: 42900,
+    virtualPrice: null,
+    excludedSellerNames: [],
+    ...sheet,
+  },
   ...overrides,
 });
 
@@ -43,7 +55,7 @@ const FIRST_PRODUCT = createTargetProduct();
 const SECOND_PRODUCT = createTargetProduct({
   name: '블루투스 스피커 미니',
   originProductNo: 2,
-  catalogURL: 'https://catalog.example/2',
+  sheet: { catalogURL: 'https://catalog.example/2' },
 });
 
 const mockTargetProducts = (targetProducts: TargetProduct[]): void => {
@@ -227,8 +239,16 @@ test('상품이 있으면 로그인 페이지를 만들고 상품마다 판매�
 
   expect(mockCreateLoginPage).toHaveBeenCalledOnce();
   expect(mockGetSellers).toHaveBeenCalledTimes(2);
-  expect(mockGetSellers).toHaveBeenNthCalledWith(1, FIRST_PRODUCT.catalogURL, FIRST_PRODUCT.name);
-  expect(mockGetSellers).toHaveBeenNthCalledWith(2, SECOND_PRODUCT.catalogURL, SECOND_PRODUCT.name);
+  expect(mockGetSellers).toHaveBeenNthCalledWith(
+    1,
+    FIRST_PRODUCT.sheet.catalogURL,
+    FIRST_PRODUCT.name,
+  );
+  expect(mockGetSellers).toHaveBeenNthCalledWith(
+    2,
+    SECOND_PRODUCT.sheet.catalogURL,
+    SECOND_PRODUCT.name,
+  );
 });
 
 test('판매처를 가져오는 데 실패하면 나머지 상품을 순회하지 않는다', async () => {
@@ -244,10 +264,10 @@ test('판매처를 가져오는 데 실패하면 나머지 상품을 순회하�
 });
 
 test('판매처를 가져오면 판매처와 상품의 제외 판매처로 필터링을 요청한다', async () => {
-  const firstProduct = createTargetProduct({ excludedSellerNames: ['판매처A'] });
+  const firstProduct = createTargetProduct({ sheet: { excludedSellerNames: ['판매처A'] } });
   const secondProduct = createTargetProduct({
     originProductNo: 2,
-    excludedSellerNames: ['판매처B', '판매처C'],
+    sheet: { excludedSellerNames: ['판매처B', '판매처C'] },
   });
 
   mockTargetProducts([firstProduct, secondProduct]);
@@ -287,8 +307,11 @@ test('판매처 필터링에 실패하면 나머지 상품을 순회하지 않�
 });
 
 test('필터링한 판매처의 가격과 상품의 무료배송 기준가로 목표 가격을 요청한다', async () => {
-  const firstProduct = createTargetProduct({ freeDeliveryPrice: 30000 });
-  const secondProduct = createTargetProduct({ originProductNo: 2, freeDeliveryPrice: 50000 });
+  const firstProduct = createTargetProduct({ sheet: { freeDeliveryPrice: 30000 } });
+  const secondProduct = createTargetProduct({
+    originProductNo: 2,
+    sheet: { freeDeliveryPrice: 50000 },
+  });
 
   mockTargetProducts([firstProduct, secondProduct]);
   mockFilterSellers.mockResolvedValue({ isSuccess: true, sellers: FILTERED_SELLERS });
@@ -303,7 +326,7 @@ test('필터링한 판매처의 가격과 상품의 무료배송 기준가로 �
 });
 
 test('가상 가격이 있으면 판매처 가격 뒤에 더해 목표 가격을 요청한다', async () => {
-  mockTargetProducts([createTargetProduct({ virtualPrice: 41000 })]);
+  mockTargetProducts([createTargetProduct({ sheet: { virtualPrice: 41000 } })]);
   mockFilterSellers.mockResolvedValue({ isSuccess: true, sellers: FILTERED_SELLERS });
 
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
@@ -314,7 +337,7 @@ test('가상 가격이 있으면 판매처 가격 뒤에 더해 목표 가격을
 });
 
 test('가상 가격이 없으면 판매처 가격만으로 목표 가격을 요청한다', async () => {
-  mockTargetProducts([createTargetProduct({ virtualPrice: null })]);
+  mockTargetProducts([createTargetProduct({ sheet: { virtualPrice: null } })]);
   mockFilterSellers.mockResolvedValue({ isSuccess: true, sellers: FILTERED_SELLERS });
 
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
@@ -351,9 +374,12 @@ test('목표 가격을 가져오는 데 실패하면 나머지 상품을 순회�
 test('목표 가격과 상품의 배송비 설정으로 가격 수정을 요청한다', async () => {
   const firstProduct = createTargetProduct({
     originProductNo: 1,
-    delivery: { feeType: '유료', baseFee: 3000 },
+    sheet: { delivery: { feeType: '유료', baseFee: 3000 } },
   });
-  const secondProduct = createTargetProduct({ originProductNo: 2, delivery: { feeType: '무료' } });
+  const secondProduct = createTargetProduct({
+    originProductNo: 2,
+    sheet: { delivery: { feeType: '무료' } },
+  });
 
   mockTargetProducts([firstProduct, secondProduct]);
   mockGetTargetPrice

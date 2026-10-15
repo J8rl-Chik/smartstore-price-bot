@@ -43,7 +43,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
         setCurrentIndex(index);
 
         const sellersResponse = await window.api.getSellers(
-          targetProduct.catalogURL,
+          targetProduct.sheet.catalogURL,
           targetProduct.name,
         );
 
@@ -54,7 +54,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
 
         const filteredSellersResponse = await window.api.filterSellers(
           sellersResponse.sellers,
-          targetProduct.excludedSellerNames,
+          targetProduct.sheet.excludedSellerNames,
         );
 
         if (!filteredSellersResponse.isSuccess) {
@@ -62,10 +62,10 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
         }
 
         const sellerPrices = filteredSellersResponse.sellers.map(({ price }) => price);
-        const prices = addVirtualPrice(sellerPrices, targetProduct.virtualPrice);
+        const prices = addVirtualPrice(sellerPrices, targetProduct.sheet.virtualPrice);
         const targetPriceResponse = await window.api.getTargetPrice(
           prices,
-          targetProduct.freeDeliveryPrice,
+          targetProduct.sheet.freeDeliveryPrice,
         );
 
         if (!targetPriceResponse.isSuccess) {
@@ -75,7 +75,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
         const updatePriceResponse = await window.api.updatePrice(
           targetProduct.originProductNo,
           targetPriceResponse.targetPrice,
-          targetProduct.delivery,
+          targetProduct.sheet.delivery,
         );
 
         if (!updatePriceResponse.isSuccess) {
