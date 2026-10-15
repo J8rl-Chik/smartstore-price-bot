@@ -6,7 +6,7 @@ import type { TargetProduct } from '../../../domain/product/_type';
  */
 export type TargetProductUpdate =
   | { status: 'wait' }
-  | { status: 'done'; price: number; baseFee: number; updatedAt: number }
+  | { status: 'complete'; price: number; baseFee: number; updatedAt: number }
   | { status: 'error'; updatedAt: number };
 
 export interface TargetProductWithUpdate extends TargetProduct {
@@ -16,7 +16,6 @@ export interface TargetProductWithUpdate extends TargetProduct {
 export type ProductUpdateStatus = 'wait' | 'complete' | 'error';
 
 export interface PriceWithFee {
-  // 배송비를 포함한 합계 금액
   price: number;
   deliveryFee: number;
 }
