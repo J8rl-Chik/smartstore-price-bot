@@ -1,19 +1,8 @@
 import styled, { css } from 'styled-components';
 import DeliveryFeeInfo from './DeliveryFeeInfo';
 import StatusBadge from './StatusBadge';
-import type { ProductStatus } from './StatusBadge';
-
-export interface ProductListItem {
-  id: number;
-  name: string;
-  deliveryFee: number;
-  setPrice: number;
-  currentPrice: number;
-  // 수정가가 아직 없으면 null. "—"로 표시한다.
-  updatedPrice: number | null;
-  status: ProductStatus;
-  updatedAt: string;
-}
+import formatTotalPrice from '../domain/formatTotalPrice';
+import type { ProductListItem } from '../domain/_type';
 
 interface ProductTableRowProps {
   product: ProductListItem;
@@ -68,26 +57,24 @@ const UpdatedAtCell = styled.td`
   text-align: right;
 `;
 
-const formatPrice = (price: number): string => `${price.toLocaleString('ko-KR')}원`;
-
 const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element => (
   <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
     <SetPriceCell>
-      {formatPrice(product.setPrice)}
-      <DeliveryFeeInfo price={product.setPrice} deliveryFee={product.deliveryFee} />
+      {formatTotalPrice(product.setPrice)}
+      <DeliveryFeeInfo {...product.setPrice} />
     </SetPriceCell>
     <CurrentPriceCell>
-      {formatPrice(product.currentPrice)}
-      <DeliveryFeeInfo price={product.currentPrice} deliveryFee={product.deliveryFee} />
+      {formatTotalPrice(product.currentPrice)}
+      <DeliveryFeeInfo {...product.currentPrice} />
     </CurrentPriceCell>
     <UpdatedPriceCell>
       {product.updatedPrice === null ? (
         '—'
       ) : (
         <>
-          {formatPrice(product.updatedPrice)}
-          <DeliveryFeeInfo price={product.updatedPrice} deliveryFee={product.deliveryFee} />
+          {formatTotalPrice(product.updatedPrice)}
+          <DeliveryFeeInfo {...product.updatedPrice} />
         </>
       )}
     </UpdatedPriceCell>
