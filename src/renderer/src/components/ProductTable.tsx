@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import ProductTableRow from './ProductTableRow';
-import type { ProductListItem } from './ProductTableRow';
+import type { ProductListItem } from '../domain/_type';
 
 type TextAlign = 'left' | 'center' | 'right';
 

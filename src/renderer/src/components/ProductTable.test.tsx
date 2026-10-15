@@ -1,35 +1,32 @@
 import { expect, test } from 'vitest';
 import ProductTable from './ProductTable';
-import type { ProductListItem } from './ProductTableRow';
 import { customRender } from '../customRender';
+import type { ProductListItem } from '../domain/_type';
 
 const PRODUCTS: ProductListItem[] = [
   {
     id: 1,
     name: '무선 이어폰 프로',
-    deliveryFee: 3000,
-    setPrice: 42900,
-    currentPrice: 42900,
-    updatedPrice: 42900,
-    status: 'normal',
+    setPrice: { price: 39900, deliveryFee: 3000 },
+    currentPrice: { price: 39900, deliveryFee: 3000 },
+    updatedPrice: { price: 39900, deliveryFee: 3000 },
+    status: 'complete',
     updatedAt: '14:32:05',
   },
   {
     id: 2,
     name: '블루투스 스피커 미니',
-    deliveryFee: 0,
-    setPrice: 35000,
-    currentPrice: 35000,
-    updatedPrice: 33800,
-    status: 'needUpdate',
-    updatedAt: '13:34:48',
+    setPrice: { price: 35000, deliveryFee: 0 },
+    currentPrice: { price: 35000, deliveryFee: 0 },
+    updatedPrice: null,
+    status: 'wait',
+    updatedAt: '—',
   },
   {
     id: 3,
     name: '스테인리스 텀블러',
-    deliveryFee: 3000,
-    setPrice: 24500,
-    currentPrice: 24500,
+    setPrice: { price: 21500, deliveryFee: 3000 },
+    currentPrice: { price: 21500, deliveryFee: 3000 },
     updatedPrice: null,
     status: 'error',
     updatedAt: '11:35:09',
