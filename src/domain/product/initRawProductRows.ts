@@ -41,6 +41,10 @@ export const initRawProductRows = (rawProductRows: string[][]): ProductRow[] =>
       const productPrice = row[COLUMN.productPrice] ?? '';
       const baseFee = row[COLUMN.baseFee] ?? '';
 
+      /**
+       * TODO: 유료배송 행에서 productPrice + baseFee가 freeDeliveryPrice와 다르면 알리거나 건너뛰는 검사를 추가할지 검토한다.
+       * 시트 수식이 값으로 덮어쓰이면 설정가가 조용히 어긋난다. 이 단계는 문자열이라 파싱 이후에 해야 할 수 있다.
+       */
       // 시트에 잘못 입력한 가격들이 많아 수정 작업에 시간이 필요할 것 같아, 문제가 있는 가격의 행은 넘어가는 쪽으로 진행.
       return (
         hasValidPrice(freeDeliveryPrice) && hasValidPrice(productPrice) && hasValidPrice(baseFee)
