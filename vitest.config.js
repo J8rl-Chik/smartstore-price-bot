@@ -20,6 +20,7 @@ export default defineConfig({
             'src/integrations/**/*.test.ts',
             'src/main/**/*.test.ts',
             'src/preload/**/*.test.ts',
+            'src/renderer/src/domain/**/*.test.ts',
           ],
         },
       },

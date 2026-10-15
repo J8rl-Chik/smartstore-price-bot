@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import formatTime from './formatTime.js';
+import formatTime from './formatTime';
 
 describe('formatTime', () => {
   afterEach(() => {
