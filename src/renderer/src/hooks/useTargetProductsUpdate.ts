@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { addVirtualPrice } from '../../../domain/price/addVirtualPrice';
 import delaySeconds from '../../../utils/delaySeconds';
-import type { TargetProductWithUpdate } from '../domain/_type';
+import type { TargetProductWithUpdate } from '../../../domain/product/_type';
 
 interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];

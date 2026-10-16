@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseToProductTableRow } from './parseToProductTableRow';
 import { DELIVERY_FEE_TYPE } from '../../../domain/delivery/delivery';
-import type { TargetProductWithUpdate } from './_type';
+import type { TargetProductWithUpdate } from '../../../domain/product/_type';
 
 const createProduct = (
   overrides: Partial<TargetProductWithUpdate> = {},
