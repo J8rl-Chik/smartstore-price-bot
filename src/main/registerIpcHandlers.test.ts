@@ -113,6 +113,7 @@ const invokeHandler = (channel: string, ...args: unknown[]): unknown =>
 
 describe('registerIpcHandlers', () => {
   afterEach(() => {
+    vi.unstubAllEnvs();
     mockHandle.mockReset();
     mockCreatePage.mockReset();
     mockLoginNaver.mockReset();
@@ -411,6 +412,60 @@ describe('registerIpcHandlers', () => {
       salePrice: 39900,
     });
     expect(result).toEqual({ isSuccess: true, salePrice: 39900, baseFee: 3000 });
+  });
+
+  it('DRY_RUN이 true이면 updatePrice는 가격을 수정하지 않고 계산한 판매가와 기본 배송비로 isSuccess: true를 반환한다', async () => {
+    vi.stubEnv('DRY_RUN', 'true');
+
+    const delivery = { feeType: '유료', baseFee: 3000 };
+    const deliveryFee = { deliveryFeeType: 'PAID', deliveryFeePayType: 'PREPAID', baseFee: 3000 };
+    mockBuildPriceWithDeliveryFee.mockReturnValue({ deliveryFee, salePrice: 39900 });
+
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const result = await invokeHandler('updatePrice', 12345, 42900, delivery);
+
+    expect(mockBuildPriceWithDeliveryFee).toHaveBeenCalledWith(delivery, 42900);
+    expect(mockUpdatePrice).not.toHaveBeenCalled();
+    expect(consoleLogSpy).toHaveBeenCalledOnce();
+    expect(result).toEqual({ isSuccess: true, salePrice: 39900, baseFee: 3000 });
+
+    consoleLogSpy.mockRestore();
+  });
+
+  it('DRY_RUN이 true이고 배송비가 무료이면 기본 배송비는 0으로 반환한다', async () => {
+    vi.stubEnv('DRY_RUN', 'true');
+
+    mockBuildPriceWithDeliveryFee.mockReturnValue({
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 42900,
+    });
+
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
+
+    expect(mockUpdatePrice).not.toHaveBeenCalled();
+    expect(result).toEqual({ isSuccess: true, salePrice: 42900, baseFee: 0 });
+
+    consoleLogSpy.mockRestore();
+  });
+
+  it('DRY_RUN이 true가 아니면 updatePrice는 가격을 수정한다', async () => {
+    vi.stubEnv('DRY_RUN', 'false');
+
+    mockBuildPriceWithDeliveryFee.mockReturnValue({
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 42900,
+    });
+    mockUpdatePrice.mockResolvedValue({
+      salePrice: 42900,
+      deliveryInfo: { deliveryFee: { baseFee: 0 } },
+    });
+
+    await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
+
+    expect(mockUpdatePrice).toHaveBeenCalledOnce();
   });
 
   it('updatePrice에서 판매가 계산 중 예외가 발생하면 가격을 수정하지 않고 isSuccess: false와 에러 메시지를 반환한다', async () => {

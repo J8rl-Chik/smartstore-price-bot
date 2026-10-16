@@ -125,6 +125,19 @@ export const registerIpcHandlers = (): void => {
     try {
       const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
 
+      // 실제 상품을 건드리지 않고 돌려볼 수 있도록, DRY_RUN이면 수정 요청을 보내지 않고 계산한 값을 수정 결과처럼 반환한다.
+      if (process.env.DRY_RUN === 'true') {
+        console.log(
+          `[DRY_RUN] ${originProductNo}번 상품의 가격 수정을 건너뜁니다. (판매가 ${salePrice})`,
+        );
+
+        return {
+          isSuccess: true,
+          salePrice,
+          baseFee: 'baseFee' in deliveryFee ? deliveryFee.baseFee : 0,
+        } as const;
+      }
+
       const result = await updatePrice({ productNo: originProductNo, deliveryFee, salePrice });
 
       return {
