@@ -22,12 +22,12 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     const response = await window.api.getTargetProducts();
     // TODO: response의 isSuccess가 false인 경우 예외 처리
     const targetProductsResult = response.isSuccess ? response.targetProducts : [];
-    const waitingTargetProducts = targetProductsResult.map(
-      (targetProduct): TargetProductWithUpdate => ({
+    const waitingTargetProducts = targetProductsResult
+      .map((targetProduct): TargetProductWithUpdate => ({
         ...targetProduct,
         update: { status: 'wait' },
-      }),
-    );
+      }))
+      .slice(0, 5);
 
     setIsLoading(false);
     setTargetProducts(waitingTargetProducts);
