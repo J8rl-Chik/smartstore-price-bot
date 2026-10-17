@@ -78,6 +78,16 @@ export interface TargetProductWithUpdate extends TargetProduct {
   update: TargetProductUpdate;
 }
 
+/**
+ * main이 가격 수정 순회 중 상태가 바뀔 때마다 통째로 보내는 상태.
+ * currentIndex: 지금 처리 중인 상품의 targetProducts 인덱스. 순회 중이 아니면 null.
+ */
+export interface UpdateState {
+  targetProducts: TargetProductWithUpdate[];
+  currentIndex: number | null;
+  isRunning: boolean;
+}
+
 export type TargetProductsResponse =
   | { isSuccess: true; targetProducts: TargetProduct[]; duplicateProductNames: string[] }
   | { isSuccess: false; error: string };
