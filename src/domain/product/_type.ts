@@ -90,3 +90,13 @@ export type UpdateTargetProductResult =
   | { status: 'updated'; salePrice: number; baseFee: number }
   | { status: 'skipped' }
   | { status: 'error'; error: string; isFatal: boolean };
+
+/**
+ * main이 가격 수정 순회 상태를 통째로 밀어주는 스냅샷. renderer는 받은 그대로 반영하기만 하면 된다.
+ * currentIndex: 지금 처리 중인 상품의 targetProducts 인덱스. 순회 중이 아니면 null.
+ */
+export interface UpdateState {
+  targetProducts: TargetProductWithUpdate[];
+  currentIndex: number | null;
+  isRunning: boolean;
+}
