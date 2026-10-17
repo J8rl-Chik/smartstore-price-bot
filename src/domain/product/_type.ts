@@ -81,3 +81,12 @@ export interface TargetProductWithUpdate extends TargetProduct {
 export type TargetProductsResponse =
   | { isSuccess: true; targetProducts: TargetProduct[]; duplicateProductNames: string[] }
   | { isSuccess: false; error: string };
+
+/**
+ * 상품 하나의 가격 수정 파이프라인 결과.
+ * skipped: 판매처가 없거나 가격 수정이 필요 없어 건너뜀. isFatal: 치명적 실패(순회 중단 필요) 여부.
+ */
+export type UpdateTargetProductResult =
+  | { status: 'updated'; salePrice: number; baseFee: number }
+  | { status: 'skipped' }
+  | { status: 'error'; error: string; isFatal: boolean };
