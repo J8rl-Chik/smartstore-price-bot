@@ -4,7 +4,6 @@ import { registerIpcHandlers } from './registerIpcHandlers';
 const mockHandle = vi.fn();
 const mockCreatePage = vi.fn();
 const mockLoginNaver = vi.fn();
-const mockGetSellersInPuppeteer = vi.fn();
 const mockGetSaleProducts = vi.fn();
 const mockGetProductRows = vi.fn();
 const mockExcludeNewlyRegisteredProducts = vi.fn();
@@ -12,11 +11,9 @@ const mockInitRawProductRows = vi.fn();
 const mockFindDuplicateProductNames = vi.fn();
 const mockCreateTargetProducts = vi.fn();
 const mockShuffleArray = vi.fn();
-const mockFilterExcludedSellers = vi.fn();
 const mockValidateEnv = vi.fn();
-const mockCalculateTargetPrice = vi.fn();
-const mockUpdatePrice = vi.fn();
-const mockBuildPriceWithDeliveryFee = vi.fn();
+const mockUpdateTargetProducts = vi.fn();
+const mockSend = vi.fn();
 
 vi.mock('electron', () => ({
   ipcMain: { handle: (...args: unknown[]) => mockHandle(...args) },
@@ -30,24 +27,12 @@ vi.mock(import('../integrations/puppeteer/loginNaver'), () => ({
   default: (...args: unknown[]) => mockLoginNaver(...args),
 }));
 
-vi.mock(import('../integrations/puppeteer/getSellersInPuppeteer'), () => ({
-  default: (...args: unknown[]) => mockGetSellersInPuppeteer(...args),
-}));
-
 vi.mock(import('../integrations/smartStore/getSaleProducts'), () => ({
   default: (...args: unknown[]) => mockGetSaleProducts(...args),
 }));
 
-vi.mock(import('../integrations/smartStore/updatePrice'), () => ({
-  default: (...args: unknown[]) => mockUpdatePrice(...args),
-}));
-
 vi.mock(import('../integrations/googleSheets/getProductRows'), () => ({
   default: (...args: unknown[]) => mockGetProductRows(...args),
-}));
-
-vi.mock(import('../domain/delivery/delivery'), () => ({
-  buildPriceWithDeliveryFee: (...args: unknown[]) => mockBuildPriceWithDeliveryFee(...args),
 }));
 
 vi.mock(import('../domain/product/saleProduct'), () => ({
@@ -67,14 +52,6 @@ vi.mock(import('../domain/product/createTargetProducts'), () => ({
   createTargetProducts: (...args: unknown[]) => mockCreateTargetProducts(...args),
 }));
 
-vi.mock(import('../domain/seller/filterExcludedSellers'), () => ({
-  filterExcludedSellers: (...args: unknown[]) => mockFilterExcludedSellers(...args),
-}));
-
-vi.mock(import('../domain/price/price'), () => ({
-  calculateTargetPrice: (...args: unknown[]) => mockCalculateTargetPrice(...args),
-}));
-
 vi.mock(import('../utils/shuffleArray'), () => ({
   default: (...args: unknown[]) => mockShuffleArray(...args),
 }));
@@ -83,14 +60,20 @@ vi.mock(import('../utils/validateEnv'), () => ({
   default: (...args: unknown[]) => mockValidateEnv(...args),
 }));
 
+vi.mock(import('./updateTargetProducts'), () => ({
+  default: (...args: unknown[]) => mockUpdateTargetProducts(...args),
+}));
+
 /**
  * registerIpcHandlers()를 한 번만 실행해 채널을 등록시킨 뒤, ipcMain.handle에 등록된 콜백 중
  * 해당 채널의 콜백을 찾아 직접 호출하는 함수를 반환한다.
  * IpcMainInvokeEvent는 handler에 전달되지 않으므로 빈 객체로 대체한다.
  *
  * page 변수는 registerIpcHandlers() 호출마다 새로 만들어져 같은 호출에서 등록된 핸들러끼리만 공유된다.
- * 그래서 createLoginPage로 채운 page를 getSellers가 읽는 것처럼 핸들러 간 공유 상태를 검증하려면
+ * 그래서 createLoginPage로 채운 page를 startUpdate가 읽는 것처럼 핸들러 간 공유 상태를 검증하려면
  * registerIpcHandlers()가 한 번만 호출된 상태에서 여러 채널을 호출해야 하고, 이때 이 함수를 쓴다.
+ *
+ * startUpdate는 event.sender.send로 updateState를 push하므로, sender.send를 mockSend로 연결해 둔다.
  */
 const createInvoker = (): ((channel: string, ...args: unknown[]) => unknown) => {
   registerIpcHandlers();
@@ -104,7 +87,7 @@ const createInvoker = (): ((channel: string, ...args: unknown[]) => unknown) => 
 
     const [, callback] = call;
 
-    return callback({}, ...args);
+    return callback({ sender: { send: mockSend } }, ...args);
   };
 };
 
@@ -117,7 +100,6 @@ describe('registerIpcHandlers', () => {
     mockHandle.mockReset();
     mockCreatePage.mockReset();
     mockLoginNaver.mockReset();
-    mockGetSellersInPuppeteer.mockReset();
     mockGetSaleProducts.mockReset();
     mockGetProductRows.mockReset();
     mockExcludeNewlyRegisteredProducts.mockReset();
@@ -125,11 +107,9 @@ describe('registerIpcHandlers', () => {
     mockFindDuplicateProductNames.mockReset();
     mockCreateTargetProducts.mockReset();
     mockShuffleArray.mockReset();
-    mockFilterExcludedSellers.mockReset();
     mockValidateEnv.mockReset();
-    mockCalculateTargetPrice.mockReset();
-    mockUpdatePrice.mockReset();
-    mockBuildPriceWithDeliveryFee.mockReset();
+    mockUpdateTargetProducts.mockReset();
+    mockSend.mockReset();
   });
 
   it('createLoginPage 채널을 호출하면 페이지를 생성하고 네이버에 로그인한다', async () => {
@@ -231,290 +211,57 @@ describe('registerIpcHandlers', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('getSellers는 createLoginPage로 만든 페이지와 인자로 판매처를 조회해 isSuccess: true로 반환한다', async () => {
+  it('startUpdate는 createLoginPage로 만든 페이지와 SMART_STORE_NAME으로 순회를 시작하고, 상태가 바뀔 때마다 updateState를 push한다', async () => {
     const page = { name: 'fake-page' };
-    const sellers = [{ name: '판매처A', price: 1000 }];
+    const targetProducts = [{ name: '상품A', originProductNo: 1 }];
+    const state = { targetProducts: [], currentIndex: null, isRunning: true };
     mockCreatePage.mockResolvedValue({ browser: {}, page });
-    mockGetSellersInPuppeteer.mockResolvedValue(sellers);
-
-    const invoke = createInvoker();
-    await invoke('createLoginPage');
-    const result = await invoke('getSellers', 'https://catalog.url', '상품A');
-
-    expect(mockGetSellersInPuppeteer).toHaveBeenCalledWith(page, 'https://catalog.url', '상품A');
-    expect(result).toEqual({ isSuccess: true, sellers });
-  });
-
-  it('getSellers는 조회한 판매처가 없으면 상품 이름이 담긴 메시지와 함께 isSuccess: false를 반환한다', async () => {
-    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
-    mockGetSellersInPuppeteer.mockResolvedValue([]);
-
-    const invoke = createInvoker();
-    await invoke('createLoginPage');
-    const result = await invoke('getSellers', 'https://catalog.url', '상품A');
-
-    expect(result).toEqual({ isSuccess: false, error: '상품A: 가격 목록이 없습니다.' });
-  });
-
-  it('getSellers는 로그인 페이지가 없으면 조회하지 않고 isSuccess: false를 반환한다', async () => {
-    const result = await invokeHandler('getSellers', 'https://catalog.url', '상품A');
-
-    expect(mockGetSellersInPuppeteer).not.toHaveBeenCalled();
-    expect(result).toEqual({
-      isSuccess: false,
-      error: '로그인 페이지가 생성되지 않았습니다.',
-    });
-  });
-
-  it('getSellers에서 getSellersInPuppeteer가 예외를 던지면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
-    const error = new Error('네이버 판매처 목록을 가져오지 못했습니다.');
-    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
-    mockGetSellersInPuppeteer.mockRejectedValue(error);
-
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const invoke = createInvoker();
-    await invoke('createLoginPage');
-    const result = await invoke('getSellers', 'https://catalog.url', '상품A');
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
-    expect(result).toEqual({ isSuccess: false, error: error.message });
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('getSellers에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
-    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
-    mockGetSellersInPuppeteer.mockRejectedValue('알 수 없는 문제');
-
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const invoke = createInvoker();
-    await invoke('createLoginPage');
-    const result = await invoke('getSellers', 'https://catalog.url', '상품A');
-
-    expect(result).toEqual({ isSuccess: false, error: 'getSellers 에러: 알 수 없는 문제' });
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('filterSellers는 제외 판매처와 SMART_STORE_NAME 환경 변수의 내 스토어를 뺀 판매처를 isSuccess: true로 반환한다', async () => {
-    const sellers = [
-      { name: '판매처A', price: 1000 },
-      { name: '제외 판매처', price: 900 },
-      { name: '내 스토어', price: 800 },
-    ];
-    const filteredSellers = [{ name: '판매처A', price: 1000 }];
     mockValidateEnv.mockReturnValue('내 스토어');
-    mockFilterExcludedSellers.mockReturnValue(filteredSellers);
+    mockUpdateTargetProducts.mockImplementation(
+      async (_page, _targetProducts, _myStoreName, emit) => {
+        emit(state);
+      },
+    );
 
-    const result = await invokeHandler('filterSellers', sellers, ['제외 판매처']);
+    const invoke = createInvoker();
+    await invoke('createLoginPage');
+    await invoke('startUpdate', targetProducts);
 
     expect(mockValidateEnv).toHaveBeenCalledWith('SMART_STORE_NAME');
-    expect(mockFilterExcludedSellers).toHaveBeenCalledWith(sellers, ['제외 판매처', '내 스토어']);
-    expect(result).toEqual({ isSuccess: true, sellers: filteredSellers });
+    expect(mockUpdateTargetProducts).toHaveBeenCalledWith(
+      page,
+      targetProducts,
+      '내 스토어',
+      expect.any(Function),
+    );
+    expect(mockSend).toHaveBeenCalledWith('updateState', state);
   });
 
-  it('filterSellers에서 SMART_STORE_NAME 환경 변수가 없으면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
+  it('startUpdate는 로그인 페이지가 없으면 콘솔에 로깅하고 순회를 시작하지 않는다', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await invokeHandler('startUpdate', [{ name: '상품A' }]);
+
+    expect(mockUpdateTargetProducts).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('startUpdate에서 SMART_STORE_NAME 환경 변수가 없으면 콘솔에 로깅하고 순회를 시작하지 않는다', async () => {
     const error = new Error('환경 변수 SMART_STORE_NAME가 설정되지 않았습니다.');
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
     mockValidateEnv.mockImplementation(() => {
       throw error;
     });
-
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const result = await invokeHandler('filterSellers', [], []);
+    const invoke = createInvoker();
+    await invoke('createLoginPage');
+    await invoke('startUpdate', [{ name: '상품A' }]);
 
+    expect(mockUpdateTargetProducts).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledWith(error);
-    expect(mockFilterExcludedSellers).not.toHaveBeenCalled();
-    expect(result).toEqual({ isSuccess: false, error: error.message });
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('filterSellers에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
-    mockValidateEnv.mockImplementation(() => {
-      throw '알 수 없는 문제';
-    });
-
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const result = await invokeHandler('filterSellers', [], []);
-
-    expect(result).toEqual({ isSuccess: false, error: 'filterSellers 에러: 알 수 없는 문제' });
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('getTargetPrice는 가격 목록과 무료배송 기준가로 계산한 목표 가격을 isSuccess: true로 반환한다', async () => {
-    mockCalculateTargetPrice.mockReturnValue(42990);
-
-    const result = await invokeHandler('getTargetPrice', [43000, 45000], 30000);
-
-    expect(mockCalculateTargetPrice).toHaveBeenCalledWith([43000, 45000], 30000);
-    expect(result).toEqual({ isSuccess: true, targetPrice: 42990 });
-  });
-
-  it('getTargetPrice는 가격 목록이 비어 있어도 계산 결과를 isSuccess: true로 반환한다', async () => {
-    mockCalculateTargetPrice.mockReturnValue(30000);
-
-    const result = await invokeHandler('getTargetPrice', [], 30000);
-
-    expect(mockCalculateTargetPrice).toHaveBeenCalledWith([], 30000);
-    expect(result).toEqual({ isSuccess: true, targetPrice: 30000 });
-  });
-
-  it('getTargetPrice에서 계산 중 예외가 발생하면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
-    const error = new Error('계산 실패');
-    mockCalculateTargetPrice.mockImplementation(() => {
-      throw error;
-    });
-
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const result = await invokeHandler('getTargetPrice', [43000], 30000);
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
-    expect(result).toEqual({ isSuccess: false, error: error.message });
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('getTargetPrice에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
-    mockCalculateTargetPrice.mockImplementation(() => {
-      throw '알 수 없는 문제';
-    });
-
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const result = await invokeHandler('getTargetPrice', [43000], 30000);
-
-    expect(result).toEqual({ isSuccess: false, error: 'getTargetPrice 에러: 알 수 없는 문제' });
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('updatePrice는 목표 가격과 배송비 설정으로 계산한 판매가와 배송비로 가격을 수정하고 응답의 판매가와 기본 배송비와 함께 isSuccess: true를 반환한다', async () => {
-    const delivery = { feeType: '유료', baseFee: 3000 };
-    const deliveryFee = { deliveryFeeType: 'PAID', deliveryFeePayType: 'PREPAID', baseFee: 3000 };
-    mockBuildPriceWithDeliveryFee.mockReturnValue({ deliveryFee, salePrice: 39900 });
-    mockUpdatePrice.mockResolvedValue({
-      salePrice: 39900,
-      deliveryInfo: { deliveryFee: { baseFee: 3000 } },
-    });
-
-    const result = await invokeHandler('updatePrice', 12345, 42900, delivery);
-
-    expect(mockBuildPriceWithDeliveryFee).toHaveBeenCalledWith(delivery, 42900);
-    expect(mockUpdatePrice).toHaveBeenCalledWith({
-      productNo: 12345,
-      deliveryFee,
-      salePrice: 39900,
-    });
-    expect(result).toEqual({ isSuccess: true, salePrice: 39900, baseFee: 3000 });
-  });
-
-  it('DRY_RUN이 true이면 updatePrice는 가격을 수정하지 않고 계산한 판매가와 기본 배송비로 isSuccess: true를 반환한다', async () => {
-    vi.stubEnv('DRY_RUN', 'true');
-
-    const delivery = { feeType: '유료', baseFee: 3000 };
-    const deliveryFee = { deliveryFeeType: 'PAID', deliveryFeePayType: 'PREPAID', baseFee: 3000 };
-    mockBuildPriceWithDeliveryFee.mockReturnValue({ deliveryFee, salePrice: 39900 });
-
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-    const result = await invokeHandler('updatePrice', 12345, 42900, delivery);
-
-    expect(mockBuildPriceWithDeliveryFee).toHaveBeenCalledWith(delivery, 42900);
-    expect(mockUpdatePrice).not.toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledOnce();
-    expect(result).toEqual({ isSuccess: true, salePrice: 39900, baseFee: 3000 });
-
-    consoleLogSpy.mockRestore();
-  });
-
-  it('DRY_RUN이 true이고 배송비가 무료이면 기본 배송비는 0으로 반환한다', async () => {
-    vi.stubEnv('DRY_RUN', 'true');
-
-    mockBuildPriceWithDeliveryFee.mockReturnValue({
-      deliveryFee: { deliveryFeeType: 'FREE' },
-      salePrice: 42900,
-    });
-
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
-
-    expect(mockUpdatePrice).not.toHaveBeenCalled();
-    expect(result).toEqual({ isSuccess: true, salePrice: 42900, baseFee: 0 });
-
-    consoleLogSpy.mockRestore();
-  });
-
-  it('DRY_RUN이 true가 아니면 updatePrice는 가격을 수정한다', async () => {
-    vi.stubEnv('DRY_RUN', 'false');
-
-    mockBuildPriceWithDeliveryFee.mockReturnValue({
-      deliveryFee: { deliveryFeeType: 'FREE' },
-      salePrice: 42900,
-    });
-    mockUpdatePrice.mockResolvedValue({
-      salePrice: 42900,
-      deliveryInfo: { deliveryFee: { baseFee: 0 } },
-    });
-
-    await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
-
-    expect(mockUpdatePrice).toHaveBeenCalledOnce();
-  });
-
-  it('updatePrice에서 판매가 계산 중 예외가 발생하면 가격을 수정하지 않고 isSuccess: false와 에러 메시지를 반환한다', async () => {
-    const error = new Error('알 수 없는 배송비 유형입니다.');
-    mockBuildPriceWithDeliveryFee.mockImplementation(() => {
-      throw error;
-    });
-
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
-    expect(mockUpdatePrice).not.toHaveBeenCalled();
-    expect(result).toEqual({ isSuccess: false, error: error.message });
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('updatePrice에서 가격 수정 중 예외가 발생하면 콘솔에 로깅하고 isSuccess: false와 에러 메시지를 반환한다', async () => {
-    const error = new Error('네이버 상품 가격을 수정하지 못했습니다.');
-    mockBuildPriceWithDeliveryFee.mockReturnValue({
-      deliveryFee: { deliveryFeeType: 'FREE' },
-      salePrice: 42900,
-    });
-    mockUpdatePrice.mockRejectedValue(error);
-
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
-    expect(result).toEqual({ isSuccess: false, error: error.message });
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('updatePrice에서 Error가 아닌 값을 던지면 문자열로 변환해 반환한다', async () => {
-    mockBuildPriceWithDeliveryFee.mockReturnValue({
-      deliveryFee: { deliveryFeeType: 'FREE' },
-      salePrice: 42900,
-    });
-    mockUpdatePrice.mockRejectedValue('알 수 없는 문제');
-
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
-
-    expect(result).toEqual({ isSuccess: false, error: 'updatePrice 에러: 알 수 없는 문제' });
 
     consoleErrorSpy.mockRestore();
   });

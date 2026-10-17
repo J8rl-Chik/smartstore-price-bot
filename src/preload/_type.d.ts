@@ -1,16 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload';
-import type { Delivery } from '../domain/delivery/_type';
-import type { TargetProductsResponse } from '../domain/product/_type';
-import type { Seller } from '../domain/seller/filterExcludedSellers';
-
-export type SellersResponse =
-  { isSuccess: true; sellers: Seller[] } | { isSuccess: false; error: string };
-
-export type TargetPriceResponse =
-  { isSuccess: true; targetPrice: number } | { isSuccess: false; error: string };
-
-export type UpdatePriceResponse =
-  { isSuccess: true; salePrice: number; baseFee: number } | { isSuccess: false; error: string };
+import type { TargetProduct, TargetProductsResponse, UpdateState } from '../domain/product/_type';
 
 // main <-> renderer가 양방향(invoke/handle)으로 주고받는 IPC 채널을 함수 형태로 정의한다.
 // 매개변수는 요청 인자, 반환값(Promise)은 응답 타입이다.
@@ -19,22 +8,19 @@ export type UpdatePriceResponse =
 export interface IpcEvent {
   createLoginPage: () => Promise<void>;
   getTargetProducts: () => Promise<TargetProductsResponse>;
-  // TODO: getSellers부터 인자 타입 일부를 TargetProduct 타입에서 import해 TargetProduct['sheet']['catalogURL'] 같은 프로퍼티 접근 방식으로 대체하는 것을 고려한다.
-  getSellers: (catalogURL: string, productName: string) => Promise<SellersResponse>;
-  filterSellers: (sellers: Seller[], excludedSellerNames: string[]) => Promise<SellersResponse>;
-  getTargetPrice: (prices: number[], freeDeliveryPrice: number) => Promise<TargetPriceResponse>;
-  updatePrice: (
-    originProductNo: number,
-    targetPrice: number,
-    delivery: Delivery,
-  ) => Promise<UpdatePriceResponse>;
+  // 상품 목록 전체의 가격 수정 순회를 시작한다. 진행 상태는 응답이 아니라 onUpdateState 구독으로 전달된다.
+  startUpdate: (targetProducts: TargetProduct[]) => Promise<void>;
 }
 
 // 선언 병합으로 전역 Window 인터페이스에 electron, api 프로퍼티를 추가한다.
-// api는 IpcEvent와 같은 모양이다. preload가 각 채널을 같은 이름의 함수로 노출한다.
+// api의 IpcEvent 부분은 invoke/handle 채널을 같은 이름의 함수로 노출한다.
 declare global {
   interface Window {
     electron: ElectronAPI;
-    api: IpcEvent;
+    api: IpcEvent & {
+      // main이 순회 상태가 바뀔 때마다 push하는 updateState 채널을 구독한다.
+      // callback을 등록 해제하는 함수를 반환한다.
+      onUpdateState: (callback: (state: UpdateState) => void) => () => void;
+    };
   }
 }

@@ -4,18 +4,18 @@ import { IpcEvent } from '../preload/_type';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
-import updatePrice from '../integrations/smartStore/updatePrice';
-import getSellersInPuppeteer from '../integrations/puppeteer/getSellersInPuppeteer';
 import getProductRows from '../integrations/googleSheets/getProductRows';
-import { buildPriceWithDeliveryFee } from '../domain/delivery/delivery';
 import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
 import { initRawProductRows } from '../domain/product/initRawProductRows';
 import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
-import { filterExcludedSellers } from '../domain/seller/filterExcludedSellers';
-import { calculateTargetPrice } from '../domain/price/price';
 import shuffleArray from '../utils/shuffleArray';
 import validateEnv from '../utils/validateEnv';
+import updateTargetProducts from './updateTargetProducts';
+import type { UpdateState } from '../domain/product/_type';
+
+// main이 순회 상태를 push하는 채널 이름. preload/exposeApi.ts의 구독과 이름이 같아야 한다.
+const UPDATE_STATE_CHANNEL = 'updateState';
 
 // 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼
 const handleIpc = <E extends keyof IpcEvent>(
@@ -64,94 +64,29 @@ export const registerIpcHandlers = (): void => {
     }
   });
 
-  handleIpc('getSellers', async (catalogURL, productName) => {
-    if (!page) {
-      return { isSuccess: false, error: '로그인 페이지가 생성되지 않았습니다.' } as const;
-    }
+  /**
+   * 상품 목록 전체의 가격 수정 순회를 시작한다. handleIpc는 sender(WebContents)를 전달하지 않아
+   * updateState를 push해야 하는 이 핸들러만 ipcMain.handle을 직접 사용한다.
+   */
+  ipcMain.handle(
+    'startUpdate',
+    async (event, targetProducts: Parameters<IpcEvent['startUpdate']>[0]) => {
+      if (!page) {
+        console.error('startUpdate: 로그인 페이지가 생성되지 않았습니다.');
 
-    try {
-      const sellers = await getSellersInPuppeteer(page, catalogURL, productName);
-
-      if (sellers.length === 0) {
-        return { isSuccess: false, error: `${productName}: 가격 목록이 없습니다.` } as const;
+        return;
       }
 
-      return { isSuccess: true, sellers } as const;
-    } catch (error) {
-      console.error(error);
+      try {
+        const myStoreName = validateEnv('SMART_STORE_NAME');
+        const emit = (state: UpdateState): void => {
+          event.sender.send(UPDATE_STATE_CHANNEL, state);
+        };
 
-      return {
-        isSuccess: false,
-        error: error instanceof Error ? error.message : String(`getSellers 에러: ${error}`),
-      } as const;
-    }
-  });
-
-  // 내 스토어 이름은 환경 변수라 main에서만 읽을 수 있어, 필터링을 main에서 처리한다.
-  handleIpc('filterSellers', async (sellers, excludedSellerNames) => {
-    try {
-      const myStoreName = validateEnv('SMART_STORE_NAME');
-
-      return {
-        isSuccess: true,
-        sellers: filterExcludedSellers(sellers, [...excludedSellerNames, myStoreName]),
-      } as const;
-    } catch (error) {
-      console.error(error);
-
-      return {
-        isSuccess: false,
-        error: error instanceof Error ? error.message : String(`filterSellers 에러: ${error}`),
-      } as const;
-    }
-  });
-
-  handleIpc('getTargetPrice', async (prices, freeDeliveryPrice) => {
-    try {
-      const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
-
-      return { isSuccess: true, targetPrice } as const;
-    } catch (error) {
-      console.error(error);
-
-      return {
-        isSuccess: false,
-        error: error instanceof Error ? error.message : String(`getTargetPrice 에러: ${error}`),
-      } as const;
-    }
-  });
-
-  handleIpc('updatePrice', async (originProductNo, targetPrice, delivery) => {
-    try {
-      const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
-
-      // 실제 상품을 건드리지 않고 돌려볼 수 있도록, DRY_RUN이면 수정 요청을 보내지 않고 계산한 값을 수정 결과처럼 반환한다.
-      if (process.env.DRY_RUN === 'true') {
-        console.log(
-          `[DRY_RUN] ${originProductNo}번 상품의 가격 수정을 건너뜁니다. (판매가 ${salePrice})`,
-        );
-
-        return {
-          isSuccess: true,
-          salePrice,
-          baseFee: 'baseFee' in deliveryFee ? deliveryFee.baseFee : 0,
-        } as const;
+        await updateTargetProducts(page, targetProducts, myStoreName, emit);
+      } catch (error) {
+        console.error(error);
       }
-
-      const result = await updatePrice({ productNo: originProductNo, deliveryFee, salePrice });
-
-      return {
-        isSuccess: true,
-        salePrice: result.salePrice,
-        baseFee: result.deliveryInfo.deliveryFee.baseFee,
-      } as const;
-    } catch (error) {
-      console.error(error);
-
-      return {
-        isSuccess: false,
-        error: error instanceof Error ? error.message : String(`updatePrice 에러: ${error}`),
-      } as const;
-    }
-  });
+    },
+  );
 };

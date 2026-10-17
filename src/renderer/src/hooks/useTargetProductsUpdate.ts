@@ -1,7 +1,5 @@
-import { useState } from 'react';
-import { addVirtualPrice } from '../../../domain/price/addVirtualPrice';
-import delaySeconds from '../../../utils/delaySeconds';
-import type { TargetProductWithUpdate } from '../../../domain/product/_type';
+import { useEffect, useState } from 'react';
+import type { TargetProductWithUpdate, UpdateState } from '../../../domain/product/_type';
 
 interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
@@ -11,103 +9,48 @@ interface TargetProductsUpdate {
   start: () => Promise<void>;
 }
 
+const INITIAL_UPDATE_STATE: UpdateState = {
+  targetProducts: [],
+  currentIndex: null,
+  isRunning: false,
+};
+
 const useTargetProductsUpdate = (): TargetProductsUpdate => {
-  const [targetProducts, setTargetProducts] = useState<TargetProductWithUpdate[]>([]);
+  const [updateState, setUpdateState] = useState<UpdateState>(INITIAL_UPDATE_STATE);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+
+  // main이 순회 상태가 바뀔 때마다 push하는 updateState를 그대로 반영한다. 순회 로직은 main이 갖고 있어 여기서는 모른다.
+  useEffect(() => window.api.onUpdateState(setUpdateState), []);
 
   const start = async (): Promise<void> => {
     setIsLoading(true);
 
     const response = await window.api.getTargetProducts();
     // TODO: response의 isSuccess가 false인 경우 예외 처리
-    const targetProductsResult = response.isSuccess ? response.targetProducts : [];
-    const waitingTargetProducts = targetProductsResult
-      .map((targetProduct): TargetProductWithUpdate => ({
-        ...targetProduct,
-        update: { status: 'wait' },
-      }))
-      .slice(0, 5);
+    const targetProducts = response.isSuccess ? response.targetProducts : [];
 
     setIsLoading(false);
-    setTargetProducts(waitingTargetProducts);
+    // startUpdate가 첫 updateState를 push하기 전에도 바로 목록을 보여줄 수 있도록 wait 상태로 먼저 반영한다.
+    // main이 보내는 첫 updateState도 같은 내용이라 덮어써도 차이가 없다.
+    setUpdateState({
+      targetProducts: targetProducts.map((targetProduct) => ({
+        ...targetProduct,
+        update: { status: 'wait' },
+      })),
+      currentIndex: null,
+      isRunning: false,
+    });
 
-    if (waitingTargetProducts.length === 0) {
+    if (targetProducts.length === 0) {
       return;
     }
 
     await window.api.createLoginPage();
-
-    try {
-      for (const [index, targetProduct] of waitingTargetProducts.entries()) {
-        setCurrentIndex(index);
-
-        const sellersResponse = await window.api.getSellers(
-          targetProduct.sheet.catalogURL,
-          targetProduct.name,
-        );
-
-        // TODO: 임시 조치. 실패하면 순회를 중단한다. 브라우저 종료 같은 치명적인 실패와 개별 상품의 일시적 실패를 구분해 처리해야 한다.
-        if (!sellersResponse.isSuccess) {
-          break;
-        }
-
-        const filteredSellersResponse = await window.api.filterSellers(
-          sellersResponse.sellers,
-          targetProduct.sheet.excludedSellerNames,
-        );
-
-        if (!filteredSellersResponse.isSuccess) {
-          break;
-        }
-
-        const sellerPrices = filteredSellersResponse.sellers.map(({ price }) => price);
-        const prices = addVirtualPrice(sellerPrices, targetProduct.sheet.virtualPrice);
-        const targetPriceResponse = await window.api.getTargetPrice(
-          prices,
-          targetProduct.sheet.freeDeliveryPrice,
-        );
-
-        if (!targetPriceResponse.isSuccess) {
-          break;
-        }
-
-        const updatePriceResponse = await window.api.updatePrice(
-          targetProduct.originProductNo,
-          targetPriceResponse.targetPrice,
-          targetProduct.sheet.delivery,
-        );
-
-        if (!updatePriceResponse.isSuccess) {
-          break;
-        }
-
-        const updatedTargetProduct: TargetProductWithUpdate = {
-          ...targetProduct,
-          update: {
-            status: 'complete',
-            price: updatePriceResponse.salePrice,
-            baseFee: updatePriceResponse.baseFee,
-            updatedAt: Date.now(),
-          },
-        };
-
-        setTargetProducts((prev) =>
-          prev.map((target) =>
-            target.originProductNo === updatedTargetProduct.originProductNo
-              ? updatedTargetProduct
-              : target,
-          ),
-        );
-
-        await delaySeconds(5);
-      }
-    } finally {
-      setCurrentIndex(null);
-    }
+    await window.api.startUpdate(targetProducts);
   };
 
-  // 진행 상태는 별도 state로 두지 않고 targetProducts와 currentIndex에서 계산한다.
+  const { targetProducts, currentIndex } = updateState;
+  // 진행 상태는 별도 state로 두지 않고 updateState의 currentIndex에서 계산한다.
   const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
   const currentOrder = currentIndex === null ? 0 : currentIndex + 1;
 

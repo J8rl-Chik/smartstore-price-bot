@@ -1,12 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { exposeApi } from './exposeApi';
-import type { Seller } from '../domain/seller/filterExcludedSellers';
+import type { TargetProduct, UpdateState } from '../domain/product/_type';
 import type { IpcEvent } from './_type';
 
-// preload가 renderer에 노출하는 api의 형태. IpcEvent와 같은 모양이다.
-type Api = IpcEvent;
+// preload가 renderer에 노출하는 api의 형태. IpcEvent에 onUpdateState 구독 함수가 더해진 모양이다.
+type Api = IpcEvent & { onUpdateState: (callback: (state: UpdateState) => void) => () => void };
 
 const mockInvoke = vi.fn();
+const mockOn = vi.fn();
+const mockRemoveListener = vi.fn();
 const mockExposeInMainWorld = vi.fn();
 // vi.mock 팩토리는 import보다 먼저 호이스팅되므로, 팩토리가 참조하는 값도 vi.hoisted로 먼저 만든다.
 const { fakeElectronAPI } = vi.hoisted(() => ({
@@ -17,7 +19,11 @@ vi.mock('electron', () => ({
   contextBridge: {
     exposeInMainWorld: (...args: unknown[]) => mockExposeInMainWorld(...args),
   },
-  ipcRenderer: { invoke: (...args: unknown[]) => mockInvoke(...args) },
+  ipcRenderer: {
+    invoke: (...args: unknown[]) => mockInvoke(...args),
+    on: (...args: unknown[]) => mockOn(...args),
+    removeListener: (...args: unknown[]) => mockRemoveListener(...args),
+  },
 }));
 
 vi.mock('@electron-toolkit/preload', () => ({
@@ -46,6 +52,8 @@ const getExposedApi = (): Api => {
 describe('exposeApi', () => {
   afterEach(() => {
     mockInvoke.mockReset();
+    mockOn.mockReset();
+    mockRemoveListener.mockReset();
     mockExposeInMainWorld.mockReset();
     Reflect.deleteProperty(process, 'contextIsolated');
   });
@@ -81,54 +89,49 @@ describe('exposeApi', () => {
     expect(result).toBe('getTargetProducts 결과');
   });
 
-  it('getSellers를 호출하면 getSellers 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
+  it('startUpdate를 호출하면 startUpdate 채널로 상품 목록과 함께 invoke를 호출하고 결과를 반환한다', async () => {
     setContextIsolated(true);
-    mockInvoke.mockResolvedValue('getSellers 결과');
+    mockInvoke.mockResolvedValue('startUpdate 결과');
 
+    const targetProducts = [{ name: '상품A', originProductNo: 1 }] as unknown as TargetProduct[];
     const api = getExposedApi();
-    const result = await api.getSellers('https://catalog.url', '상품A');
+    const result = await api.startUpdate(targetProducts);
 
-    expect(mockInvoke).toHaveBeenCalledWith('getSellers', 'https://catalog.url', '상품A');
-    expect(result).toBe('getSellers 결과');
+    expect(mockInvoke).toHaveBeenCalledWith('startUpdate', targetProducts);
+    expect(result).toBe('startUpdate 결과');
   });
 
-  it('filterSellers를 호출하면 filterSellers 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
+  it('onUpdateState를 호출하면 updateState 채널을 구독하고, 받은 상태로 콜백을 호출한다', () => {
     setContextIsolated(true);
-    mockInvoke.mockResolvedValue('filterSellers 결과');
 
-    const sellers: Seller[] = [
-      { name: '판매처A', price: 1000, deliveryFee: 0, deliveryFeeType: '무료' },
+    const api = getExposedApi();
+    const callback = vi.fn();
+
+    api.onUpdateState(callback);
+
+    expect(mockOn).toHaveBeenCalledWith('updateState', expect.any(Function));
+
+    const [, listener] = mockOn.mock.calls[0] as [
+      string,
+      (event: unknown, state: UpdateState) => void,
     ];
-    const api = getExposedApi();
-    const result = await api.filterSellers(sellers, ['제외 판매처']);
+    const state: UpdateState = { targetProducts: [], currentIndex: null, isRunning: true };
 
-    expect(mockInvoke).toHaveBeenCalledWith('filterSellers', sellers, ['제외 판매처']);
-    expect(result).toBe('filterSellers 결과');
+    listener({}, state);
+
+    expect(callback).toHaveBeenCalledWith(state);
   });
 
-  it('getTargetPrice를 호출하면 getTargetPrice 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
+  it('onUpdateState가 반환한 함수를 호출하면 updateState 채널 구독을 해제한다', () => {
     setContextIsolated(true);
-    mockInvoke.mockResolvedValue('getTargetPrice 결과');
 
     const api = getExposedApi();
-    const result = await api.getTargetPrice([42000, 43000], 30000);
+    const unsubscribe = api.onUpdateState(vi.fn());
+    const [, listener] = mockOn.mock.calls[0] as [string, (...args: unknown[]) => void];
 
-    expect(mockInvoke).toHaveBeenCalledWith('getTargetPrice', [42000, 43000], 30000);
-    expect(result).toBe('getTargetPrice 결과');
-  });
+    unsubscribe();
 
-  it('updatePrice를 호출하면 updatePrice 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('updatePrice 결과');
-
-    const api = getExposedApi();
-    const result = await api.updatePrice(12345, 42900, { feeType: '유료', baseFee: 3000 });
-
-    expect(mockInvoke).toHaveBeenCalledWith('updatePrice', 12345, 42900, {
-      feeType: '유료',
-      baseFee: 3000,
-    });
-    expect(result).toBe('updatePrice 결과');
+    expect(mockRemoveListener).toHaveBeenCalledWith('updateState', listener);
   });
 
   it('contextBridge 노출 중 예외가 발생하면 콘솔에 로깅한다', () => {
