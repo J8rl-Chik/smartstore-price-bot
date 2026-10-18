@@ -1,7 +1,5 @@
-import { useState } from 'react';
-import { addVirtualPrice } from '../../../domain/price/addVirtualPrice';
-import delaySeconds from '../../../utils/delaySeconds';
-import type { TargetProductWithUpdate } from '../../../domain/product/_type';
+import { useEffect, useState } from 'react';
+import type { TargetProductWithUpdate, UpdateState } from '../../../domain/product/_type';
 
 interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
@@ -11,101 +9,43 @@ interface TargetProductsUpdate {
   start: () => Promise<void>;
 }
 
+const INITIAL_UPDATE_STATE: UpdateState = {
+  targetProducts: [],
+  currentIndex: null,
+  isRunning: false,
+};
+
+/**
+ * 가격 수정 순회는 main이 처리하고, 이 훅은 main이 보내는 상태를 구독해 화면에 넘기기만 한다.
+ * 상태는 main이 매번 통째로 보내므로 받은 그대로 저장한다.
+ */
 const useTargetProductsUpdate = (): TargetProductsUpdate => {
-  const [targetProducts, setTargetProducts] = useState<TargetProductWithUpdate[]>([]);
+  const [updateState, setUpdateState] = useState<UpdateState>(INITIAL_UPDATE_STATE);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+
+  // onUpdateState가 반환하는 구독 해제 함수를 그대로 cleanup으로 넘긴다.
+  useEffect(
+    () =>
+      window.api.onUpdateState((state) => {
+        // 첫 상태는 main이 목록 조회와 로그인을 마친 뒤 보내므로, 상태를 받으면 로딩이 끝난 것이다.
+        setIsLoading(false);
+        setUpdateState(state);
+      }),
+    [],
+  );
 
   const start = async (): Promise<void> => {
     setIsLoading(true);
 
-    const response = await window.api.getTargetProducts();
-    // TODO: response의 isSuccess가 false인 경우 예외 처리
-    const targetProductsResult = response.isSuccess ? response.targetProducts : [];
-    const waitingTargetProducts = targetProductsResult
-      .map((targetProduct): TargetProductWithUpdate => ({
-        ...targetProduct,
-        update: { status: 'wait' },
-      }))
-      .slice(0, 5);
-
-    setIsLoading(false);
-    setTargetProducts(waitingTargetProducts);
-
-    if (waitingTargetProducts.length === 0) {
-      return;
-    }
-
-    await window.api.createLoginPage();
-
     try {
-      for (const [index, targetProduct] of waitingTargetProducts.entries()) {
-        setCurrentIndex(index);
-
-        const sellersResponse = await window.api.getSellers(
-          targetProduct.sheet.catalogURL,
-          targetProduct.name,
-        );
-
-        // TODO: 임시 조치. 실패하면 순회를 중단한다. 브라우저 종료 같은 치명적인 실패와 개별 상품의 일시적 실패를 구분해 처리해야 한다.
-        if (!sellersResponse.isSuccess) {
-          break;
-        }
-
-        const filteredSellersResponse = await window.api.filterSellers(
-          sellersResponse.sellers,
-          targetProduct.sheet.excludedSellerNames,
-        );
-
-        if (!filteredSellersResponse.isSuccess) {
-          break;
-        }
-
-        const sellerPrices = filteredSellersResponse.sellers.map(({ price }) => price);
-        const prices = addVirtualPrice(sellerPrices, targetProduct.sheet.virtualPrice);
-        const targetPriceResponse = await window.api.getTargetPrice(
-          prices,
-          targetProduct.sheet.freeDeliveryPrice,
-        );
-
-        if (!targetPriceResponse.isSuccess) {
-          break;
-        }
-
-        const updatePriceResponse = await window.api.updatePrice(
-          targetProduct.originProductNo,
-          targetPriceResponse.targetPrice,
-          targetProduct.sheet.delivery,
-        );
-
-        if (!updatePriceResponse.isSuccess) {
-          break;
-        }
-
-        const updatedTargetProduct: TargetProductWithUpdate = {
-          ...targetProduct,
-          update: {
-            status: 'complete',
-            price: updatePriceResponse.salePrice,
-            baseFee: updatePriceResponse.baseFee,
-            updatedAt: Date.now(),
-          },
-        };
-
-        setTargetProducts((prev) =>
-          prev.map((target) =>
-            target.originProductNo === updatedTargetProduct.originProductNo
-              ? updatedTargetProduct
-              : target,
-          ),
-        );
-
-        await delaySeconds(5);
-      }
+      await window.api.startUpdate();
     } finally {
-      setCurrentIndex(null);
+      // main이 상태를 보내지 못하고 끝나도(목록 조회·로그인 실패) 로딩이 풀리도록 한다.
+      setIsLoading(false);
     }
   };
+
+  const { targetProducts, currentIndex } = updateState;
 
   // 진행 상태는 별도 state로 두지 않고 targetProducts와 currentIndex에서 계산한다.
   const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
