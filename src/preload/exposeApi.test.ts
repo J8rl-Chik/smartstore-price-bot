@@ -1,12 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { exposeApi } from './exposeApi';
 import type { Seller } from '../domain/seller/filterExcludedSellers';
-import type { IpcEvent } from './_type';
+import type { UpdateState } from '../domain/product/_type';
+import type { IpcEvent, IpcListener } from './_type';
 
-// preload가 renderer에 노출하는 api의 형태. IpcEvent와 같은 모양이다.
-type Api = IpcEvent;
+// preload가 renderer에 노출하는 api의 형태. IpcEvent와 IpcListener를 합친 모양이다.
+type Api = IpcEvent & IpcListener;
 
 const mockInvoke = vi.fn();
+const mockOn = vi.fn();
+const mockRemoveListener = vi.fn();
 const mockExposeInMainWorld = vi.fn();
 // vi.mock 팩토리는 import보다 먼저 호이스팅되므로, 팩토리가 참조하는 값도 vi.hoisted로 먼저 만든다.
 const { fakeElectronAPI } = vi.hoisted(() => ({
@@ -17,7 +20,11 @@ vi.mock('electron', () => ({
   contextBridge: {
     exposeInMainWorld: (...args: unknown[]) => mockExposeInMainWorld(...args),
   },
-  ipcRenderer: { invoke: (...args: unknown[]) => mockInvoke(...args) },
+  ipcRenderer: {
+    invoke: (...args: unknown[]) => mockInvoke(...args),
+    on: (...args: unknown[]) => mockOn(...args),
+    removeListener: (...args: unknown[]) => mockRemoveListener(...args),
+  },
 }));
 
 vi.mock('@electron-toolkit/preload', () => ({
@@ -46,6 +53,8 @@ const getExposedApi = (): Api => {
 describe('exposeApi', () => {
   afterEach(() => {
     mockInvoke.mockReset();
+    mockOn.mockReset();
+    mockRemoveListener.mockReset();
     mockExposeInMainWorld.mockReset();
     Reflect.deleteProperty(process, 'contextIsolated');
   });
@@ -129,6 +138,51 @@ describe('exposeApi', () => {
       baseFee: 3000,
     });
     expect(result).toBe('updatePrice 결과');
+  });
+
+  it('startUpdate를 호출하면 startUpdate 채널로 invoke를 호출한다', async () => {
+    setContextIsolated(true);
+    mockInvoke.mockResolvedValue(undefined);
+
+    const api = getExposedApi();
+    await api.startUpdate();
+
+    expect(mockInvoke).toHaveBeenCalledWith('startUpdate');
+  });
+
+  it('onUpdateState를 호출하면 updateState 채널에 listener를 등록한다', () => {
+    setContextIsolated(true);
+
+    const api = getExposedApi();
+    api.onUpdateState(vi.fn());
+
+    expect(mockOn).toHaveBeenCalledWith('updateState', expect.any(Function));
+  });
+
+  it('updateState 채널로 상태가 오면 onUpdateState에 넘긴 callback에 상태만 전달한다', () => {
+    setContextIsolated(true);
+
+    const state: UpdateState = { targetProducts: [], currentIndex: null, isRunning: true };
+    const callback = vi.fn();
+    const api = getExposedApi();
+    api.onUpdateState(callback);
+
+    const [, listener] = mockOn.mock.calls[0];
+    listener({ name: 'fake-ipc-event' }, state);
+
+    expect(callback).toHaveBeenCalledWith(state);
+  });
+
+  it('onUpdateState가 반환한 함수를 호출하면 등록한 listener를 updateState 채널에서 해제한다', () => {
+    setContextIsolated(true);
+
+    const api = getExposedApi();
+    const unsubscribe = api.onUpdateState(vi.fn());
+    unsubscribe();
+
+    const [, listener] = mockOn.mock.calls[0];
+
+    expect(mockRemoveListener).toHaveBeenCalledWith('updateState', listener);
   });
 
   it('contextBridge 노출 중 예외가 발생하면 콘솔에 로깅한다', () => {

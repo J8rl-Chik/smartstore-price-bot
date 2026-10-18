@@ -17,6 +17,8 @@ const mockValidateEnv = vi.fn();
 const mockCalculateTargetPrice = vi.fn();
 const mockUpdatePrice = vi.fn();
 const mockBuildPriceWithDeliveryFee = vi.fn();
+const mockUpdateTargetProducts = vi.fn();
+const mockSend = vi.fn();
 
 vi.mock('electron', () => ({
   ipcMain: { handle: (...args: unknown[]) => mockHandle(...args) },
@@ -83,10 +85,14 @@ vi.mock(import('../utils/validateEnv'), () => ({
   default: (...args: unknown[]) => mockValidateEnv(...args),
 }));
 
+vi.mock(import('./updateTargetProducts'), () => ({
+  default: (...args: unknown[]) => mockUpdateTargetProducts(...args),
+}));
+
 /**
  * registerIpcHandlers()를 한 번만 실행해 채널을 등록시킨 뒤, ipcMain.handle에 등록된 콜백 중
  * 해당 채널의 콜백을 찾아 직접 호출하는 함수를 반환한다.
- * IpcMainInvokeEvent는 handler에 전달되지 않으므로 빈 객체로 대체한다.
+ * IpcMainInvokeEvent는 handler에 sender만 전달되므로 send만 가진 가짜 sender를 담은 객체로 대체한다.
  *
  * page 변수는 registerIpcHandlers() 호출마다 새로 만들어져 같은 호출에서 등록된 핸들러끼리만 공유된다.
  * 그래서 createLoginPage로 채운 page를 getSellers가 읽는 것처럼 핸들러 간 공유 상태를 검증하려면
@@ -104,7 +110,7 @@ const createInvoker = (): ((channel: string, ...args: unknown[]) => unknown) => 
 
     const [, callback] = call;
 
-    return callback({}, ...args);
+    return callback({ sender: { send: mockSend } }, ...args);
   };
 };
 
@@ -130,6 +136,8 @@ describe('registerIpcHandlers', () => {
     mockCalculateTargetPrice.mockReset();
     mockUpdatePrice.mockReset();
     mockBuildPriceWithDeliveryFee.mockReset();
+    mockUpdateTargetProducts.mockReset();
+    mockSend.mockReset();
   });
 
   it('createLoginPage 채널을 호출하면 페이지를 생성하고 네이버에 로그인한다', async () => {
@@ -515,6 +523,126 @@ describe('registerIpcHandlers', () => {
     const result = await invokeHandler('updatePrice', 12345, 42900, { feeType: '무료' });
 
     expect(result).toEqual({ isSuccess: false, error: 'updatePrice 에러: 알 수 없는 문제' });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  // startUpdate가 조회할 가격 수정 대상 목록을 정한다. 목록 생성 과정의 중간값은 이 테스트들의 관심사가 아니다.
+  const mockFetchedTargetProducts = (targetProducts: unknown[]): void => {
+    mockGetSaleProducts.mockResolvedValue([]);
+    mockGetProductRows.mockResolvedValue([]);
+    mockExcludeNewlyRegisteredProducts.mockReturnValue([]);
+    mockShuffleArray.mockReturnValue([]);
+    mockInitRawProductRows.mockReturnValue([]);
+    mockFindDuplicateProductNames.mockReturnValue([]);
+    mockCreateTargetProducts.mockReturnValue(targetProducts);
+  };
+
+  it('startUpdate는 조회한 상품 목록과 로그인한 페이지, 내 스토어 이름으로 updateTargetProducts를 실행한다', async () => {
+    const page = { name: 'fake-page' };
+    const targetProducts = [{ name: '상품A', originProductNo: 111 }];
+    mockFetchedTargetProducts(targetProducts);
+    mockValidateEnv.mockReturnValue('내 스토어');
+    mockCreatePage.mockResolvedValue({ browser: {}, page });
+
+    await invokeHandler('startUpdate');
+
+    expect(mockValidateEnv).toHaveBeenCalledWith('SMART_STORE_NAME');
+    expect(mockLoginNaver).toHaveBeenCalledWith(page);
+    expect(mockUpdateTargetProducts).toHaveBeenCalledWith(
+      page,
+      targetProducts,
+      '내 스토어',
+      expect.any(Function),
+    );
+  });
+
+  it('startUpdate는 updateTargetProducts가 emit한 상태를 요청한 창의 updateState 채널로 보낸다', async () => {
+    const state = { targetProducts: [], currentIndex: 0, isRunning: true };
+
+    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+    mockUpdateTargetProducts.mockImplementation(
+      async (_page, _targetProducts, _myStoreName, emit) => emit(state),
+    );
+
+    await invokeHandler('startUpdate');
+
+    expect(mockSend).toHaveBeenCalledWith('updateState', state);
+  });
+
+  it('startUpdate는 이미 로그인한 페이지가 있으면 다시 로그인하지 않고 그 페이지를 쓴다', async () => {
+    const page = { name: 'fake-page' };
+    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockCreatePage.mockResolvedValue({ browser: {}, page });
+
+    const invoke = createInvoker();
+    await invoke('createLoginPage');
+    await invoke('startUpdate');
+
+    expect(mockCreatePage).toHaveBeenCalledTimes(1);
+    expect(mockLoginNaver).toHaveBeenCalledTimes(1);
+    expect(mockUpdateTargetProducts).toHaveBeenCalledWith(
+      page,
+      expect.any(Array),
+      undefined,
+      expect.any(Function),
+    );
+  });
+
+  it('startUpdate는 수정할 상품이 없으면 로그인과 순회를 하지 않고 빈 목록으로 끝난 상태를 보낸다', async () => {
+    mockFetchedTargetProducts([]);
+
+    await invokeHandler('startUpdate');
+
+    expect(mockCreatePage).not.toHaveBeenCalled();
+    expect(mockUpdateTargetProducts).not.toHaveBeenCalled();
+    expect(mockSend).toHaveBeenCalledWith('updateState', {
+      targetProducts: [],
+      currentIndex: null,
+      isRunning: false,
+    });
+  });
+
+  it('startUpdate는 순회가 도는 중에 다시 호출되면 새 순회를 시작하지 않는다', async () => {
+    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+    mockUpdateTargetProducts.mockReturnValue(new Promise(() => {}));
+
+    const invoke = createInvoker();
+    void invoke('startUpdate');
+    await vi.waitFor(() => expect(mockUpdateTargetProducts).toHaveBeenCalled());
+    await invoke('startUpdate');
+
+    expect(mockUpdateTargetProducts).toHaveBeenCalledTimes(1);
+  });
+
+  it('startUpdate는 순회가 끝나면 다시 호출했을 때 새 순회를 시작한다', async () => {
+    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+    mockUpdateTargetProducts.mockResolvedValue(undefined);
+
+    const invoke = createInvoker();
+    await invoke('startUpdate');
+    await invoke('startUpdate');
+
+    expect(mockUpdateTargetProducts).toHaveBeenCalledTimes(2);
+  });
+
+  it('startUpdate는 처리 중 예외가 발생하면 콘솔에 로깅하고, 다시 호출했을 때 새로 시작한다', async () => {
+    const error = new Error('네이버 판매 상품 목록을 가져오지 못했습니다.');
+    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockGetSaleProducts.mockRejectedValueOnce(error);
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const invoke = createInvoker();
+    await invoke('startUpdate');
+    await invoke('startUpdate');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(mockUpdateTargetProducts).toHaveBeenCalledTimes(1);
 
     consoleErrorSpy.mockRestore();
   });

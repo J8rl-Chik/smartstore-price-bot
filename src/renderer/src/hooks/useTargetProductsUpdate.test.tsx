@@ -73,6 +73,9 @@ window.api = {
   filterSellers: mockFilterSellers,
   getTargetPrice: mockGetTargetPrice,
   updatePrice: mockUpdatePrice,
+  // 훅이 아직 쓰지 않는 API. 타입을 맞추기 위해서만 넣는다.
+  startUpdate: vi.fn(),
+  onUpdateState: vi.fn(),
 };
 
 beforeEach(() => {

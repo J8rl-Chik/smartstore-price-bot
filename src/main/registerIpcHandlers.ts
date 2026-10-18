@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, type WebContents } from 'electron';
 import type { Page } from 'puppeteer';
 import { IpcEvent } from '../preload/_type';
 import createPage from '../integrations/puppeteer/createPage';
@@ -16,15 +16,24 @@ import { filterExcludedSellers } from '../domain/seller/filterExcludedSellers';
 import { calculateTargetPrice } from '../domain/price/price';
 import shuffleArray from '../utils/shuffleArray';
 import validateEnv from '../utils/validateEnv';
+import updateTargetProducts from './updateTargetProducts';
 import type { TargetProduct } from '../domain/product/_type';
 
-// 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼
+// main이 순회 상태를 보내는 채널 이름. preload/exposeApi.ts의 구독 채널 이름과 같아야 한다.
+const UPDATE_STATE_CHANNEL = 'updateState';
+
+/**
+ * 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼.
+ * 요청한 창(sender)은 렌더러가 보낸 인자 뒤에 붙여 전달한다. 쓰지 않는 핸들러는 받지 않아도 된다.
+ */
 const handleIpc = <E extends keyof IpcEvent>(
   event: E,
-  handler: (...args: Parameters<IpcEvent[E]>) => ReturnType<IpcEvent[E]>,
+  handler: (...args: [...Parameters<IpcEvent[E]>, WebContents]) => ReturnType<IpcEvent[E]>,
 ): void => {
-  // ipcMain.handle 콜백의 첫 번째 인자(IpcMainInvokeEvent)는 렌더러가 보낸 값이 아니므로 제외하고 나머지만 handler에 전달한다.
-  ipcMain.handle(event, (_event, ...args) => handler(...(args as Parameters<IpcEvent[E]>)));
+  // ipcMain.handle 콜백의 첫 번째 인자(IpcMainInvokeEvent)는 렌더러가 보낸 값이 아니므로 sender만 꺼내 handler에 전달한다.
+  ipcMain.handle(event, (ipcEvent, ...args) =>
+    handler(...(args as Parameters<IpcEvent[E]>), ipcEvent.sender),
+  );
 };
 
 // 네이버 판매 상품과 구글 시트 행을 합쳐 가격 수정 대상 목록과 중복된 상품명을 만든다.
@@ -49,6 +58,8 @@ export const registerIpcHandlers = (): void => {
    * TODO: browser를 닫을 수 있도록 browser와 page를 하나로 묶어 보관하고, 종료 시 browser.close()를 호출한다.
    */
   let page: Page | null = null;
+  // 순회가 도는 중에 startUpdate가 다시 들어오면 같은 page로 순회가 두 개 돌지 않도록 막는다.
+  let isUpdateRunning = false;
 
   // TODO: 로그인 페이지 생성에 실패했을 때의 예외 처리를 추가한다.
   handleIpc('createLoginPage', async () => {
@@ -160,6 +171,45 @@ export const registerIpcHandlers = (): void => {
         isSuccess: false,
         error: error instanceof Error ? error.message : String(`updatePrice 에러: ${error}`),
       } as const;
+    }
+  });
+
+  /**
+   * 상품 목록 조회, 로그인, 가격 수정 순회까지 main에서 처리한다.
+   * 진행 상태는 응답이 아니라 updateState 채널로 요청한 창에 보낸다.
+   * TODO: 목록 조회·로그인 실패를 renderer에 알리는 방법을 추가한다.
+   */
+  handleIpc('startUpdate', async (sender) => {
+    if (isUpdateRunning) {
+      return;
+    }
+
+    isUpdateRunning = true;
+
+    try {
+      const myStoreName = validateEnv('SMART_STORE_NAME');
+      const { targetProducts } = await fetchTargetProducts();
+
+      // 수정할 상품이 없으면 로그인하지 않고, 빈 목록으로 끝난 상태만 보낸다.
+      if (targetProducts.length === 0) {
+        sender.send(UPDATE_STATE_CHANNEL, { targetProducts, currentIndex: null, isRunning: false });
+
+        return;
+      }
+
+      // 이미 로그인한 페이지가 있으면 다시 로그인하지 않고 재사용한다.
+      if (!page) {
+        ({ page } = await createPage());
+        await loginNaver(page);
+      }
+
+      await updateTargetProducts(page, targetProducts, myStoreName, (state) => {
+        sender.send(UPDATE_STATE_CHANNEL, state);
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      isUpdateRunning = false;
     }
   });
 };

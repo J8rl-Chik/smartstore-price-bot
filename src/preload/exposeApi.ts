@@ -2,10 +2,14 @@
 import { contextBridge, ipcRenderer } from 'electron';
 // electron-toolkit이 제공하는 공통 헬퍼(ipcRenderer 래퍼 등)
 import { electronAPI } from '@electron-toolkit/preload';
-import type { IpcEvent } from './_type';
+import type { UpdateState } from '../domain/product/_type';
+import type { IpcEvent, IpcListener } from './_type';
+
+// main이 순회 상태를 보내는 채널 이름. main/registerIpcHandlers.ts의 채널 이름과 같아야 한다.
+const UPDATE_STATE_CHANNEL = 'updateState';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
-const api: IpcEvent = {
+const api: IpcEvent & IpcListener = {
   // renderer -> main으로 'createLoginPage' 요청을 보내 Puppeteer 브라우저 페이지 생성 및 네이버 로그인을 트리거한다.
   createLoginPage: () => ipcRenderer.invoke('createLoginPage'),
   // renderer -> main으로 'getTargetProducts' 요청을 보내 네이버 판매 상품과 구글 시트 행을 합친 가격 수정 대상 목록을 가져온다.
@@ -22,6 +26,18 @@ const api: IpcEvent = {
   // renderer -> main으로 'updatePrice' 요청을 보내 상품의 판매가와 배송비를 목표 가격과 배송비 설정에 맞춰 수정한다.
   updatePrice: (originProductNo, targetPrice, delivery) =>
     ipcRenderer.invoke('updatePrice', originProductNo, targetPrice, delivery),
+  // renderer -> main으로 'startUpdate' 요청을 보내 상품 목록 조회, 로그인, 가격 수정 순회를 시작한다.
+  startUpdate: () => ipcRenderer.invoke('startUpdate'),
+  // main -> renderer로 오는 'updateState' 채널을 구독한다. 반환한 함수를 호출하면 구독을 해제한다.
+  onUpdateState: (callback) => {
+    const listener = (_event: unknown, state: UpdateState): void => callback(state);
+
+    ipcRenderer.on(UPDATE_STATE_CHANNEL, listener);
+
+    return () => {
+      ipcRenderer.removeListener(UPDATE_STATE_CHANNEL, listener);
+    };
+  },
 };
 
 /**

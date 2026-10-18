@@ -1,6 +1,6 @@
 import { ElectronAPI } from '@electron-toolkit/preload';
 import type { Delivery } from '../domain/delivery/_type';
-import type { TargetProductsResponse } from '../domain/product/_type';
+import type { TargetProductsResponse, UpdateState } from '../domain/product/_type';
 import type { Seller } from '../domain/seller/filterExcludedSellers';
 
 export type SellersResponse =
@@ -28,13 +28,23 @@ export interface IpcEvent {
     targetPrice: number,
     delivery: Delivery,
   ) => Promise<UpdatePriceResponse>;
+  // 상품 목록 조회, 로그인, 가격 수정 순회를 시작한다. 진행 상태는 응답이 아니라 onUpdateState 구독으로 받는다.
+  startUpdate: () => Promise<void>;
+}
+
+/**
+ * main이 renderer로 보내는(send/on) 채널을 구독하는 함수를 정의한다.
+ * callback을 등록하고, 호출하면 구독을 해제하는 함수를 반환한다.
+ */
+export interface IpcListener {
+  onUpdateState: (callback: (state: UpdateState) => void) => () => void;
 }
 
 // 선언 병합으로 전역 Window 인터페이스에 electron, api 프로퍼티를 추가한다.
-// api는 IpcEvent와 같은 모양이다. preload가 각 채널을 같은 이름의 함수로 노출한다.
+// api는 IpcEvent와 IpcListener를 합친 모양이다. preload가 각 채널을 같은 이름의 함수로 노출한다.
 declare global {
   interface Window {
     electron: ElectronAPI;
-    api: IpcEvent;
+    api: IpcEvent & IpcListener;
   }
 }
