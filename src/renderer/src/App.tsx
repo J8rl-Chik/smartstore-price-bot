@@ -14,13 +14,13 @@ const AppContainer = styled.div`
 `;
 
 const App = (): React.JSX.Element => {
-  const { targetProducts, isLoading, currentProduct, currentOrder, start } =
+  const { targetProducts, isLoading, currentProduct, currentOrder, startUpdate } =
     useTargetProductsUpdate();
 
   return (
     <StyleProvider>
       <AppContainer>
-        <Header onStartButtonClick={start} isLoading={isLoading} />
+        <Header onStartButtonClick={startUpdate} isLoading={isLoading} />
         <ProgressBar
           totalCount={targetProducts.length}
           currentOrder={currentOrder}

@@ -6,7 +6,7 @@ interface TargetProductsUpdate {
   isLoading: boolean;
   currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
-  start: () => Promise<void>;
+  startUpdate: () => Promise<void>;
 }
 
 const initialUpdateState: UpdateState = {
@@ -34,7 +34,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     [],
   );
 
-  const start = async (): Promise<void> => {
+  const startUpdate = async (): Promise<void> => {
     setIsLoading(true);
 
     try {
@@ -51,7 +51,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
   const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
   const currentOrder = currentIndex === null ? 0 : currentIndex + 1;
 
-  return { targetProducts, isLoading, currentProduct, currentOrder, start };
+  return { targetProducts, isLoading, currentProduct, currentOrder, startUpdate };
 };
 
 export default useTargetProductsUpdate;

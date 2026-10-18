@@ -76,10 +76,10 @@ test('렌더링하면 updateState 구독을 등록하고, 언마운트하면 해
   expect(mockUnsubscribe).toHaveBeenCalledOnce();
 });
 
-test('start를 호출하면 startUpdate를 호출한다', async () => {
+test('startUpdate를 호출하면 window.api.startUpdate를 호출한다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-  await act(() => result.current.start());
+  await act(() => result.current.startUpdate());
 
   expect(mockStartUpdate).toHaveBeenCalledOnce();
 });
@@ -128,18 +128,18 @@ test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순�
   expect(result.current.currentProduct).toBeUndefined();
 });
 
-test('start를 호출하면 첫 상태를 받기 전까지 isLoading이 true이고, 받으면 false이다', async () => {
-  // 순회가 끝나지 않은 상태를 만들기 위해 startUpdate를 끝나지 않게 둔다.
+test('startUpdate를 호출하면 첫 상태를 받기 전까지 isLoading이 true이고, 받으면 false이다', async () => {
+  // 순회가 끝나지 않은 상태를 만들기 위해 window.api.startUpdate를 끝나지 않게 둔다.
   mockStartUpdate.mockReturnValue(new Promise(() => {}));
 
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
   /**
-   * 콜백이 start의 Promise를 반환하면 act가 끝나지 않는 Promise를 기다리며 멈추므로,
-   * 블록 본문으로 써서 start를 시작만 시킨다.
+   * 콜백이 startUpdate의 Promise를 반환하면 act가 끝나지 않는 Promise를 기다리며 멈추므로,
+   * 블록 본문으로 써서 startUpdate를 시작만 시킨다.
    */
   await act(() => {
-    void result.current.start();
+    void result.current.startUpdate();
   });
 
   expect(result.current.isLoading).toBe(true);
@@ -151,10 +151,10 @@ test('start를 호출하면 첫 상태를 받기 전까지 isLoading이 true이�
   expect(result.current.isLoading).toBe(false);
 });
 
-test('상태를 받지 못하고 startUpdate가 끝나도 isLoading이 false이다', async () => {
+test('상태를 받지 못하고 window.api.startUpdate가 끝나도 isLoading이 false이다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-  await act(() => result.current.start());
+  await act(() => result.current.startUpdate());
 
   expect(result.current.isLoading).toBe(false);
 });
