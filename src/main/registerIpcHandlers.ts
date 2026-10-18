@@ -16,6 +16,7 @@ import { filterExcludedSellers } from '../domain/seller/filterExcludedSellers';
 import { calculateTargetPrice } from '../domain/price/price';
 import shuffleArray from '../utils/shuffleArray';
 import validateEnv from '../utils/validateEnv';
+import type { TargetProduct } from '../domain/product/_type';
 
 // 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼
 const handleIpc = <E extends keyof IpcEvent>(
@@ -24,6 +25,21 @@ const handleIpc = <E extends keyof IpcEvent>(
 ): void => {
   // ipcMain.handle 콜백의 첫 번째 인자(IpcMainInvokeEvent)는 렌더러가 보낸 값이 아니므로 제외하고 나머지만 handler에 전달한다.
   ipcMain.handle(event, (_event, ...args) => handler(...(args as Parameters<IpcEvent[E]>)));
+};
+
+// 네이버 판매 상품과 구글 시트 행을 합쳐 가격 수정 대상 목록과 중복된 상품명을 만든다.
+const fetchTargetProducts = async (): Promise<{
+  targetProducts: TargetProduct[];
+  duplicateProductNames: string[];
+}> => {
+  const [saleProducts, rawProductRows] = await Promise.all([getSaleProducts(), getProductRows()]);
+
+  const shuffledSaleProducts = shuffleArray(excludeNewlyRegisteredProducts(saleProducts));
+  const productRows = initRawProductRows(rawProductRows);
+  const duplicateProductNames = findDuplicateProductNames(productRows);
+  const targetProducts = createTargetProducts(shuffledSaleProducts, productRows);
+
+  return { targetProducts, duplicateProductNames };
 };
 
 export const registerIpcHandlers = (): void => {
@@ -43,15 +59,7 @@ export const registerIpcHandlers = (): void => {
 
   handleIpc('getTargetProducts', async () => {
     try {
-      const [saleProducts, rawProductRows] = await Promise.all([
-        getSaleProducts(),
-        getProductRows(),
-      ]);
-
-      const shuffledSaleProducts = shuffleArray(excludeNewlyRegisteredProducts(saleProducts));
-      const productRows = initRawProductRows(rawProductRows);
-      const duplicateProductNames = findDuplicateProductNames(productRows);
-      const targetProducts = createTargetProducts(shuffledSaleProducts, productRows);
+      const { targetProducts, duplicateProductNames } = await fetchTargetProducts();
 
       return { isSuccess: true, targetProducts, duplicateProductNames } as const;
     } catch (error) {
