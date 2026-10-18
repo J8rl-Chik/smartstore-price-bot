@@ -20,7 +20,7 @@ const App = (): React.JSX.Element => {
   return (
     <StyleProvider>
       <AppContainer>
-        <Header onStartButtonClick={startUpdate} isLoading={isLoading} />
+        <Header onStartUpdate={startUpdate} isLoading={isLoading} />
         <ProgressBar
           totalCount={targetProducts.length}
           currentOrder={currentOrder}

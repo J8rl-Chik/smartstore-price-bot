@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import StartButton from './StartButton';
 
 interface HeaderProps {
-  onStartButtonClick: () => void;
+  onStartUpdate: () => void;
   isLoading: boolean;
 }
 
@@ -37,14 +37,14 @@ const Title = styled.h1`
   color: ${({ theme }) => theme.color.gray900};
 `;
 
-const Header = ({ onStartButtonClick, isLoading }: HeaderProps): React.JSX.Element => {
+const Header = ({ onStartUpdate, isLoading }: HeaderProps): React.JSX.Element => {
   return (
     <HeaderContainer>
       <Title>
         <Logo>S</Logo>
         스마트스토어 최저가 봇
       </Title>
-      <StartButton onClick={onStartButtonClick} isLoading={isLoading} />
+      <StartButton onClick={onStartUpdate} isLoading={isLoading} />
     </HeaderContainer>
   );
 };
