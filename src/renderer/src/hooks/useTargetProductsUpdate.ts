@@ -9,7 +9,7 @@ interface TargetProductsUpdate {
   start: () => Promise<void>;
 }
 
-const INITIAL_UPDATE_STATE: UpdateState = {
+const initialUpdateState: UpdateState = {
   targetProducts: [],
   currentIndex: null,
   isRunning: false,
@@ -20,7 +20,7 @@ const INITIAL_UPDATE_STATE: UpdateState = {
  * 상태는 main이 매번 통째로 보내므로 받은 그대로 저장한다.
  */
 const useTargetProductsUpdate = (): TargetProductsUpdate => {
-  const [updateState, setUpdateState] = useState<UpdateState>(INITIAL_UPDATE_STATE);
+  const [updateState, setUpdateState] = useState<UpdateState>(initialUpdateState);
   const [isLoading, setIsLoading] = useState(false);
 
   // onUpdateState가 반환하는 구독 해제 함수를 그대로 cleanup으로 넘긴다.

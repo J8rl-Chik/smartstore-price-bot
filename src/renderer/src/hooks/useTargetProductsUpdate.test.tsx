@@ -34,8 +34,8 @@ const createTargetProduct = (
   ...overrides,
 });
 
-const FIRST_PRODUCT = createTargetProduct();
-const SECOND_PRODUCT = createTargetProduct({ name: '블루투스 스피커 미니', originProductNo: 2 });
+const firstProduct = createTargetProduct();
+const secondProduct = createTargetProduct({ name: '블루투스 스피커 미니', originProductNo: 2 });
 
 // 훅이 onUpdateState에 등록한 callback을 꺼내, main이 상태를 보낸 것처럼 호출한다.
 const emitUpdateState = (state: UpdateState): void => {
@@ -89,13 +89,13 @@ test('main이 보낸 상태의 상품 목록을 targetProducts에 반영한다',
 
   await act(() => {
     emitUpdateState({
-      targetProducts: [FIRST_PRODUCT, SECOND_PRODUCT],
+      targetProducts: [firstProduct, secondProduct],
       currentIndex: null,
       isRunning: true,
     });
   });
 
-  expect(result.current.targetProducts).toEqual([FIRST_PRODUCT, SECOND_PRODUCT]);
+  expect(result.current.targetProducts).toEqual([firstProduct, secondProduct]);
 });
 
 test('main이 보낸 상태의 currentIndex로 현재 상품과 순서를 알려준다', async () => {
@@ -103,25 +103,25 @@ test('main이 보낸 상태의 currentIndex로 현재 상품과 순서를 알려
 
   await act(() => {
     emitUpdateState({
-      targetProducts: [FIRST_PRODUCT, SECOND_PRODUCT],
+      targetProducts: [firstProduct, secondProduct],
       currentIndex: 1,
       isRunning: true,
     });
   });
 
   expect(result.current.currentOrder).toBe(2);
-  expect(result.current.currentProduct).toEqual(SECOND_PRODUCT);
+  expect(result.current.currentProduct).toEqual(secondProduct);
 });
 
 test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순서를 초기화한다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
   await act(() => {
-    emitUpdateState({ targetProducts: [FIRST_PRODUCT], currentIndex: 0, isRunning: true });
+    emitUpdateState({ targetProducts: [firstProduct], currentIndex: 0, isRunning: true });
   });
 
   await act(() => {
-    emitUpdateState({ targetProducts: [FIRST_PRODUCT], currentIndex: null, isRunning: false });
+    emitUpdateState({ targetProducts: [firstProduct], currentIndex: null, isRunning: false });
   });
 
   expect(result.current.currentOrder).toBe(0);
@@ -145,7 +145,7 @@ test('start를 호출하면 첫 상태를 받기 전까지 isLoading이 true이�
   expect(result.current.isLoading).toBe(true);
 
   await act(() => {
-    emitUpdateState({ targetProducts: [FIRST_PRODUCT], currentIndex: null, isRunning: true });
+    emitUpdateState({ targetProducts: [firstProduct], currentIndex: null, isRunning: true });
   });
 
   expect(result.current.isLoading).toBe(false);

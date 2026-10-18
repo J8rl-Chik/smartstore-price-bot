@@ -58,20 +58,20 @@ const productA = createTargetProduct(111, '상품A');
 const productB = createTargetProduct(222, '상품B');
 
 const page = { name: 'fake-page' } as unknown as Page;
-const MY_STORE_NAME = '내 스토어';
+const myStoreName = '내 스토어';
 const mockEmit = vi.fn();
 
 const run = (targetProducts: TargetProduct[]): Promise<void> =>
-  updateTargetProducts(page, targetProducts, MY_STORE_NAME, mockEmit);
+  updateTargetProducts(page, targetProducts, myStoreName, mockEmit);
 
 const getEmittedStates = (): UpdateState[] => mockEmit.mock.calls.map(([state]) => state);
 
 const getLastState = (): UpdateState => getEmittedStates().at(-1) as UpdateState;
 
-const UPDATED_AT = 1700000000000;
+const updatedAt = 1700000000000;
 
 beforeEach(() => {
-  vi.spyOn(Date, 'now').mockReturnValue(UPDATED_AT);
+  vi.spyOn(Date, 'now').mockReturnValue(updatedAt);
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -142,7 +142,7 @@ it('판매처를 필터링할 때 시트의 제외 판매처와 함께 내 스�
 
   await run([productA]);
 
-  expect(mockFilterExcludedSellers).toHaveBeenCalledWith(sellers, ['제외 스토어', MY_STORE_NAME]);
+  expect(mockFilterExcludedSellers).toHaveBeenCalledWith(sellers, ['제외 스토어', myStoreName]);
 });
 
 it('필터링한 판매처 가격에 가상 가격을 더해 무료배송 기준가로 목표 가격을 계산한다', async () => {
@@ -183,7 +183,7 @@ it('가격 수정에 성공하면 그 상품만 응답의 판매가와 기본 �
   expect(getLastState().targetProducts).toEqual([
     {
       ...productA,
-      update: { status: 'complete', price: 39990, baseFee: 3000, updatedAt: UPDATED_AT },
+      update: { status: 'complete', price: 39990, baseFee: 3000, updatedAt },
     },
     { ...productB, update: { status: 'wait' } },
   ]);
@@ -199,7 +199,7 @@ it('DRY_RUN이 true이면 가격 수정을 요청하지 않고 계산한 판매�
     status: 'complete',
     price: 39990,
     baseFee: 3000,
-    updatedAt: UPDATED_AT,
+    updatedAt,
   });
 });
 
@@ -216,7 +216,7 @@ it('DRY_RUN이 true이고 배송비가 무료이면 기본 배송비를 0으로 
     status: 'complete',
     price: 42990,
     baseFee: 0,
-    updatedAt: UPDATED_AT,
+    updatedAt,
   });
 });
 
@@ -240,10 +240,10 @@ it('상품 하나에서 에러가 나면 콘솔에 로깅하고 그 상품만 er
 
   expect(console.error).toHaveBeenCalledWith(error);
   expect(getLastState().targetProducts).toEqual([
-    { ...productA, update: { status: 'error', updatedAt: UPDATED_AT } },
+    { ...productA, update: { status: 'error', updatedAt } },
     {
       ...productB,
-      update: { status: 'complete', price: 39990, baseFee: 3000, updatedAt: UPDATED_AT },
+      update: { status: 'complete', price: 39990, baseFee: 3000, updatedAt },
     },
   ]);
 });
@@ -257,7 +257,7 @@ it('UnexpectedCatalogPageError가 나면 그 상품을 error로 반영하고 다
 
   expect(mockGetSellersInPuppeteer).toHaveBeenCalledTimes(1);
   expect(getLastState().targetProducts).toEqual([
-    { ...productA, update: { status: 'error', updatedAt: UPDATED_AT } },
+    { ...productA, update: { status: 'error', updatedAt } },
     { ...productB, update: { status: 'wait' } },
   ]);
 });

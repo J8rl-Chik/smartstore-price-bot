@@ -15,7 +15,7 @@ import updateTargetProducts from './updateTargetProducts';
 import type { TargetProduct } from '../domain/product/_type';
 
 // main이 순회 상태를 보내는 채널 이름. preload/exposeApi.ts의 구독 채널 이름과 같아야 한다.
-const UPDATE_STATE_CHANNEL = 'updateState';
+const updateStateChannel = 'updateState';
 
 /**
  * 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼.
@@ -74,7 +74,7 @@ export const registerIpcHandlers = (): void => {
 
       // 수정할 상품이 없으면 로그인하지 않고, 빈 목록으로 끝난 상태만 보낸다.
       if (targetProducts.length === 0) {
-        sender.send(UPDATE_STATE_CHANNEL, { targetProducts, currentIndex: null, isRunning: false });
+        sender.send(updateStateChannel, { targetProducts, currentIndex: null, isRunning: false });
 
         return;
       }
@@ -86,7 +86,7 @@ export const registerIpcHandlers = (): void => {
       }
 
       await updateTargetProducts(page, targetProducts, myStoreName, (state) => {
-        sender.send(UPDATE_STATE_CHANNEL, state);
+        sender.send(updateStateChannel, state);
       });
     } catch (error) {
       console.error(error);

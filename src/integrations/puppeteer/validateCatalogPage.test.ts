@@ -8,9 +8,9 @@ import validateCatalogPage, {
   UnexpectedCatalogPageError,
 } from './validateCatalogPage.js';
 
-const RESTRICTED_MESSAGE = '쇼핑 서비스 접속이 일시적';
-const LOGIN_MESSAGE = '아이디 또는 전화번호';
-const SECURE_CHECK_MESSAGE = '보안 확인을 완료해 주세요.';
+const restrictedMessage = '쇼핑 서비스 접속이 일시적';
+const loginMessage = '아이디 또는 전화번호';
+const secureCheckMessage = '보안 확인을 완료해 주세요.';
 
 const stubDocumentBodyText = (innerText: string): void => {
   vi.stubGlobal('document', { body: { innerText } });
@@ -28,7 +28,7 @@ describe('hasTextInBody', () => {
   it('본문에 문구가 있으면 true를 반환한다', () => {
     stubDocumentBodyText('쇼핑 서비스 접속이 일시적으로 제한되었습니다.');
 
-    expect(hasTextInBody(RESTRICTED_MESSAGE)).toBe(true);
+    expect(hasTextInBody(restrictedMessage)).toBe(true);
   });
 
   it('여러 줄로 된 본문 중간에 문구가 있어도 true를 반환한다', () => {
@@ -36,19 +36,19 @@ describe('hasTextInBody', () => {
       '네이버 쇼핑\n쇼핑 서비스 접속이 일시적으로 제한되었습니다.\n잠시 후 다시 시도해 주세요.',
     );
 
-    expect(hasTextInBody(RESTRICTED_MESSAGE)).toBe(true);
+    expect(hasTextInBody(restrictedMessage)).toBe(true);
   });
 
   it('본문에 문구가 없으면 false를 반환한다', () => {
     stubDocumentBodyText('가격비교 페이지 본문');
 
-    expect(hasTextInBody(RESTRICTED_MESSAGE)).toBe(false);
+    expect(hasTextInBody(restrictedMessage)).toBe(false);
   });
 
   it('본문이 비어 있으면 false를 반환한다', () => {
     stubDocumentBodyText('');
 
-    expect(hasTextInBody(RESTRICTED_MESSAGE)).toBe(false);
+    expect(hasTextInBody(restrictedMessage)).toBe(false);
   });
 });
 
@@ -60,7 +60,7 @@ describe('isRestrictedPage', () => {
     await isRestrictedPage(mockPage as unknown as Page);
 
     expect(mockPage.evaluate).toHaveBeenCalledTimes(1);
-    expect(mockPage.evaluate).toHaveBeenCalledWith(hasTextInBody, RESTRICTED_MESSAGE);
+    expect(mockPage.evaluate).toHaveBeenCalledWith(hasTextInBody, restrictedMessage);
   });
 
   it('evaluate가 true를 돌려주면 true를 반환한다', async () => {
@@ -90,7 +90,7 @@ describe('isRequiredLogin', () => {
     await isRequiredLogin(mockPage as unknown as Page);
 
     expect(mockPage.evaluate).toHaveBeenCalledTimes(1);
-    expect(mockPage.evaluate).toHaveBeenCalledWith(hasTextInBody, LOGIN_MESSAGE);
+    expect(mockPage.evaluate).toHaveBeenCalledWith(hasTextInBody, loginMessage);
   });
 
   it('evaluate가 true를 돌려주면 true를 반환한다', async () => {
@@ -120,7 +120,7 @@ describe('isRequiredSecureCheck', () => {
     await isRequiredSecureCheck(mockPage as unknown as Page);
 
     expect(mockPage.evaluate).toHaveBeenCalledTimes(1);
-    expect(mockPage.evaluate).toHaveBeenCalledWith(hasTextInBody, SECURE_CHECK_MESSAGE);
+    expect(mockPage.evaluate).toHaveBeenCalledWith(hasTextInBody, secureCheckMessage);
   });
 
   it('evaluate가 true를 돌려주면 true를 반환한다', async () => {
@@ -168,13 +168,13 @@ describe('validateCatalogPage', () => {
     await validateCatalogPage(mockPage as unknown as Page);
 
     expect(mockPage.evaluate).toHaveBeenCalledTimes(3);
-    expect(mockPage.evaluate).toHaveBeenNthCalledWith(1, hasTextInBody, RESTRICTED_MESSAGE);
-    expect(mockPage.evaluate).toHaveBeenNthCalledWith(2, hasTextInBody, LOGIN_MESSAGE);
-    expect(mockPage.evaluate).toHaveBeenNthCalledWith(3, hasTextInBody, SECURE_CHECK_MESSAGE);
+    expect(mockPage.evaluate).toHaveBeenNthCalledWith(1, hasTextInBody, restrictedMessage);
+    expect(mockPage.evaluate).toHaveBeenNthCalledWith(2, hasTextInBody, loginMessage);
+    expect(mockPage.evaluate).toHaveBeenNthCalledWith(3, hasTextInBody, secureCheckMessage);
   });
 
   it('"쇼핑 서비스 접속이 일시적" 안내 문구가 있으면 UnexpectedCatalogPageError를 던진다', async () => {
-    const mockPage = createMockPageShowing([RESTRICTED_MESSAGE]);
+    const mockPage = createMockPageShowing([restrictedMessage]);
 
     await expect(validateCatalogPage(mockPage as unknown as Page)).rejects.toThrow(
       UnexpectedCatalogPageError,
@@ -182,7 +182,7 @@ describe('validateCatalogPage', () => {
   });
 
   it('"아이디 또는 전화번호" 문구가 있으면 UnexpectedCatalogPageError를 던진다', async () => {
-    const mockPage = createMockPageShowing([LOGIN_MESSAGE]);
+    const mockPage = createMockPageShowing([loginMessage]);
 
     await expect(validateCatalogPage(mockPage as unknown as Page)).rejects.toThrow(
       UnexpectedCatalogPageError,
@@ -190,7 +190,7 @@ describe('validateCatalogPage', () => {
   });
 
   it('"보안 확인을 완료해 주세요" 문구가 있으면 UnexpectedCatalogPageError를 던진다', async () => {
-    const mockPage = createMockPageShowing([SECURE_CHECK_MESSAGE]);
+    const mockPage = createMockPageShowing([secureCheckMessage]);
 
     await expect(validateCatalogPage(mockPage as unknown as Page)).rejects.toThrow(
       UnexpectedCatalogPageError,
@@ -198,7 +198,7 @@ describe('validateCatalogPage', () => {
   });
 
   it('던지는 에러에 접속 제한 안내 메시지를 담는다', async () => {
-    const mockPage = createMockPageShowing([RESTRICTED_MESSAGE]);
+    const mockPage = createMockPageShowing([restrictedMessage]);
 
     await expect(validateCatalogPage(mockPage as unknown as Page)).rejects.toThrow(
       '네이버 쇼핑 접속이 일시적으로 제한되었습니다.',
@@ -206,21 +206,21 @@ describe('validateCatalogPage', () => {
   });
 
   it('앞선 판별에서 걸리면 뒤의 판별은 수행하지 않는다', async () => {
-    const mockPage = createMockPageShowing([RESTRICTED_MESSAGE]);
+    const mockPage = createMockPageShowing([restrictedMessage]);
 
     await expect(validateCatalogPage(mockPage as unknown as Page)).rejects.toThrow();
 
     expect(mockPage.evaluate).toHaveBeenCalledTimes(1);
-    expect(mockPage.evaluate).toHaveBeenCalledWith(hasTextInBody, RESTRICTED_MESSAGE);
+    expect(mockPage.evaluate).toHaveBeenCalledWith(hasTextInBody, restrictedMessage);
   });
 
   it('두 번째 판별에서 걸리면 세 번째 판별은 수행하지 않는다', async () => {
-    const mockPage = createMockPageShowing([LOGIN_MESSAGE]);
+    const mockPage = createMockPageShowing([loginMessage]);
 
     await expect(validateCatalogPage(mockPage as unknown as Page)).rejects.toThrow();
 
     expect(mockPage.evaluate).toHaveBeenCalledTimes(2);
-    expect(mockPage.evaluate).not.toHaveBeenCalledWith(hasTextInBody, SECURE_CHECK_MESSAGE);
+    expect(mockPage.evaluate).not.toHaveBeenCalledWith(hasTextInBody, secureCheckMessage);
   });
 
   it('evaluate가 실패하면 UnexpectedCatalogPageError로 감싸지 않고 원래 에러를 그대로 전파한다', async () => {

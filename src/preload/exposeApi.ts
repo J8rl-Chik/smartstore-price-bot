@@ -6,7 +6,7 @@ import type { UpdateState } from '../domain/product/_type';
 import type { IpcEvent, IpcListener } from './_type';
 
 // main이 순회 상태를 보내는 채널 이름. main/registerIpcHandlers.ts의 채널 이름과 같아야 한다.
-const UPDATE_STATE_CHANNEL = 'updateState';
+const updateStateChannel = 'updateState';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
 const api: IpcEvent & IpcListener = {
@@ -16,10 +16,10 @@ const api: IpcEvent & IpcListener = {
   onUpdateState: (callback) => {
     const listener = (_event: unknown, state: UpdateState): void => callback(state);
 
-    ipcRenderer.on(UPDATE_STATE_CHANNEL, listener);
+    ipcRenderer.on(updateStateChannel, listener);
 
     return () => {
-      ipcRenderer.removeListener(UPDATE_STATE_CHANNEL, listener);
+      ipcRenderer.removeListener(updateStateChannel, listener);
     };
   },
 };
