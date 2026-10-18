@@ -16,7 +16,7 @@
 
 - 두 줄 이상인 주석은 `//`를 여러 줄 이어 쓰지 않고 `/** ... */` 블록으로 작성한다. 한 줄짜리 주석은 `//`를 그대로 쓴다.
 
-- 함수 이름은 첫 단어를 동사로 짓는다. (예: `createTargetProducts`, `parseToProductTableRow`) `toPriceWithFee`처럼 동사 없이 전치사로 시작하는 이름은 쓰지 않는다. 동작이 아니라 결과만 드러나 함수인지 값인지 구분이 어렵기 때문이다. React 컴포넌트는 함수여도 이 규칙을 적용하지 않고 PascalCase 명사로 짓는다.
+- 함수 이름은 첫 단어를 동사로 짓는다. (예: `createTargetProducts`, `parseToProductTableRow`) `toPriceWithFee`처럼 동사 없이 전치사로 시작하는 이름은 쓰지 않는다. 동작이 아니라 결과만 드러나 함수인지 값인지 구분이 어렵기 때문이다. 동사 하나로만 짓지 않고 무엇을 대상으로 하는지 붙인다. (`start` → `startUpdate`, `fetch` → `fetchTargetProducts`) 동사만 있으면 호출하는 쪽에서 무엇을 하는지 알 수 없기 때문이다. React 컴포넌트는 함수여도 이 규칙을 적용하지 않고 PascalCase 명사로 짓는다.
 
 - `UPPER_SNAKE_CASE`(예: `DELIVERY_FEE_TYPE`)는 파일 최상단에서 export(default export 포함)하는 상수에만 쓴다. export하지 않는 상수는 테스트 파일의 고정 데이터를 포함해 camelCase로 짓는다. (예: `initialUpdateState`, `firstProduct`) 이름만 보고 다른 파일에서 가져다 쓰는 공용 값인지 구분하기 위해서다.
 
