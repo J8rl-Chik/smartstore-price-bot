@@ -18,6 +18,8 @@
 
 - 함수 이름은 첫 단어를 동사로 짓는다. (예: `createTargetProducts`, `parseToProductTableRow`) `toPriceWithFee`처럼 동사 없이 전치사로 시작하는 이름은 쓰지 않는다. 동작이 아니라 결과만 드러나 함수인지 값인지 구분이 어렵기 때문이다. React 컴포넌트는 함수여도 이 규칙을 적용하지 않고 PascalCase 명사로 짓는다.
 
+- `UPPER_SNAKE_CASE`(예: `DELIVERY_FEE_TYPE`)는 파일 최상단에서 export(default export 포함)하는 상수에만 쓴다. export하지 않는 상수는 테스트 파일의 고정 데이터를 포함해 camelCase로 짓는다. (예: `initialUpdateState`, `firstProduct`) 이름만 보고 다른 파일에서 가져다 쓰는 공용 값인지 구분하기 위해서다.
+
 ## 문제·에러 질문 답변 양식
 
 "문제가 뭐야?", "왜 에러나?"처럼 문제나 에러를 묻는 질문, 또는 "문제", "에러" 같은 키워드가 들어간 질문에는 아래 양식으로 답한다.
