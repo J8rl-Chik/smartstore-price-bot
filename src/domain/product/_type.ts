@@ -87,7 +87,3 @@ export interface UpdateState {
   currentIndex: number | null;
   isRunning: boolean;
 }
-
-export type TargetProductsResponse =
-  | { isSuccess: true; targetProducts: TargetProduct[]; duplicateProductNames: string[] }
-  | { isSuccess: false; error: string };

@@ -45,13 +45,6 @@ const emitUpdateState = (state: UpdateState): void => {
 };
 
 window.api = {
-  // 훅이 쓰지 않는 API. 타입을 맞추기 위해서만 넣는다.
-  createLoginPage: vi.fn(),
-  getTargetProducts: vi.fn(),
-  getSellers: vi.fn(),
-  filterSellers: vi.fn(),
-  getTargetPrice: vi.fn(),
-  updatePrice: vi.fn(),
   startUpdate: mockStartUpdate,
   onUpdateState: mockOnUpdateState,
 };

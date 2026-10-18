@@ -10,22 +10,6 @@ const UPDATE_STATE_CHANNEL = 'updateState';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
 const api: IpcEvent & IpcListener = {
-  // renderer -> main으로 'createLoginPage' 요청을 보내 Puppeteer 브라우저 페이지 생성 및 네이버 로그인을 트리거한다.
-  createLoginPage: () => ipcRenderer.invoke('createLoginPage'),
-  // renderer -> main으로 'getTargetProducts' 요청을 보내 네이버 판매 상품과 구글 시트 행을 합친 가격 수정 대상 목록을 가져온다.
-  getTargetProducts: () => ipcRenderer.invoke('getTargetProducts'),
-  // renderer -> main으로 'getSellers' 요청을 보내 상품의 카탈로그 페이지에서 네이버 판매처 목록을 가져온다.
-  getSellers: (catalogURL, productName) =>
-    ipcRenderer.invoke('getSellers', catalogURL, productName),
-  // renderer -> main으로 'filterSellers' 요청을 보내 판매처 목록에서 내 스토어와 제외 판매처를 뺀 최종 비교 대상 판매처 목록을 가져온다.
-  filterSellers: (sellers, excludedSellerNames) =>
-    ipcRenderer.invoke('filterSellers', sellers, excludedSellerNames),
-  // renderer -> main으로 'getTargetPrice' 요청을 보내 비교 대상 가격 목록과 무료배송 기준가로 계산한 목표 가격을 가져온다.
-  getTargetPrice: (prices, freeDeliveryPrice) =>
-    ipcRenderer.invoke('getTargetPrice', prices, freeDeliveryPrice),
-  // renderer -> main으로 'updatePrice' 요청을 보내 상품의 판매가와 배송비를 목표 가격과 배송비 설정에 맞춰 수정한다.
-  updatePrice: (originProductNo, targetPrice, delivery) =>
-    ipcRenderer.invoke('updatePrice', originProductNo, targetPrice, delivery),
   // renderer -> main으로 'startUpdate' 요청을 보내 상품 목록 조회, 로그인, 가격 수정 순회를 시작한다.
   startUpdate: () => ipcRenderer.invoke('startUpdate'),
   // main -> renderer로 오는 'updateState' 채널을 구독한다. 반환한 함수를 호출하면 구독을 해제한다.

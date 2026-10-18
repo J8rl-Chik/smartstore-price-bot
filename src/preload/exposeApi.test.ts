@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { exposeApi } from './exposeApi';
-import type { Seller } from '../domain/seller/filterExcludedSellers';
 import type { UpdateState } from '../domain/product/_type';
 import type { IpcEvent, IpcListener } from './_type';
 
@@ -66,78 +65,6 @@ describe('exposeApi', () => {
 
     expect(mockExposeInMainWorld).toHaveBeenCalledWith('electron', fakeElectronAPI);
     expect(mockExposeInMainWorld).toHaveBeenCalledWith('api', expect.any(Object));
-  });
-
-  it('createLoginPage를 호출하면 createLoginPage 채널로 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('createLoginPage 결과');
-
-    const api = getExposedApi();
-    const result = await api.createLoginPage();
-
-    expect(mockInvoke).toHaveBeenCalledWith('createLoginPage');
-    expect(result).toBe('createLoginPage 결과');
-  });
-
-  it('getTargetProducts를 호출하면 getTargetProducts 채널로 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('getTargetProducts 결과');
-
-    const api = getExposedApi();
-    const result = await api.getTargetProducts();
-
-    expect(mockInvoke).toHaveBeenCalledWith('getTargetProducts');
-    expect(result).toBe('getTargetProducts 결과');
-  });
-
-  it('getSellers를 호출하면 getSellers 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('getSellers 결과');
-
-    const api = getExposedApi();
-    const result = await api.getSellers('https://catalog.url', '상품A');
-
-    expect(mockInvoke).toHaveBeenCalledWith('getSellers', 'https://catalog.url', '상품A');
-    expect(result).toBe('getSellers 결과');
-  });
-
-  it('filterSellers를 호출하면 filterSellers 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('filterSellers 결과');
-
-    const sellers: Seller[] = [
-      { name: '판매처A', price: 1000, deliveryFee: 0, deliveryFeeType: '무료' },
-    ];
-    const api = getExposedApi();
-    const result = await api.filterSellers(sellers, ['제외 판매처']);
-
-    expect(mockInvoke).toHaveBeenCalledWith('filterSellers', sellers, ['제외 판매처']);
-    expect(result).toBe('filterSellers 결과');
-  });
-
-  it('getTargetPrice를 호출하면 getTargetPrice 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('getTargetPrice 결과');
-
-    const api = getExposedApi();
-    const result = await api.getTargetPrice([42000, 43000], 30000);
-
-    expect(mockInvoke).toHaveBeenCalledWith('getTargetPrice', [42000, 43000], 30000);
-    expect(result).toBe('getTargetPrice 결과');
-  });
-
-  it('updatePrice를 호출하면 updatePrice 채널로 인자와 함께 invoke를 호출하고 결과를 반환한다', async () => {
-    setContextIsolated(true);
-    mockInvoke.mockResolvedValue('updatePrice 결과');
-
-    const api = getExposedApi();
-    const result = await api.updatePrice(12345, 42900, { feeType: '유료', baseFee: 3000 });
-
-    expect(mockInvoke).toHaveBeenCalledWith('updatePrice', 12345, 42900, {
-      feeType: '유료',
-      baseFee: 3000,
-    });
-    expect(result).toBe('updatePrice 결과');
   });
 
   it('startUpdate를 호출하면 startUpdate 채널로 invoke를 호출한다', async () => {
