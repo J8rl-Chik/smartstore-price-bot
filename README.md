@@ -48,3 +48,71 @@
 | 외부 API        | 스마트스토어 Commerce API, Google Sheets API |
 | 테스트          | Vitest, vitest-browser-react                 |
 | 코드 품질       | ESLint, Prettier, Stylelint                  |
+
+## 트러블슈팅
+
+### 가격 수정 순회를 renderer에서 main으로 옮기기
+
+**S — 상황**
+
+CLI를 Electron GUI로 옮기면서 가격 수정 순회를 renderer의 React 훅(`useTargetProductsUpdate`)에 두었습니다. 그런데 판매처 조회에 쓰는 Puppeteer `page`와 내 스토어 이름(`SMART_STORE_NAME`)은 main 프로세스에만 있어서, 훅이 상품마다 `getSellers → filterSellers → getTargetPrice → updatePrice` 순서로 main에 IPC 요청을 4번 보내는 구조가 됐습니다.
+
+![변경 전 통신 구조](assets/troubleshooting-ipc-before.png)
+
+```ts
+// 변경 전: renderer 훅이 상품마다 main에 4번 요청
+for (const targetProduct of targetProducts) {
+  const sellers = await window.api.getSellers(catalogURL, name);
+  if (!sellers.isSuccess) break;
+
+  // 내 스토어 이름이 main에만 있어 필터링도 main에 요청
+  const filtered = await window.api.filterSellers(sellers.sellers, excluded);
+  if (!filtered.isSuccess) break;
+
+  const targetPrice = await window.api.getTargetPrice(prices, freeDeliveryPrice);
+  if (!targetPrice.isSuccess) break;
+
+  const result = await window.api.updatePrice(originProductNo, targetPrice.targetPrice, delivery);
+  if (!result.isSuccess) break;
+}
+```
+
+- 훅 117줄, 훅 테스트 468줄(테스트 22개, IPC mock 6개)
+- 요청마다 `if (!x.isSuccess) break;` 분기 반복
+- 내 스토어 이름 때문에만 존재하는 우회 채널(`filterSellers`)
+- 실패 종류를 구분하지 못해 어떤 실패든 순회 전체가 멈춤
+
+**T — 과제**
+
+작업 흐름을 자원을 가진 쪽으로 옮겨 IPC 왕복과 우회 채널을 없애야 했습니다. 동시에 개별 상품의 일시적 실패는 건너뛰고, 네이버 쇼핑 접속 제한처럼 다음 상품도 실패할 게 분명한 경우에만 멈추도록 해야 했습니다.
+
+**A — 행동**
+
+| 선택지                                                | 한계                                                                             |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------- |
+| A. renderer 순회 유지, 4개 채널을 1개로 합치기        | 흐름은 여전히 renderer에 있고, 실패 종류를 넘기려면 에러 코드를 따로 설계해야 함 |
+| **B. 순회를 main으로 옮기고 상태 전체를 전송 (선택)** | 매번 목록 전체를 보내지만, 목록이 수십 개 수준이라 부담이 작음                   |
+| C. 순회를 main으로 옮기고 바뀐 상품만 전송            | renderer가 변경분을 합치는 로직을 다시 가져야 함                                 |
+
+자원을 가진 쪽이 흐름을 쥐어야 원인이 사라지기 때문에 B를 선택했습니다.
+
+![변경 후 통신 구조](assets/troubleshooting-ipc-after.png)
+
+- `src/main/updateTargetProducts.ts`: main이 순회하며, 상품 단위 실패는 `error`로 표시하고 계속 진행하고 `UnexpectedCatalogPageError`일 때만 중단합니다.
+- `src/main/registerIpcHandlers.ts`: `startUpdate` 채널 하나로 목록 조회, 로그인, 순회를 실행하고 진행 상태는 `updateState` 채널로 보냅니다. 순회 중 다시 들어온 요청은 무시합니다.
+- renderer 훅: for문을 지우고 `onUpdateState`를 구독해 받은 상태를 저장만 합니다.
+- 타입 이동 → main 순회 추가 → 채널 추가 → 훅 전환 → 기존 채널 삭제의 5단계 커밋으로 나눠, 어느 단계를 되돌려도 앱이 동작하게 했습니다.
+
+**R — 결과**
+
+| 항목                           | 변경 전                 | 변경 후                |
+| ------------------------------ | ----------------------- | ---------------------- |
+| 상품 1개당 renderer → main IPC | 4번                     | 0번                    |
+| renderer에 노출한 invoke 채널  | 6개                     | 1개(+ 구독 1개)        |
+| 훅 코드                        | 117줄                   | 57줄                   |
+| 훅 테스트                      | 468줄 · 22개 · mock 6개 | 160줄 · 8개 · mock 2개 |
+
+- 상품 하나가 실패하면 넘어가고, 접속이 제한되면 멈추도록 실패를 구분해 처리할 수 있게 됐습니다.
+- "흐름과 계산은 자원을 가진 main에, renderer는 화면 표시만"이라는 실행 위치 기준이 생겼습니다.
+
+> 줄 수와 테스트 개수는 AI 코딩 어시스턴트(Claude Code, Claude Opus 5.5)가 Windows 10 로컬 저장소에서 `git show <커밋>:<파일> | wc -l`과 `grep -c "^test("`로 센 값입니다. 변경 전은 커밋 `fa46553`, 변경 후는 `cfc83f6` 기준이며 참고용입니다. IPC 호출 횟수와 채널 수는 코드를 보고 센 값입니다.
