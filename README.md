@@ -76,7 +76,7 @@ export const calculateTargetPrice = (prices: number[], freeDeliveryPrice: number
 ## 아키텍처
 
 ```mermaid
-%%{init: {"flowchart": {"htmlLabels": false}}}%%
+%%{init: {"flowchart": {"htmlLabels": false, "wrappingWidth": 400}}}%%
 flowchart LR
   subgraph Electron["Electron 앱"]
     direction LR
