@@ -2,11 +2,11 @@
 flowchart LR
   subgraph Electron["Electron 앱"]
     direction LR
-    subgraph Renderer["Renderer 프로세스 (UI)"]
+    subgraph Renderer["Renderer 프로세스(UI)"]
       React["Main으로 가격 수정 요청"]
     end
 
-    subgraph Main["Main 프로세스 (Node.js)"]
+    subgraph Main["Main 프로세스(Node.js)"]
       direction LR
       Core["가격 수정<br/>UI로 진행 상태 전송"]
       subgraph Domain["domain"]
@@ -25,7 +25,7 @@ flowchart LR
     end
 
     subgraph IPC["IPC"]
-      Preload["Preload (통신 중계)"]
+      Preload["Preload(통신 중계)"]
     end
 
     React <--> Preload <--> Core
