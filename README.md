@@ -4,7 +4,7 @@
 
 네이버 스마트스토어 판매가를 경쟁 판매처보다 낮게 자동으로 유지해주는 CLI 프로그램을 TypeScript 마이그레이션, Vitest 테스트 코드 추가, Electron GUI 전환으로 개선하는 프로젝트입니다.
 
-<!-- TODO: 앱 스크린샷 또는 GIF 추가 -->
+![앱 실행 화면](assets/app-screenshot.png)
 
 ## 기존 프로젝트(과거)
 
