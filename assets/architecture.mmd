@@ -1,0 +1,44 @@
+%%{init: {"flowchart": {"htmlLabels": false, "wrappingWidth": 400}, "themeCSS": ".cluster-label text { font-size: 20px; font-weight: bold; }"}}%%
+flowchart LR
+  subgraph Electron["Electron 앱"]
+    direction LR
+    subgraph Renderer["Renderer 프로세스 (UI)"]
+      React["Main으로 가격 수정 요청"]
+    end
+
+    subgraph Main["Main 프로세스 (Node.js)"]
+      direction LR
+      Core["가격 수정<br/>UI로 진행 상태 전송"]
+      subgraph Domain["domain"]
+        DomainLogic["가격 계산<br/>최저가 비교 · 수정가 계산"]
+      end
+      subgraph Adapters["integrations"]
+        direction TB
+        StoreAd["스마트스토어 연동<br/>제품 정보 조회 · 제품 가격 수정"]
+        SheetsAd["시트 연동<br/>사용자 설정 제품 정보 불러오기"]
+        CatalogAd["네이버 쇼핑 연동<br/>브라우저 자동화 · 판매처 정보 수집"]
+      end
+      Core --> DomainLogic
+      Core --> StoreAd
+      Core --> SheetsAd
+      Core --> CatalogAd
+    end
+
+    subgraph IPC["IPC"]
+      Preload["Preload (통신 중계)"]
+    end
+
+    React <--> Preload <--> Core
+  end
+
+  subgraph External["외부 API"]
+    direction TB
+    Commerce["스마트스토어<br/>Commerce API"]
+    Sheets["Google Sheets<br/>Sheets API"]
+  end
+
+  StoreAd --> Commerce
+  SheetsAd --> Sheets
+
+  Stack["기술 스택<br/>언어: TypeScript<br/>실행 환경: Node.js<br/>데스크톱: Electron, electron-vite<br/>UI: React, styled-components<br/>브라우저 자동화: Puppeteer<br/>테스트: Vitest, vitest-browser-react<br/>코드 품질: ESLint, Prettier, Stylelint"]
+  style Stack text-align:left,fill:none,stroke:#999,font-size:20px

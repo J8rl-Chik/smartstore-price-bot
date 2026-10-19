@@ -75,51 +75,7 @@ export const calculateTargetPrice = (prices: number[], freeDeliveryPrice: number
 
 ## 아키텍처
 
-```mermaid
-%%{init: {"flowchart": {"htmlLabels": false, "wrappingWidth": 400}}}%%
-flowchart LR
-  subgraph Electron["Electron 앱"]
-    direction LR
-    subgraph Renderer["Renderer 프로세스"]
-      React["React · styled-components<br/>Main으로 가격 수정 요청"]
-    end
-
-    subgraph Main["Main 프로세스 (Node.js)"]
-      direction LR
-      Core["가격 수정<br/>UI로 진행 상태 전송"]
-      subgraph Domain["domain"]
-        DomainLogic["가격 계산<br/>최저가 비교 · 수정가 계산"]
-      end
-      subgraph Adapters["integrations"]
-        direction TB
-        StoreAd["스마트스토어 연동<br/>제품 정보 조회 · 제품 가격 수정"]
-        SheetsAd["시트 연동<br/>사용자 설정 제품 정보 불러오기"]
-        CatalogAd["판매처 정보 수집<br/>판매처명 · 판매가 · 배송 정보 수집"]
-      end
-      Core --> DomainLogic
-      Core --> StoreAd
-      Core --> SheetsAd
-      Core --> CatalogAd
-    end
-
-    React <-->|"IPC<br/>Preload (통신 중계)"| Core
-  end
-
-  subgraph External["외부 API"]
-    direction TB
-    Commerce["스마트스토어<br/>Commerce API"]
-    Sheets["Google Sheets<br/>Sheets API"]
-    Catalog["브라우저 자동화<br/>Puppeteer"]
-  end
-
-  StoreAd --> Commerce
-  SheetsAd --> Sheets
-  CatalogAd --> Catalog
-
-  Stack["기술 스택<br/>언어: TypeScript<br/>테스트: Vitest, vitest-browser-react<br/>코드 품질: ESLint, Prettier, Stylelint"]
-  Electron --- Stack
-  style Stack text-align:left,fill:none,stroke:#999
-```
+![아키텍처](assets/architecture.png)
 
 ```text
 src/
