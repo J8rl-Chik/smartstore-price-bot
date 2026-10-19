@@ -75,6 +75,48 @@ export const calculateTargetPrice = (prices: number[], freeDeliveryPrice: number
 
 ## 아키텍처
 
+```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 400}}}%%
+flowchart LR
+  subgraph Electron["Electron 앱"]
+    direction LR
+    subgraph Renderer["Renderer 프로세스"]
+      React["UI<br/><small>React · TypeScript</small>"]
+    end
+
+    subgraph Main["Main 프로세스 · Node.js · TypeScript"]
+      direction LR
+      Core["가격 수정 로직<br/><small>최저가 비교 · 수정가 계산</small>"]
+      subgraph Adapters["외부 연동"]
+        direction TB
+        StoreAd["스마트스토어 연동<br/><small>getSaleProducts · updatePrice</small>"]
+        SheetsAd["시트 연동<br/><small>설정 · 상품 목록 읽기</small>"]
+        CatalogAd["카탈로그 수집<br/><small>Puppeteer · 최저가 수집</small>"]
+      end
+      Core --> StoreAd
+      Core --> SheetsAd
+      Core --> CatalogAd
+    end
+
+    React <-->|"IPC<br/>via Preload (window.api)"| Core
+  end
+
+  subgraph External["외부 서비스"]
+    direction TB
+    Commerce["스마트스토어<br/><small>Commerce API</small>"]
+    Sheets["Google Sheets<br/><small>Sheets API</small>"]
+    Catalog["가격비교 카탈로그<br/><small>웹 페이지</small>"]
+  end
+
+  StoreAd --> Commerce
+  SheetsAd --> Sheets
+  CatalogAd --> Catalog
+
+  Stack["<b>기술 스택</b><br/>언어: TypeScript<br/>테스트: Vitest, vitest-browser-react<br/>코드 품질: ESLint, Prettier, Stylelint"]
+  Catalog ~~~ Stack
+  style Stack text-align:left,fill:#f8f8f8,stroke:#999,stroke-dasharray:4 3
+```
+
 ```text
 src/
 ├── domain/          # 순수 비즈니스 로직 (가격 계산, 상품 매칭, 배송비, 판매처 필터)
