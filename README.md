@@ -57,24 +57,24 @@
 
 CLI를 Electron GUI로 옮기면서 가격 수정 순회를 renderer의 React 훅(`useTargetProductsUpdate`)에 두었습니다. 그런데 판매처 조회에 쓰는 Puppeteer `page`와 내 스토어 이름(`SMART_STORE_NAME`)은 main 프로세스에만 있어서, 훅이 상품마다 `getSellers → filterSellers → getTargetPrice → updatePrice` 순서로 main에 IPC 요청을 4번 보내는 구조가 됐습니다.
 
-![변경 전 통신 구조](assets/troubleshooting-ipc-before.png)
-
 ```ts
 // 변경 전: renderer 훅이 상품마다 main에 4번 요청
-for (const targetProduct of targetProducts) {
-  const sellers = await window.api.getSellers(catalogURL, name);
-  if (!sellers.isSuccess) break;
+const useTargetProductsUpdate = () => {
+  for (const targetProduct of targetProducts) {
+    const sellers = await window.api.getSellers(catalogURL, name);
+    if (!sellers.isSuccess) break;
 
-  // 내 스토어 이름이 main에만 있어 필터링도 main에 요청
-  const filtered = await window.api.filterSellers(sellers.sellers, excluded);
-  if (!filtered.isSuccess) break;
+    // 내 스토어 이름이 main에만 있어 필터링도 main에 요청
+    const filtered = await window.api.filterSellers(sellers.sellers, excluded);
+    if (!filtered.isSuccess) break;
 
-  const targetPrice = await window.api.getTargetPrice(prices, freeDeliveryPrice);
-  if (!targetPrice.isSuccess) break;
+    const targetPrice = await window.api.getTargetPrice(prices, freeDeliveryPrice);
+    if (!targetPrice.isSuccess) break;
 
-  const result = await window.api.updatePrice(originProductNo, targetPrice.targetPrice, delivery);
-  if (!result.isSuccess) break;
-}
+    const result = await window.api.updatePrice(originProductNo, targetPrice.targetPrice, delivery);
+    if (!result.isSuccess) break;
+  }
+};
 ```
 
 - 훅 117줄, 훅 테스트 468줄(테스트 22개, IPC mock 6개)
@@ -96,7 +96,14 @@ for (const targetProduct of targetProducts) {
 
 자원을 가진 쪽이 흐름을 쥐어야 원인이 사라지기 때문에 B를 선택했습니다.
 
-![변경 후 통신 구조](assets/troubleshooting-ipc-after.png)
+```ts
+// 변경 후: renderer 훅은 시작 요청 1번, 이후 main이 보내는 상태를 받기만 함
+const useTargetProductsUpdate = () => {
+  useEffect(() => window.api.onUpdateState((state) => setUpdateState(state)), []);
+
+  const startUpdate = () => window.api.startUpdate();
+};
+```
 
 - `src/main/updateTargetProducts.ts`: main이 순회하며, 상품 단위 실패는 `error`로 표시하고 계속 진행하고 `UnexpectedCatalogPageError`일 때만 중단합니다.
 - `src/main/registerIpcHandlers.ts`: `startUpdate` 채널 하나로 목록 조회, 로그인, 순회를 실행하고 진행 상태는 `updateState` 채널로 보냅니다. 순회 중 다시 들어온 요청은 무시합니다.
