@@ -51,80 +51,86 @@
 
 ## 트러블슈팅
 
-### 가격 수정 순회를 renderer에서 main으로 옮기기
+### 가격 수정 순회를 React에서 main으로 옮기기
 
 **S — 상황**
 
-React에서 가격 수정을 시작하면, React 훅(`useTargetProductsUpdate`)이 아래처럼 상품을 순회하며 단계마다 main에 요청을 보냈습니다. 처음에 이 구조를 택한 건 통신이 단순해서였습니다. 작은 기능을 하나씩 실행해 확인할 수 있었고, 요청마다 응답이 바로 돌아왔습니다.
+가격 수정을 시작하면, React 훅(`useTargetProductsUpdate`)이 아래처럼 제품을 순회하며 단계마다 main에 요청을 보냈습니다. 처음에 이 구조를 택한 건 통신이 단순해서였습니다. 작은 기능을 하나씩 실행해 확인할 수 있었고, 요청마다 응답이 바로 돌아왔습니다.
 
 ```ts
-// 변경 전: renderer 훅이 상품마다 main에 4번 요청
+// 변경 전: React 훅이 제품마다 main에 4번 요청
 const useTargetProductsUpdate = () => {
-  for (const targetProduct of targetProducts) {
-    const sellers = await window.api.getSellers(catalogURL, name);
-    if (!sellers.isSuccess) break;
+  const start = async () => {
+    for (const targetProduct of targetProducts) {
+      const sellers = await window.api.getSellers(catalogURL, name);
+      if (!sellers.isSuccess) break;
 
-    // 내 스토어 이름이 main에만 있어 필터링도 main에 요청
-    const filtered = await window.api.filterSellers(sellers.sellers, excluded);
-    if (!filtered.isSuccess) break;
+      // 내 스토어 이름이 main에만 있어 필터링도 main에 요청
+      const filtered = await window.api.filterSellers(sellers.sellers, excluded);
+      if (!filtered.isSuccess) break;
 
-    const targetPrice = await window.api.getTargetPrice(prices, freeDeliveryPrice);
-    if (!targetPrice.isSuccess) break;
+      const targetPrice = await window.api.getTargetPrice(prices, freeDeliveryPrice);
+      if (!targetPrice.isSuccess) break;
 
-    const result = await window.api.updatePrice(originProductNo, targetPrice.targetPrice, delivery);
-    if (!result.isSuccess) break;
-  }
+      const result = await window.api.updatePrice(
+        originProductNo,
+        targetPrice.targetPrice,
+        delivery,
+      );
+      if (!result.isSuccess) break;
+
+      // ... 중간 과정 생략
+
+      // 수정 결과를 화면 상태에 반영
+      setUpdatedProducts(updatedTargetProducts);
+    }
+  };
 };
 ```
 
-하지만 코드가 쌓이면서 이 구조로 계속 진행해도 괜찮은지 의문이 들었습니다.
+하지만 기능을 추가하면서 이 구조로 계속 진행해도 괜찮은지 의문이 들었습니다.
 
-- **훅의 책임을 벗어난 순회**: 훅의 책임은 화면에 보여줄 상태를 관리하는 것인데, 순회까지 맡으면서 그 범위를 벗어났습니다. 그 결과 훅이 117줄, 테스트가 468줄로 길어지고 이해하기 어려워졌습니다. for문을 꼭 React에서 돌릴 필요는 없어 보였고, main에서 순회하고 갱신된 제품 정보만 UI로 보여줄 수 있습니다.
-- **반복되는 통신 패턴**: 상품마다 main에 요청하고 `if (!x.isSuccess) break;`로 응답을 확인하는 패턴이 4번씩 반복됐습니다.
-- **요청 기준 부재**: 굳이 main에 요청할 필요가 없는 함수도 있었지만, 무엇을 main에 요청할지 기준이 없었습니다. 예를 들어 목표가 계산은 main에 요청하면서, 같은 폴더의 가상 가격 추가는 React에서 직접 호출했습니다.
+- **훅의 책임을 벗어난 순회**: 훅의 책임은 화면에 보여줄 상태를 관리하는 것인데, 제품 수정 제어와 순회까지 맡으면서 범위를 벗어났습니다.
+  - 훅이 약 120줄, 테스트가 약 470줄로 길어지고 이해하기 어려워졌습니다.
+  - 무엇을 main에 요청할지 기준이 없어, 순수 함수인 수정가 계산(`getTargetPrice`)까지 형식적으로 main에 요청했습니다.
+- **반복되는 통신 패턴**: 제품마다 main에 요청하고 `if (!x.isSuccess) break;`로 응답을 확인하는 패턴이 4번씩 반복됐습니다.
 
 **T — 과제**
 
-위 세 가지를 해결하기 위해 아래를 목표로 잡았습니다.
+위 두 가지를 해결하기 위해 아래를 목표로 잡았습니다.
 
-- **훅은 상태 관리만**: 순회를 React 밖으로 옮겨, 훅이 화면에 보여줄 상태만 관리하게 합니다.
-- **통신 단순화**: 상품마다 반복되던 요청과 응답 확인을 없애, React는 시작 요청과 상태 수신만 하게 합니다.
-- **실행 위치 기준**: 어떤 코드를 main에서 실행하고 어떤 코드를 React에서 실행할지 기준을 세웁니다.
+- **훅은 상태 관리만**: 제품 수정 제어와 순회를 main으로 옮겨, 훅에는 상태 관리만 남깁니다.
+- **통신 단순화**: 제품마다 4번씩 반복되던 요청과 응답 확인을 없애, React는 시작 요청과 상태 수신만 하게 합니다.
+- **역할 분리**: UI는 화면에 보여줄 상태만 전달받고, 그 외의 처리는 계산을 포함해 모두 main이 맡도록 역할을 나눕니다.
 
 **A — 행동**
 
-| 선택지                                                | 한계                                                                             |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------- |
-| A. renderer 순회 유지, 4개 채널을 1개로 합치기        | 흐름은 여전히 renderer에 있고, 실패 종류를 넘기려면 에러 코드를 따로 설계해야 함 |
-| **B. 순회를 main으로 옮기고 상태 전체를 전송 (선택)** | 매번 목록 전체를 보내지만, 목록이 수십 개 수준이라 부담이 작음                   |
-| C. 순회를 main으로 옮기고 바뀐 상품만 전송            | renderer가 변경분을 합치는 로직을 다시 가져야 함                                 |
+| 선택지                                                | 한계                                                                         |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| A. React 순회 유지, 4개 채널을 1개로 합치기           | 순회와 제품 수정 제어가 여전히 React에 남아, 훅이 상태 관리만 하게 되지 않음 |
+| **B. 순회를 main으로 옮기고 상태 전체를 전송 (선택)** | 제품 1개만 수정돼도 목록 전체(약 150개)를 다시 보냄                          |
+| C. 순회를 main으로 옮기고 바뀐 상태만 전송            | 바뀐 상태 종류마다 React에 처리 분기가 늘어 복잡해짐                         |
 
-자원을 가진 쪽이 흐름을 쥐어야 원인이 사라지기 때문에 B를 선택했습니다.
+위 세 목표를 모두 만족하는 건 B뿐이라 B를 선택했습니다. 목록 전체를 보내는 부담은 제품마다 5초씩 대기하는 순회에 비하면 작다고 판단했습니다.
 
 ```ts
-// 변경 후: renderer 훅은 시작 요청 1번, 이후 main이 보내는 상태를 받기만 함
+// 변경 후: React 훅은 시작 요청 1번, 이후 main이 보내는 상태를 받기만 함
 const useTargetProductsUpdate = () => {
+  // main이 보내는 메시지를 수신하는 이벤트를 등록해 상태 업데이트
   useEffect(() => window.api.onUpdateState((state) => setUpdateState(state)), []);
 
+  // main에 가격 수정 시작 요청
   const startUpdate = () => window.api.startUpdate();
 };
 ```
 
-- `src/main/updateTargetProducts.ts`: main이 순회하며, 상품 단위 실패는 `error`로 표시하고 계속 진행하고 `UnexpectedCatalogPageError`일 때만 중단합니다.
-- `src/main/registerIpcHandlers.ts`: `startUpdate` 채널 하나로 목록 조회, 로그인, 순회를 실행하고 진행 상태는 `updateState` 채널로 보냅니다. 순회 중 다시 들어온 요청은 무시합니다.
-- renderer 훅: for문을 지우고 `onUpdateState`를 구독해 받은 상태를 저장만 합니다.
-- 타입 이동 → main 순회 추가 → 채널 추가 → 훅 전환 → 기존 채널 삭제의 5단계 커밋으로 나눠, 어느 단계를 되돌려도 앱이 동작하게 했습니다.
-
 **R — 결과**
 
-| 항목                           | 변경 전                 | 변경 후                |
-| ------------------------------ | ----------------------- | ---------------------- |
-| 상품 1개당 renderer → main IPC | 4번                     | 0번                    |
-| renderer에 노출한 invoke 채널  | 6개                     | 1개(+ 구독 1개)        |
-| 훅 코드                        | 117줄                   | 57줄                   |
-| 훅 테스트                      | 468줄 · 22개 · mock 6개 | 160줄 · 8개 · mock 2개 |
+| 항목                         | 변경 전         | 변경 후                                      |
+| ---------------------------- | --------------- | -------------------------------------------- |
+| 훅 코드                      | 약 120줄        | 약 60줄                                      |
+| 훅 테스트                    | 약 470줄 · 22개 | 약 160줄 · 8개                               |
+| 제품 1개당 React → main 요청 | 4번             | 0번                                          |
+| React에 노출한 통신 채널     | 6개             | 2개(가격 수정 요청, 메시지 수신 이벤트 등록) |
 
-- 상품 하나가 실패하면 넘어가고, 접속이 제한되면 멈추도록 실패를 구분해 처리할 수 있게 됐습니다.
-- "흐름과 계산은 자원을 가진 main에, renderer는 화면 표시만"이라는 실행 위치 기준이 생겼습니다.
-
-> 줄 수와 테스트 개수는 AI 코딩 어시스턴트(Claude Code, Claude Opus 5.5)가 Windows 10 로컬 저장소에서 `git show <커밋>:<파일> | wc -l`과 `grep -c "^test("`로 센 값입니다. 변경 전은 커밋 `fa46553`, 변경 후는 `cfc83f6` 기준이며 참고용입니다. IPC 호출 횟수와 채널 수는 코드를 보고 센 값입니다.
+- 순회가 main 한 곳에 모여, 중복 실행 방지 같은 제어를 main에서만 처리하면 되고 정지 기능도 main에만 추가하면 됩니다.
