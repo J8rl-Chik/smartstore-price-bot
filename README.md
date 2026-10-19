@@ -38,19 +38,6 @@
 - **변경 시에만 업데이트** — 목표가·배송비 타입이 달라진 경우에만 스마트스토어 API 호출
 - **접근 제한 대응** — 랜덤 딜레이, 상품 순서 셔플, 로그인 프로필 유지
 
-## 기술 스택
-
-| 영역            | 사용 기술                                                                      |
-| --------------- | ------------------------------------------------------------------------------ |
-| 언어            | TypeScript                                                                     |
-| 실행 환경       | Node.js                                                                        |
-| 데스크톱        | Electron, electron-vite                                                        |
-| UI              | React 19, styled-components                                                    |
-| 브라우저 자동화 | Puppeteer                                                                      |
-| 외부 API        | 네이버 커머스 API (OAuth 토큰 발급 · 상품 조회 · 가격 수정), Google Sheets API |
-| 테스트          | Vitest, vitest-browser-react (Playwright 브라우저 모드)                        |
-| 코드 품질       | ESLint, Prettier, Stylelint                                                    |
-
 ## 가격 결정 로직
 
 판매 중인 상품을 하나씩 순회하며 아래 순서로 처리합니다.
@@ -77,3 +64,16 @@ export const calculateTargetPrice = (prices: number[], freeDeliveryPrice: number
 ## 아키텍처
 
 ![아키텍처](assets/architecture.png)
+
+## 기술 스택
+
+| 영역            | 사용 기술                                                                      |
+| --------------- | ------------------------------------------------------------------------------ |
+| 언어            | TypeScript                                                                     |
+| 실행 환경       | Node.js                                                                        |
+| 데스크톱        | Electron, electron-vite                                                        |
+| UI              | React 19, styled-components                                                    |
+| 브라우저 자동화 | Puppeteer                                                                      |
+| 외부 API        | 네이버 커머스 API (OAuth 토큰 발급 · 상품 조회 · 가격 수정), Google Sheets API |
+| 테스트          | Vitest, vitest-browser-react (Playwright 브라우저 모드)                        |
+| 코드 품질       | ESLint, Prettier, Stylelint                                                    |
