@@ -40,15 +40,16 @@
 
 ## 기술 스택
 
-| 영역      | 사용 기술                                                                      |
-| --------- | ------------------------------------------------------------------------------ |
-| 언어      | TypeScript                                                                     |
-| 데스크톱  | Electron, electron-vite                                                        |
-| UI        | React 19, styled-components                                                    |
-| 크롤링    | Puppeteer                                                                      |
-| 외부 API  | 네이버 커머스 API (OAuth 토큰 발급 · 상품 조회 · 가격 수정), Google Sheets API |
-| 테스트    | Vitest, vitest-browser-react (Playwright 브라우저 모드)                        |
-| 코드 품질 | ESLint, Prettier, Stylelint                                                    |
+| 영역            | 사용 기술                                                                      |
+| --------------- | ------------------------------------------------------------------------------ |
+| 언어            | TypeScript                                                                     |
+| 실행 환경       | Node.js                                                                        |
+| 데스크톱        | Electron, electron-vite                                                        |
+| UI              | React 19, styled-components                                                    |
+| 브라우저 자동화 | Puppeteer                                                                      |
+| 외부 API        | 네이버 커머스 API (OAuth 토큰 발급 · 상품 조회 · 가격 수정), Google Sheets API |
+| 테스트          | Vitest, vitest-browser-react (Playwright 브라우저 모드)                        |
+| 코드 품질       | ESLint, Prettier, Stylelint                                                    |
 
 ## 가격 결정 로직
 
