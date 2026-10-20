@@ -3,7 +3,7 @@ import ProductTable from './ProductTable';
 import { customRender } from '../customRender';
 import type { TProductTableRow } from '../domain/_type';
 
-const PRODUCTS: TProductTableRow[] = [
+const products: TProductTableRow[] = [
   {
     id: 1,
     name: '무선 이어폰 프로',
@@ -34,14 +34,14 @@ const PRODUCTS: TProductTableRow[] = [
 ];
 
 test('상품 목록 제목을 테이블의 이름으로 보여준다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+  const screen = await customRender(<ProductTable products={products} />);
 
   await expect.element(screen.getByRole('table', { name: '상품 목록' })).toBeVisible();
   await expect.element(screen.getByText('상품 목록')).toBeVisible();
 });
 
 test('테이블 컬럼 헤더를 보여준다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+  const screen = await customRender(<ProductTable products={products} />);
 
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('columnheader', { name: '설정가' })).toBeVisible();
@@ -52,12 +52,12 @@ test('테이블 컬럼 헤더를 보여준다', async () => {
 });
 
 test('헤더 행과 상품 행으로 구성된다', async () => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+  const screen = await customRender(<ProductTable products={products} />);
   const thead = screen.getByRole('rowgroup').nth(0); // rowgroup은 thead, tbody 순서로 2개다.
   const tbody = screen.getByRole('rowgroup').nth(1);
 
   expect(thead.getByRole('row').elements()).toHaveLength(1);
-  expect(tbody.getByRole('row').elements()).toHaveLength(PRODUCTS.length);
+  expect(tbody.getByRole('row').elements()).toHaveLength(products.length);
 
   await expect.element(screen.getByRole('cell', { name: '무선 이어폰 프로' })).toBeVisible();
   await expect.element(screen.getByRole('cell', { name: '블루투스 스피커 미니' })).toBeVisible();
@@ -76,7 +76,7 @@ test('상품이 없으면 헤더 행만 보여준다', async () => {
  * 렌더링된 열 너비를 테이블 너비에 대한 비율로 구한다.
  */
 const getColumnWidthRatio = async (testId: string): Promise<number> => {
-  const screen = await customRender(<ProductTable products={PRODUCTS} />);
+  const screen = await customRender(<ProductTable products={products} />);
   const table = screen.getByRole('table', { name: '상품 목록' }).element();
   const column = screen.getByTestId(testId).element();
 
