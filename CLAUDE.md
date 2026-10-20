@@ -20,6 +20,8 @@
 
 - `UPPER_SNAKE_CASE`(예: `DELIVERY_FEE_TYPE`)는 파일 최상단에서 export(default export 포함)하는 상수에만 쓴다. export하지 않는 상수는 테스트 파일의 고정 데이터를 포함해 camelCase로 짓는다. (예: `initialUpdateState`, `firstProduct`) 이름만 보고 다른 파일에서 가져다 쓰는 공용 값인지 구분하기 위해서다.
 
+- 타입(`interface`, `type`)에는 접두사를 붙이지 않는다. 타입 이름이 컴포넌트·함수·상수 같은 값 이름과 겹칠 때만 `T` 접두사를 붙인다. (예: 컴포넌트 `ProductTableRow`의 행 데이터 타입은 `TProductTableRow`) 같은 이름을 한 파일에서 import하면 TS2440 에러가 나고, `as` 별칭을 붙이면 같은 대상을 부르는 이름이 파일마다 달라지기 때문이다.
+
 ## 문제·에러 질문 답변 양식
 
 "문제가 뭐야?", "왜 에러나?"처럼 문제나 에러를 묻는 질문, 또는 "문제", "에러" 같은 키워드가 들어간 질문에는 아래 양식으로 답한다.
