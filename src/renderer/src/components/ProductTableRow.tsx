@@ -26,7 +26,7 @@ const NameCell = styled.td`
   font-weight: 500;
 `;
 
-const SetPriceCell = styled.td`
+const ConfiguredPriceCell = styled.td`
   ${cell}
   color: ${({ theme }) => theme.color.gray500};
   text-align: right;
@@ -60,10 +60,10 @@ const UpdateTimeCell = styled.td`
 const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element => (
   <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
-    <SetPriceCell>
+    <ConfiguredPriceCell>
       {formatTotalPrice(product.configuredPrice)}
       <DeliveryFeeInfo {...product.configuredPrice} />
-    </SetPriceCell>
+    </ConfiguredPriceCell>
     <CurrentPriceCell>
       {formatTotalPrice(product.currentPrice)}
       <DeliveryFeeInfo {...product.currentPrice} />
