@@ -10,7 +10,7 @@ const PRODUCT: TProductTableRow = {
   currentPrice: { price: 31000, deliveryFee: 3000 },
   updatedPrice: { price: 30800, deliveryFee: 3000 },
   status: 'complete',
-  updatedAt: '13:34:48',
+  updateTime: '13:34:48',
 };
 
 const renderRow = (product: TProductTableRow) =>

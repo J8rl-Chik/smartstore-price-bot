@@ -51,7 +51,7 @@ const updateTargetProductPrice = async (
       status: 'complete',
       price: salePrice,
       baseFee: 'baseFee' in deliveryFee ? deliveryFee.baseFee : 0,
-      updatedAt: Date.now(),
+      time: Date.now(),
     };
   }
 
@@ -65,7 +65,7 @@ const updateTargetProductPrice = async (
     status: 'complete',
     price: result.salePrice,
     baseFee: result.deliveryInfo.deliveryFee.baseFee,
-    updatedAt: Date.now(),
+    time: Date.now(),
   };
 };
 
@@ -112,7 +112,7 @@ const updateTargetProducts = async (
         setUpdate(index, await updateTargetProductPrice(page, targetProduct, myStoreName));
       } catch (error) {
         console.error(error);
-        setUpdate(index, { status: 'error', updatedAt: Date.now() });
+        setUpdate(index, { status: 'error', time: Date.now() });
 
         if (error instanceof UnexpectedCatalogPageError) {
           break;

@@ -74,13 +74,13 @@ describe('wait 상태이면', () => {
   it('수정 시간은 —이다', () => {
     const result = parseToProductTableRow(createProduct({ update: { status: 'wait' } }));
 
-    expect(result.updatedAt).toBe('—');
+    expect(result.updateTime).toBe('—');
   });
 });
 
 describe('complete 상태이면', () => {
-  const updatedAt = new Date('2026-10-14T14:32:05').getTime();
-  const update = { status: 'complete', price: 38000, baseFee: 2000, updatedAt } as const;
+  const updateTime = new Date('2026-10-14T14:32:05').getTime();
+  const update = { status: 'complete', price: 38000, baseFee: 2000, time: updateTime } as const;
 
   it('수정가는 수정 판매가와 수정 배송비를 그대로 담는다', () => {
     const result = parseToProductTableRow(createProduct({ update }));
@@ -103,13 +103,13 @@ describe('complete 상태이면', () => {
   it('수정 시간을 시:분:초로 만든다', () => {
     const result = parseToProductTableRow(createProduct({ update }));
 
-    expect(result.updatedAt).toBe('14:32:05');
+    expect(result.updateTime).toBe('14:32:05');
   });
 });
 
 describe('error 상태이면', () => {
-  const updatedAt = new Date('2026-10-14T11:35:09').getTime();
-  const update = { status: 'error', updatedAt } as const;
+  const updateTime = new Date('2026-10-14T11:35:09').getTime();
+  const update = { status: 'error', time: updateTime } as const;
 
   it('수정가는 없고 상태는 error이다', () => {
     const result = parseToProductTableRow(createProduct({ update }));
@@ -121,6 +121,6 @@ describe('error 상태이면', () => {
   it('실패한 시각을 수정 시간으로 만든다', () => {
     const result = parseToProductTableRow(createProduct({ update }));
 
-    expect(result.updatedAt).toBe('11:35:09');
+    expect(result.updateTime).toBe('11:35:09');
   });
 });

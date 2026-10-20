@@ -13,5 +13,5 @@ export interface TProductTableRow {
   // 수정가가 아직 없으면 null. "—"로 표시한다.
   updatedPrice: PriceWithFee | null;
   status: ProductUpdateStatus;
-  updatedAt: string;
+  updateTime: string;
 }

@@ -30,7 +30,7 @@ export const parseToProductTableRow = ({
         currentPrice,
         updatedPrice: null,
         status: 'wait',
-        updatedAt: '—',
+        updateTime: '—',
       };
     case 'complete':
       return {
@@ -40,7 +40,7 @@ export const parseToProductTableRow = ({
         currentPrice,
         updatedPrice: { price: update.price, deliveryFee: update.baseFee },
         status: 'complete',
-        updatedAt: formatTime(update.updatedAt),
+        updateTime: formatTime(update.time),
       };
     case 'error':
       return {
@@ -50,7 +50,7 @@ export const parseToProductTableRow = ({
         currentPrice,
         updatedPrice: null,
         status: 'error',
-        updatedAt: formatTime(update.updatedAt),
+        updateTime: formatTime(update.time),
       };
   }
 };

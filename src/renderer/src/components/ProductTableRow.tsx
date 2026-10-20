@@ -50,7 +50,7 @@ const StatusCell = styled.td`
   text-align: center;
 `;
 
-const UpdatedAtCell = styled.td`
+const UpdateTimeCell = styled.td`
   ${cell}
   font-size: 13px;
   color: ${({ theme }) => theme.color.gray400};
@@ -81,7 +81,7 @@ const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element =
     <StatusCell>
       <StatusBadge status={product.status} />
     </StatusCell>
-    <UpdatedAtCell>{product.updatedAt}</UpdatedAtCell>
+    <UpdateTimeCell>{product.updateTime}</UpdateTimeCell>
   </ProductTableRowContainer>
 );
 

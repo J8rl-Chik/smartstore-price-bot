@@ -68,10 +68,10 @@ const getEmittedStates = (): UpdateState[] => mockEmit.mock.calls.map(([state]) 
 
 const getLastState = (): UpdateState => getEmittedStates().at(-1) as UpdateState;
 
-const updatedAt = 1700000000000;
+const updateTime = 1700000000000;
 
 beforeEach(() => {
-  vi.spyOn(Date, 'now').mockReturnValue(updatedAt);
+  vi.spyOn(Date, 'now').mockReturnValue(updateTime);
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -183,7 +183,7 @@ it('가격 수정에 성공하면 그 상품만 응답의 판매가와 기본 �
   expect(getLastState().targetProducts).toEqual([
     {
       ...productA,
-      update: { status: 'complete', price: 39990, baseFee: 3000, updatedAt },
+      update: { status: 'complete', price: 39990, baseFee: 3000, time: updateTime },
     },
     { ...productB, update: { status: 'wait' } },
   ]);
@@ -199,7 +199,7 @@ it('DRY_RUN이 true이면 가격 수정을 요청하지 않고 계산한 판매�
     status: 'complete',
     price: 39990,
     baseFee: 3000,
-    updatedAt,
+    time: updateTime,
   });
 });
 
@@ -216,7 +216,7 @@ it('DRY_RUN이 true이고 배송비가 무료이면 기본 배송비를 0으로 
     status: 'complete',
     price: 42990,
     baseFee: 0,
-    updatedAt,
+    time: updateTime,
   });
 });
 
@@ -240,10 +240,10 @@ it('상품 하나에서 에러가 나면 콘솔에 로깅하고 그 상품만 er
 
   expect(console.error).toHaveBeenCalledWith(error);
   expect(getLastState().targetProducts).toEqual([
-    { ...productA, update: { status: 'error', updatedAt } },
+    { ...productA, update: { status: 'error', time: updateTime } },
     {
       ...productB,
-      update: { status: 'complete', price: 39990, baseFee: 3000, updatedAt },
+      update: { status: 'complete', price: 39990, baseFee: 3000, time: updateTime },
     },
   ]);
 });
@@ -257,7 +257,7 @@ it('UnexpectedCatalogPageError가 나면 그 상품을 error로 반영하고 다
 
   expect(mockGetSellersInPuppeteer).toHaveBeenCalledTimes(1);
   expect(getLastState().targetProducts).toEqual([
-    { ...productA, update: { status: 'error', updatedAt } },
+    { ...productA, update: { status: 'error', time: updateTime } },
     { ...productB, update: { status: 'wait' } },
   ]);
 });
