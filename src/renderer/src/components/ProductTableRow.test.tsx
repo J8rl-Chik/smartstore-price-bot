@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import ProductTableRow from './ProductTableRow';
 import { customRender } from '../customRender';
-import type { ProductListItem } from '../domain/_type';
+import type { TProductTableRow } from '../domain/_type';
 
-const PRODUCT: ProductListItem = {
+const PRODUCT: TProductTableRow = {
   id: 2,
   name: '블루투스 스피커 미니',
   configuredPrice: { price: 32000, deliveryFee: 3000 },
@@ -13,7 +13,8 @@ const PRODUCT: ProductListItem = {
   updatedAt: '13:34:48',
 };
 
-const renderRow = (product: ProductListItem) => customRender(<ProductTableRow product={product} />);
+const renderRow = (product: TProductTableRow) =>
+  customRender(<ProductTableRow product={product} />);
 
 test('상품 이름을 보여준다', async () => {
   const screen = await renderRow(PRODUCT);

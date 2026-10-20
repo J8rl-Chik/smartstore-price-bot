@@ -5,7 +5,7 @@ export interface PriceWithFee {
   deliveryFee: number;
 }
 
-export interface ProductListItem {
+export interface TProductTableRow {
   id: number;
   name: string;
   configuredPrice: PriceWithFee;

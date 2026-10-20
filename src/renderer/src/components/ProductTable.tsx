@@ -1,11 +1,11 @@
 import styled from 'styled-components';
 import ProductTableRow from './ProductTableRow';
-import type { ProductListItem } from '../domain/_type';
+import type { TProductTableRow } from '../domain/_type';
 
 type TextAlign = 'left' | 'center' | 'right';
 
 interface ProductTableProps {
-  products: ProductListItem[];
+  products: TProductTableRow[];
 }
 
 /**

@@ -2,10 +2,10 @@ import styled, { css } from 'styled-components';
 import DeliveryFeeInfo from './DeliveryFeeInfo';
 import StatusBadge from './StatusBadge';
 import formatTotalPrice from '../domain/formatTotalPrice';
-import type { ProductListItem } from '../domain/_type';
+import type { TProductTableRow } from '../domain/_type';
 
 interface ProductTableRowProps {
-  product: ProductListItem;
+  product: TProductTableRow;
 }
 
 const ProductTableRowContainer = styled.tr`

@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import ProductTable from './ProductTable';
 import { customRender } from '../customRender';
-import type { ProductListItem } from '../domain/_type';
+import type { TProductTableRow } from '../domain/_type';
 
-const PRODUCTS: ProductListItem[] = [
+const PRODUCTS: TProductTableRow[] = [
   {
     id: 1,
     name: '무선 이어폰 프로',

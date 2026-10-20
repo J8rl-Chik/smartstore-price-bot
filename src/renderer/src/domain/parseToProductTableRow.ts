@@ -1,7 +1,7 @@
 import formatTime from './formatTime';
 import { DELIVERY_FEE_TYPE } from '../../../domain/delivery/delivery';
 import type { TargetProductWithUpdate } from '../../../domain/product/_type';
-import type { ProductListItem } from './_type';
+import type { TProductTableRow } from './_type';
 
 /**
  * 설정가는 시트 값, 현재가는 스토어 값, 수정가는 가격 수정 결과로 만든다. 가격은 배송비를 제외한 값 그대로 담는다.
@@ -14,7 +14,7 @@ export const parseToProductTableRow = ({
   store,
   sheet,
   update,
-}: TargetProductWithUpdate): ProductListItem => {
+}: TargetProductWithUpdate): TProductTableRow => {
   const configuredPrice =
     sheet.delivery.feeType === DELIVERY_FEE_TYPE.FREE
       ? { price: sheet.freeDeliveryPrice, deliveryFee: 0 }
