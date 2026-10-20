@@ -25,25 +25,18 @@ const api: IpcEvent & IpcListener = {
 };
 
 /**
- * contextIsolation이 켜져 있으면(Electron 기본값, 보안 권장 설정)
- * renderer가 Node.js/Electron 객체에 직접 접근할 수 없으므로,
- * contextBridge를 통해서만 안전하게 API를 주입할 수 있다.
- * 꺼져 있는 경우(레거시 설정)에는 window 전역에 바로 할당해도 된다.
+ * contextIsolation(Electron 기본값, 보안 권장 설정)이 켜져 있으면 renderer가 Node.js/Electron 객체에
+ * 직접 접근할 수 없으므로, contextBridge를 통해서만 API를 주입한다.
+ * 이 프로젝트는 contextIsolation을 끄지 않으므로 window 전역에 직접 할당하는 분기는 두지 않는다.
+ * 꺼져 있으면 exposeInMainWorld가 예외를 던지고 콘솔에 로깅된다.
  */
 export const exposeApi = (): void => {
-  if (process.contextIsolated) {
-    try {
-      // renderer에서 window.electron 으로 electron-toolkit 헬퍼 사용 가능
-      contextBridge.exposeInMainWorld('electron', electronAPI);
-      // renderer에서 window.api 로 커스텀 API 사용 가능
-      contextBridge.exposeInMainWorld('api', api);
-    } catch (error) {
-      console.error(error);
-    }
-  } else {
-    // @ts-ignore (define in dts)
-    window.electron = electronAPI;
-    // @ts-ignore (define in dts)
-    window.api = api;
+  try {
+    // renderer에서 window.electron 으로 electron-toolkit 헬퍼 사용 가능
+    contextBridge.exposeInMainWorld('electron', electronAPI);
+    // renderer에서 window.api 로 커스텀 API 사용 가능
+    contextBridge.exposeInMainWorld('api', api);
+  } catch (error) {
+    console.error(error);
   }
 };

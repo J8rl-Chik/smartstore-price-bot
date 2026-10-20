@@ -30,10 +30,6 @@ vi.mock('@electron-toolkit/preload', () => ({
   electronAPI: fakeElectronAPI,
 }));
 
-const setContextIsolated = (value: boolean): void => {
-  Object.defineProperty(process, 'contextIsolated', { value, configurable: true });
-};
-
 // exposeApi()를 실행한 뒤, exposeInMainWorld('api', api)로 노출된 api 객체를 꺼낸다.
 const getExposedApi = (): Api => {
   exposeApi();
@@ -55,12 +51,9 @@ describe('exposeApi', () => {
     mockOn.mockReset();
     mockRemoveListener.mockReset();
     mockExposeInMainWorld.mockReset();
-    Reflect.deleteProperty(process, 'contextIsolated');
   });
 
-  it('contextIsolated가 켜져 있으면 electron과 api를 renderer에 노출한다', () => {
-    setContextIsolated(true);
-
+  it('electron과 api를 renderer에 노출한다', () => {
     exposeApi();
 
     expect(mockExposeInMainWorld).toHaveBeenCalledWith('electron', fakeElectronAPI);
@@ -68,7 +61,6 @@ describe('exposeApi', () => {
   });
 
   it('startUpdate를 호출하면 startUpdate 채널로 invoke를 호출한다', async () => {
-    setContextIsolated(true);
     mockInvoke.mockResolvedValue(undefined);
 
     const api = getExposedApi();
@@ -78,8 +70,6 @@ describe('exposeApi', () => {
   });
 
   it('onUpdateState를 호출하면 updateState 채널에 listener를 등록한다', () => {
-    setContextIsolated(true);
-
     const api = getExposedApi();
     api.onUpdateState(vi.fn());
 
@@ -87,8 +77,6 @@ describe('exposeApi', () => {
   });
 
   it('updateState 채널로 상태가 오면 onUpdateState에 넘긴 callback에 상태만 전달한다', () => {
-    setContextIsolated(true);
-
     const state: UpdateState = { targetProducts: [], currentIndex: null, isRunning: true };
     const callback = vi.fn();
     const api = getExposedApi();
@@ -101,8 +89,6 @@ describe('exposeApi', () => {
   });
 
   it('onUpdateState가 반환한 함수를 호출하면 등록한 listener를 updateState 채널에서 해제한다', () => {
-    setContextIsolated(true);
-
     const api = getExposedApi();
     const unsubscribe = api.onUpdateState(vi.fn());
     unsubscribe();
@@ -113,8 +99,6 @@ describe('exposeApi', () => {
   });
 
   it('contextBridge 노출 중 예외가 발생하면 콘솔에 로깅한다', () => {
-    setContextIsolated(true);
-
     const error = new Error('노출 실패');
     mockExposeInMainWorld.mockImplementation(() => {
       throw error;
