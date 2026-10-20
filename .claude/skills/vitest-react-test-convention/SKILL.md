@@ -1,6 +1,6 @@
 ---
 name: vitest-react-test-convention
-description: 이 프로젝트에서 vitest로 테스트를 작성하는 컨벤션. src/renderer/src 아래 React 컴포넌트의 .test.tsx 파일(vitest-browser-react)을 새로 작성하거나 수정할 때 반드시 참고한다. 또 .test.ts 파일을 포함해 어떤 테스트 파일이든 새로 만들거나 고칠 때 "공통 규칙"(import 시 자동 실행되는 코드 처리, it.each 사용 금지)을 적용한다. "테스트"라는 말이 없어도 테스트 파일을 만들거나 고치는 모든 작업에서 이 스킬을 적용한다.
+description: 이 프로젝트에서 vitest로 테스트를 작성하는 컨벤션. src/renderer/src 아래 React 컴포넌트의 .test.tsx 파일(vitest-browser-react)을 새로 작성하거나 수정할 때 반드시 참고한다. 또 .test.ts 파일을 포함해 어떤 테스트 파일이든 새로 만들거나 고칠 때 "공통 규칙"(import 시 자동 실행되는 코드 처리, it.each 사용 금지, 테스트 데이터·헬퍼 선언 위치)을 적용한다. "테스트"라는 말이 없어도 테스트 파일을 만들거나 고치는 모든 작업에서 이 스킬을 적용한다.
 ---
 
 # vitest + React 컴포넌트 테스트 컨벤션
@@ -55,6 +55,31 @@ it('getTargetProducts를 호출하면 getTargetProducts 채널로 invoke를 호�
 ```
 
 반복되는 준비 코드는 `getExposedApi` 같은 헬퍼 함수로 뽑는다. 헬퍼는 케이스를 합치는 용도가 아니라 중복된 준비 동작을 줄이는 용도로만 쓴다.
+
+### 3. 테스트 데이터와 헬퍼는 처음 쓰는 테스트 바로 위에 선언한다
+
+고정 데이터(`firstProduct`), 데이터 생성 함수(`createTargetProduct`), 헬퍼(`emitUpdateState`)를 파일 상단에 모아 두지 않는다. 그 값을 처음 쓰는 `test`/`it`(또는 `describe`) 바로 위에 둔다. 테스트를 읽다가 처음 보는 이름이 나오면 바로 위에서 정의를 찾을 수 있고, 상단에 모아 두면 아직 읽지 않은 테스트용 코드부터 읽게 되기 때문이다.
+
+mock 함수, `vi.mock`, `window.api` 같은 전역 등록, `beforeEach`처럼 모든 테스트가 쓰는 준비 코드는 그대로 상단에 둔다. 첫 테스트부터 필요하므로 상단이 곧 처음 쓰는 곳이다.
+
+```ts
+// 쓰지 않는다
+const mockOnUpdateState = vi.fn();
+const firstProduct = createTargetProduct();
+
+test('처음에는 상품이 비어 있다', ...); // firstProduct를 쓰지 않는다
+
+test('main이 보낸 상품 목록을 반영한다', ...); // 여기서 처음 쓴다
+
+// 이렇게 쓴다
+const mockOnUpdateState = vi.fn();
+
+test('처음에는 상품이 비어 있다', ...);
+
+const firstProduct = createTargetProduct();
+
+test('main이 보낸 상품 목록을 반영한다', ...);
+```
 
 ## 이 아래부터는 React 컴포넌트 테스트(`.test.tsx`) 전용이다
 
