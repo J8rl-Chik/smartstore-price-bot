@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import formatNumber from '../domain/formatNumber';
 import type { PriceWithFee } from '../domain/_type';
 
 const DeliveryFeeInfoContainer = styled.div`
@@ -14,8 +15,6 @@ const FreeDeliveryBadge = styled.span`
   background: ${({ theme }) => theme.color.gray100};
   border-radius: 4px;
 `;
-
-const formatNumber = (value: number): string => value.toLocaleString('ko-KR');
 
 const DeliveryFeeInfo = ({ price, deliveryFee }: PriceWithFee): React.JSX.Element => (
   <DeliveryFeeInfoContainer>
