@@ -5,7 +5,7 @@ import type { UpdateState } from '../domain/product/_type';
 // 매개변수는 요청 인자, 반환값(Promise)은 응답 타입이다.
 // 매개변수는 렌더러가 실제로 보내는 값만 담는다. IpcMainInvokeEvent는
 // ipcMain.handle이 자동으로 넘겨주는 값이라 렌더러가 보내는 인자가 아니다.
-export interface IpcEvent {
+export interface IpcInvoke {
   // 상품 목록 조회, 로그인, 가격 수정 순회를 시작한다. 진행 상태는 응답이 아니라 onUpdateState 구독으로 받는다.
   startUpdate: () => Promise<void>;
 }
@@ -19,10 +19,10 @@ export interface IpcListener {
 }
 
 // 선언 병합으로 전역 Window 인터페이스에 electron, api 프로퍼티를 추가한다.
-// api는 IpcEvent와 IpcListener를 합친 모양이다. preload가 각 채널을 같은 이름의 함수로 노출한다.
+// api는 IpcInvoke와 IpcListener를 합친 모양이다. preload가 각 채널을 같은 이름의 함수로 노출한다.
 declare global {
   interface Window {
     electron: ElectronAPI;
-    api: IpcEvent & IpcListener;
+    api: IpcInvoke & IpcListener;
   }
 }

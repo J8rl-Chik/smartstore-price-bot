@@ -6,9 +6,9 @@ import type {
   TargetProductWithUpdate,
   UpdateState,
 } from '../../../domain/product/_type';
-import type { IpcEvent, IpcListener } from '../../../preload/_type';
+import type { IpcInvoke, IpcListener } from '../../../preload/_type';
 
-const mockStartUpdate = vi.fn<IpcEvent['startUpdate']>();
+const mockStartUpdate = vi.fn<IpcInvoke['startUpdate']>();
 const mockOnUpdateState = vi.fn<IpcListener['onUpdateState']>();
 const mockUnsubscribe = vi.fn();
 

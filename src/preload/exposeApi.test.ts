@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { exposeApi } from './exposeApi';
 import type { UpdateState } from '../domain/product/_type';
-import type { IpcEvent, IpcListener } from './_type';
+import type { IpcInvoke, IpcListener } from './_type';
 
-// preload가 renderer에 노출하는 api의 형태. IpcEvent와 IpcListener를 합친 모양이다.
-type Api = IpcEvent & IpcListener;
+// preload가 renderer에 노출하는 api의 형태. IpcInvoke와 IpcListener를 합친 모양이다.
+type Api = IpcInvoke & IpcListener;
 
 const mockInvoke = vi.fn();
 const mockOn = vi.fn();

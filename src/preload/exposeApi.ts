@@ -3,13 +3,13 @@ import { contextBridge, ipcRenderer } from 'electron';
 // electron-toolkit이 제공하는 공통 헬퍼(ipcRenderer 래퍼 등)
 import { electronAPI } from '@electron-toolkit/preload';
 import type { UpdateState } from '../domain/product/_type';
-import type { IpcEvent, IpcListener } from './_type';
+import type { IpcInvoke, IpcListener } from './_type';
 
 // main이 순회 상태를 보내는 채널 이름. main/registerIpcHandlers.ts의 채널 이름과 같아야 한다.
 const updateStateChannel = 'updateState';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
-const api: IpcEvent & IpcListener = {
+const api: IpcInvoke & IpcListener = {
   // renderer -> main으로 'startUpdate' 요청을 보내 상품 목록 조회, 로그인, 가격 수정 순회를 시작한다.
   startUpdate: () => ipcRenderer.invoke('startUpdate'),
   // main -> renderer로 오는 'updateState' 채널을 구독한다. 반환한 함수를 호출하면 구독을 해제한다.
