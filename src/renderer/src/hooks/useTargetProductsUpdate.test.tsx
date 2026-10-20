@@ -12,38 +12,6 @@ const mockStartUpdate = vi.fn<IpcEvent['startUpdate']>();
 const mockOnUpdateState = vi.fn<IpcListener['onUpdateState']>();
 const mockUnsubscribe = vi.fn();
 
-const createTargetProduct = (
-  overrides: Partial<Pick<TargetProduct, 'name' | 'originProductNo'>> = {},
-): TargetProductWithUpdate => ({
-  name: '무선 이어폰 프로',
-  originProductNo: 1,
-  store: {
-    salePrice: 42900,
-    stockQuantity: 10,
-    deliveryFee: 0,
-  },
-  sheet: {
-    catalogURL: 'https://catalog.example/1',
-    delivery: { feeType: '무료' },
-    freeDeliveryPrice: 0,
-    productPrice: 42900,
-    virtualPrice: null,
-    excludedSellerNames: [],
-  },
-  update: { status: 'wait' },
-  ...overrides,
-});
-
-const firstProduct = createTargetProduct();
-const secondProduct = createTargetProduct({ name: '블루투스 스피커 미니', originProductNo: 2 });
-
-// 훅이 onUpdateState에 등록한 callback을 꺼내, main이 상태를 보낸 것처럼 호출한다.
-const emitUpdateState = (state: UpdateState): void => {
-  const [callback] = mockOnUpdateState.mock.calls[0];
-
-  callback(state);
-};
-
 window.api = {
   startUpdate: mockStartUpdate,
   onUpdateState: mockOnUpdateState,
@@ -83,6 +51,38 @@ test('startUpdate를 호출하면 window.api.startUpdate를 호출한다', async
 
   expect(mockStartUpdate).toHaveBeenCalledOnce();
 });
+
+const createTargetProduct = (
+  overrides: Partial<Pick<TargetProduct, 'name' | 'originProductNo'>> = {},
+): TargetProductWithUpdate => ({
+  name: '무선 이어폰 프로',
+  originProductNo: 1,
+  store: {
+    salePrice: 42900,
+    stockQuantity: 10,
+    deliveryFee: 0,
+  },
+  sheet: {
+    catalogURL: 'https://catalog.example/1',
+    delivery: { feeType: '무료' },
+    freeDeliveryPrice: 0,
+    productPrice: 42900,
+    virtualPrice: null,
+    excludedSellerNames: [],
+  },
+  update: { status: 'wait' },
+  ...overrides,
+});
+
+const firstProduct = createTargetProduct();
+const secondProduct = createTargetProduct({ name: '블루투스 스피커 미니', originProductNo: 2 });
+
+// 훅이 onUpdateState에 등록한 callback을 꺼내, main이 상태를 보낸 것처럼 호출한다.
+const emitUpdateState = (state: UpdateState): void => {
+  const [callback] = mockOnUpdateState.mock.calls[0];
+
+  callback(state);
+};
 
 test('main이 보낸 상태의 상품 목록을 targetProducts에 반영한다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
