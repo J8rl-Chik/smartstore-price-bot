@@ -6,7 +6,7 @@ import type { ProductListItem } from '../domain/_type';
 const PRODUCT: ProductListItem = {
   id: 2,
   name: '블루투스 스피커 미니',
-  setPrice: { price: 32000, deliveryFee: 3000 },
+  configuredPrice: { price: 32000, deliveryFee: 3000 },
   currentPrice: { price: 31000, deliveryFee: 3000 },
   updatedPrice: { price: 30800, deliveryFee: 3000 },
   status: 'complete',
@@ -46,7 +46,7 @@ test('설정가, 현재가, 수정가 아래에 제품가와 배송비를 보여
 test('설정가, 현재가, 수정가 아래에 각자의 배송비를 보여준다', async () => {
   const screen = await renderRow({
     ...PRODUCT,
-    setPrice: { price: 32000, deliveryFee: 3000 },
+    configuredPrice: { price: 32000, deliveryFee: 3000 },
     currentPrice: { price: 31500, deliveryFee: 2500 },
     updatedPrice: { price: 31800, deliveryFee: 2000 },
   });
@@ -59,7 +59,7 @@ test('설정가, 현재가, 수정가 아래에 각자의 배송비를 보여준
 test('배송비가 0이면 설정가, 현재가, 수정가 아래에 무료배송을 보여준다', async () => {
   const screen = await renderRow({
     ...PRODUCT,
-    setPrice: { price: 35000, deliveryFee: 0 },
+    configuredPrice: { price: 35000, deliveryFee: 0 },
     currentPrice: { price: 34000, deliveryFee: 0 },
     updatedPrice: { price: 33800, deliveryFee: 0 },
   });
@@ -70,7 +70,7 @@ test('배송비가 0이면 설정가, 현재가, 수정가 아래에 무료배�
 test('배송비가 0이면 합계는 제품가와 같다', async () => {
   const screen = await renderRow({
     ...PRODUCT,
-    setPrice: { price: 35000, deliveryFee: 0 },
+    configuredPrice: { price: 35000, deliveryFee: 0 },
     currentPrice: { price: 34000, deliveryFee: 0 },
     updatedPrice: { price: 33800, deliveryFee: 0 },
   });
@@ -83,7 +83,7 @@ test('배송비가 0이면 합계는 제품가와 같다', async () => {
 test('배송비가 0이어도 수정가가 없으면 수정가 아래에는 무료배송을 보여주지 않는다', async () => {
   const screen = await renderRow({
     ...PRODUCT,
-    setPrice: { price: 35000, deliveryFee: 0 },
+    configuredPrice: { price: 35000, deliveryFee: 0 },
     currentPrice: { price: 34000, deliveryFee: 0 },
     updatedPrice: null,
   });

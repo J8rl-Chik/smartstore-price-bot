@@ -8,7 +8,7 @@ export interface PriceWithFee {
 export interface ProductListItem {
   id: number;
   name: string;
-  setPrice: PriceWithFee;
+  configuredPrice: PriceWithFee;
   currentPrice: PriceWithFee;
   // 수정가가 아직 없으면 null. "—"로 표시한다.
   updatedPrice: PriceWithFee | null;

@@ -7,7 +7,7 @@ const PRODUCTS: ProductListItem[] = [
   {
     id: 1,
     name: '무선 이어폰 프로',
-    setPrice: { price: 39900, deliveryFee: 3000 },
+    configuredPrice: { price: 39900, deliveryFee: 3000 },
     currentPrice: { price: 39900, deliveryFee: 3000 },
     updatedPrice: { price: 39900, deliveryFee: 3000 },
     status: 'complete',
@@ -16,7 +16,7 @@ const PRODUCTS: ProductListItem[] = [
   {
     id: 2,
     name: '블루투스 스피커 미니',
-    setPrice: { price: 35000, deliveryFee: 0 },
+    configuredPrice: { price: 35000, deliveryFee: 0 },
     currentPrice: { price: 35000, deliveryFee: 0 },
     updatedPrice: null,
     status: 'wait',
@@ -25,7 +25,7 @@ const PRODUCTS: ProductListItem[] = [
   {
     id: 3,
     name: '스테인리스 텀블러',
-    setPrice: { price: 21500, deliveryFee: 3000 },
+    configuredPrice: { price: 21500, deliveryFee: 3000 },
     currentPrice: { price: 21500, deliveryFee: 3000 },
     updatedPrice: null,
     status: 'error',

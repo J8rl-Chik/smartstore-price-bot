@@ -15,7 +15,7 @@ export const parseToProductTableRow = ({
   sheet,
   update,
 }: TargetProductWithUpdate): ProductListItem => {
-  const setPrice =
+  const configuredPrice =
     sheet.delivery.feeType === DELIVERY_FEE_TYPE.FREE
       ? { price: sheet.freeDeliveryPrice, deliveryFee: 0 }
       : { price: sheet.productPrice, deliveryFee: sheet.delivery.baseFee };
@@ -26,7 +26,7 @@ export const parseToProductTableRow = ({
       return {
         id: originProductNo,
         name,
-        setPrice,
+        configuredPrice,
         currentPrice,
         updatedPrice: null,
         status: 'wait',
@@ -36,7 +36,7 @@ export const parseToProductTableRow = ({
       return {
         id: originProductNo,
         name,
-        setPrice,
+        configuredPrice,
         currentPrice,
         updatedPrice: { price: update.price, deliveryFee: update.baseFee },
         status: 'complete',
@@ -46,7 +46,7 @@ export const parseToProductTableRow = ({
       return {
         id: originProductNo,
         name,
-        setPrice,
+        configuredPrice,
         currentPrice,
         updatedPrice: null,
         status: 'error',

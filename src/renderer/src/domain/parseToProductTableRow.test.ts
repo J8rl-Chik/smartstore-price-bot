@@ -32,7 +32,7 @@ describe('parseToProductTableRow', () => {
   it('시트의 배송비 유형이 유료이면 설정가는 제품가와 기본 배송비를 담는다', () => {
     const result = parseToProductTableRow(createProduct());
 
-    expect(result.setPrice).toEqual({ price: 39900, deliveryFee: 3000 });
+    expect(result.configuredPrice).toEqual({ price: 39900, deliveryFee: 3000 });
   });
 
   it('시트의 배송비 유형이 수량별 유료이면 설정가는 제품가와 기본 배송비를 담는다', () => {
@@ -45,7 +45,7 @@ describe('parseToProductTableRow', () => {
       },
     });
 
-    expect(result.setPrice).toEqual({ price: 39900, deliveryFee: 2500 });
+    expect(result.configuredPrice).toEqual({ price: 39900, deliveryFee: 2500 });
   });
 
   it('시트의 배송비 유형이 무료이면 설정가는 무료배송 기준가와 배송비 0을 담는다', () => {
@@ -55,7 +55,7 @@ describe('parseToProductTableRow', () => {
       sheet: { ...product.sheet, delivery: { feeType: DELIVERY_FEE_TYPE.FREE } },
     });
 
-    expect(result.setPrice).toEqual({ price: 50000, deliveryFee: 0 });
+    expect(result.configuredPrice).toEqual({ price: 50000, deliveryFee: 0 });
   });
 
   it('현재가는 스토어의 판매가와 스토어의 배송비를 그대로 담는다', () => {

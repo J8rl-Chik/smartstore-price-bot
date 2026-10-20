@@ -61,8 +61,8 @@ const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element =
   <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
     <SetPriceCell>
-      {formatTotalPrice(product.setPrice)}
-      <DeliveryFeeInfo {...product.setPrice} />
+      {formatTotalPrice(product.configuredPrice)}
+      <DeliveryFeeInfo {...product.configuredPrice} />
     </SetPriceCell>
     <CurrentPriceCell>
       {formatTotalPrice(product.currentPrice)}
