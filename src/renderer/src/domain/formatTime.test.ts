@@ -1,5 +1,6 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, expect, expectTypeOf, it, vi } from 'vitest';
 import formatTime from './formatTime';
+import type { FormattedTime } from './_type';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -28,4 +29,8 @@ it('자정은 00:00:00이다', () => {
   const timestamp = new Date('2026-10-14T00:00:00').getTime();
 
   expect(formatTime(timestamp)).toBe('00:00:00');
+});
+
+it('시:분:초 형태의 문자열 리터럴 타입을 반환한다', () => {
+  expectTypeOf(formatTime(0)).toEqualTypeOf<FormattedTime>();
 });
