@@ -1,6 +1,6 @@
 ---
 name: vitest-react-test-convention
-description: 이 프로젝트에서 vitest로 테스트를 작성하는 컨벤션. src/renderer/src 아래 React 컴포넌트의 .test.tsx 파일(vitest-browser-react)을 새로 작성하거나 수정할 때 반드시 참고한다. 또 .test.ts 파일을 포함해 어떤 테스트 파일이든 새로 만들거나 고칠 때 "공통 규칙"(import 시 자동 실행되는 코드 처리, it.each 사용 금지, 테스트 데이터·헬퍼 선언 위치)을 적용한다. "테스트"라는 말이 없어도 테스트 파일을 만들거나 고치는 모든 작업에서 이 스킬을 적용한다.
+description: 이 프로젝트에서 vitest로 테스트를 작성하는 컨벤션. src/renderer/src 아래 React 컴포넌트의 .test.tsx 파일(vitest-browser-react)을 새로 작성하거나 수정할 때 반드시 참고한다. 또 .test.ts 파일을 포함해 어떤 테스트 파일이든 새로 만들거나 고칠 때 "공통 규칙"(import 시 자동 실행되는 코드 처리, it.each 사용 금지, 테스트 데이터·헬퍼 선언 위치, 바깥 describe 금지)을 적용한다. "테스트"라는 말이 없어도 테스트 파일을 만들거나 고치는 모든 작업에서 이 스킬을 적용한다.
 ---
 
 # vitest + React 컴포넌트 테스트 컨벤션
@@ -79,6 +79,30 @@ test('처음에는 상품이 비어 있다', ...);
 const firstProduct = createTargetProduct();
 
 test('main이 보낸 상품 목록을 반영한다', ...);
+```
+
+### 4. 테스트 대상 이름만 적은 바깥 `describe`로 파일 전체를 감싸지 않는다
+
+`describe('formatTotalPrice', ...)`처럼 대상 이름만 적은 `describe`로 파일 전체를 감싸지 않고, `it`/`test`를 파일 최상위에 바로 쓴다. 테스트 파일이 이미 `{대상}.test.ts`로 대상 하나를 가리키고 vitest 결과에도 파일 경로가 나오므로 같은 이름을 한 번 더 적는 셈이고, 들여쓰기만 한 단계 늘어나기 때문이다.
+
+`describe('error 상태이면', ...)`처럼 조건별로 테스트를 묶어 공통 준비 값을 함께 두는 `describe`는 쓴다. 이름이 대상이 아니라 조건을 설명하므로 중복이 아니다.
+
+한 파일에서 export한 함수 여러 개를 테스트할 때는 함수 이름으로 `describe`를 나눠도 된다. (예: `parseRawProductRow.test.ts`의 `describe('convertToRawProductRow')`, `describe('parseProductRow')`) 파일 이름만으로는 어느 함수의 테스트인지 알 수 없어서, 이때는 함수 이름이 중복이 아니라 구분 기준이 되기 때문이다.
+
+```ts
+// 쓰지 않는다
+describe('formatTotalPrice', () => {
+  it('배송비가 0이면 제품가를 그대로 보여준다', ...);
+});
+
+// 이렇게 쓴다
+it('배송비가 0이면 제품가를 그대로 보여준다', ...);
+
+describe('error 상태이면', () => {
+  const update = { status: 'error', time: updateTime } as const;
+
+  it('수정가는 없고 상태는 error이다', ...);
+});
 ```
 
 ## 이 아래부터는 React 컴포넌트 테스트(`.test.tsx`) 전용이다
