@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { registerIpcHandlers } from './registerIpcHandlers';
+import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
+import type { UpdateState } from '../domain/product/_type';
 
 const mockHandle = vi.fn();
 const mockCreatePage = vi.fn();
@@ -12,7 +14,8 @@ const mockFindDuplicateProductNames = vi.fn();
 const mockCreateTargetProducts = vi.fn();
 const mockShuffleArray = vi.fn();
 const mockValidateEnv = vi.fn();
-const mockUpdateTargetProducts = vi.fn();
+const mockUpdateTargetProductPrice = vi.fn();
+const mockDelaySeconds = vi.fn();
 const mockSend = vi.fn();
 
 vi.mock('electron', () => ({
@@ -60,8 +63,12 @@ vi.mock(import('../utils/validateEnv'), () => ({
   default: (...args: unknown[]) => mockValidateEnv(...args),
 }));
 
-vi.mock(import('./updateTargetProducts'), () => ({
-  default: (...args: unknown[]) => mockUpdateTargetProducts(...args),
+vi.mock(import('../utils/delaySeconds'), () => ({
+  default: (...args: unknown[]) => mockDelaySeconds(...args),
+}));
+
+vi.mock(import('./updateTargetProductPrice'), () => ({
+  default: (...args: unknown[]) => mockUpdateTargetProductPrice(...args),
 }));
 
 /**
@@ -94,6 +101,7 @@ const invokeHandler = (channel: string, ...args: unknown[]): unknown =>
 
 describe('registerIpcHandlers', () => {
   afterEach(() => {
+    vi.restoreAllMocks();
     mockHandle.mockReset();
     mockCreatePage.mockReset();
     mockLoginNaver.mockReset();
@@ -105,7 +113,8 @@ describe('registerIpcHandlers', () => {
     mockCreateTargetProducts.mockReset();
     mockShuffleArray.mockReset();
     mockValidateEnv.mockReset();
-    mockUpdateTargetProducts.mockReset();
+    mockUpdateTargetProductPrice.mockReset();
+    mockDelaySeconds.mockReset();
     mockSend.mockReset();
   });
 
@@ -120,20 +129,20 @@ describe('registerIpcHandlers', () => {
     mockCreateTargetProducts.mockReturnValue(targetProducts);
   };
 
-  it('startUpdate는 판매 상품과 시트 행을 가공해 합친 목록으로 updateTargetProducts를 실행한다', async () => {
+  it('startUpdate는 판매 상품과 시트 행을 가공해 합친 목록의 상품으로 가격 수정을 처리한다', async () => {
     const rawSaleProducts = [{ id: 'raw' }];
     const filteredSaleProducts = [{ id: 'filtered' }];
     const shuffledSaleProducts = [{ id: 'shuffled' }];
     const rawProductRows = [['상품A']];
     const productRows = [{ name: '상품A' }];
-    const targetProducts = [{ name: '상품A', originProductNo: 111 }];
+    const targetProduct = { name: '상품A', originProductNo: 111 };
 
     mockGetSaleProducts.mockResolvedValue(rawSaleProducts);
     mockExcludeNewlyRegisteredProducts.mockReturnValue(filteredSaleProducts);
     mockShuffleArray.mockReturnValue(shuffledSaleProducts);
     mockGetProductRows.mockResolvedValue(rawProductRows);
     mockInitRawProductRows.mockReturnValue(productRows);
-    mockCreateTargetProducts.mockReturnValue(targetProducts);
+    mockCreateTargetProducts.mockReturnValue([targetProduct]);
     mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
 
     await invokeHandler('startUpdate');
@@ -142,11 +151,10 @@ describe('registerIpcHandlers', () => {
     expect(mockShuffleArray).toHaveBeenCalledWith(filteredSaleProducts);
     expect(mockInitRawProductRows).toHaveBeenCalledWith(rawProductRows);
     expect(mockCreateTargetProducts).toHaveBeenCalledWith(shuffledSaleProducts, productRows);
-    expect(mockUpdateTargetProducts).toHaveBeenCalledWith(
+    expect(mockUpdateTargetProductPrice).toHaveBeenCalledWith(
       expect.anything(),
-      targetProducts,
+      targetProduct,
       undefined,
-      expect.any(Function),
     );
   });
 
@@ -166,10 +174,12 @@ describe('registerIpcHandlers', () => {
     expect(mockGetProductRows).toHaveBeenCalled();
   });
 
-  it('startUpdate는 조회한 상품 목록과 로그인한 페이지, 내 스토어 이름으로 updateTargetProducts를 실행한다', async () => {
+  const productA = { name: '상품A', originProductNo: 111 };
+  const productB = { name: '상품B', originProductNo: 222 };
+
+  it('startUpdate는 상품마다 로그인한 페이지, 상품, 내 스토어 이름으로 가격 수정을 처리한다', async () => {
     const page = { name: 'fake-page' };
-    const targetProducts = [{ name: '상품A', originProductNo: 111 }];
-    mockFetchedTargetProducts(targetProducts);
+    mockFetchedTargetProducts([productA, productB]);
     mockValidateEnv.mockReturnValue('내 스토어');
     mockCreatePage.mockResolvedValue({ browser: {}, page });
 
@@ -177,31 +187,13 @@ describe('registerIpcHandlers', () => {
 
     expect(mockValidateEnv).toHaveBeenCalledWith('SMART_STORE_NAME');
     expect(mockLoginNaver).toHaveBeenCalledWith(page);
-    expect(mockUpdateTargetProducts).toHaveBeenCalledWith(
-      page,
-      targetProducts,
-      '내 스토어',
-      expect.any(Function),
-    );
-  });
-
-  it('startUpdate는 updateTargetProducts가 emit한 상태를 요청한 창의 updateState 채널로 보낸다', async () => {
-    const state = { targetProducts: [], currentIndex: 0, isRunning: true };
-
-    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
-    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
-    mockUpdateTargetProducts.mockImplementation(
-      async (_page, _targetProducts, _myStoreName, emit) => emit(state),
-    );
-
-    await invokeHandler('startUpdate');
-
-    expect(mockSend).toHaveBeenCalledWith('updateState', state);
+    expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(1, page, productA, '내 스토어');
+    expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(2, page, productB, '내 스토어');
   });
 
   it('startUpdate는 다시 호출되면 다시 로그인하지 않고 이전에 로그인한 페이지를 쓴다', async () => {
     const page = { name: 'fake-page' };
-    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockFetchedTargetProducts([productA]);
     mockCreatePage.mockResolvedValue({ browser: {}, page });
 
     const invoke = createInvoker();
@@ -210,13 +202,7 @@ describe('registerIpcHandlers', () => {
 
     expect(mockCreatePage).toHaveBeenCalledTimes(1);
     expect(mockLoginNaver).toHaveBeenCalledTimes(1);
-    expect(mockUpdateTargetProducts).toHaveBeenNthCalledWith(
-      2,
-      page,
-      expect.any(Array),
-      undefined,
-      expect.any(Function),
-    );
+    expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(2, page, productA, undefined);
   });
 
   it('startUpdate는 수정할 상품이 없으면 로그인과 순회를 하지 않고 빈 목록으로 끝난 상태를 보낸다', async () => {
@@ -225,7 +211,7 @@ describe('registerIpcHandlers', () => {
     await invokeHandler('startUpdate');
 
     expect(mockCreatePage).not.toHaveBeenCalled();
-    expect(mockUpdateTargetProducts).not.toHaveBeenCalled();
+    expect(mockUpdateTargetProductPrice).not.toHaveBeenCalled();
     expect(mockSend).toHaveBeenCalledWith('updateState', {
       targetProducts: [],
       currentIndex: null,
@@ -234,33 +220,32 @@ describe('registerIpcHandlers', () => {
   });
 
   it('startUpdate는 순회가 도는 중에 다시 호출되면 새 순회를 시작하지 않는다', async () => {
-    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockFetchedTargetProducts([productA]);
     mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
-    mockUpdateTargetProducts.mockReturnValue(new Promise(() => {}));
+    mockUpdateTargetProductPrice.mockReturnValue(new Promise(() => {}));
 
     const invoke = createInvoker();
     void invoke('startUpdate');
-    await vi.waitFor(() => expect(mockUpdateTargetProducts).toHaveBeenCalled());
+    await vi.waitFor(() => expect(mockUpdateTargetProductPrice).toHaveBeenCalled());
     await invoke('startUpdate');
 
-    expect(mockUpdateTargetProducts).toHaveBeenCalledTimes(1);
+    expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
   });
 
   it('startUpdate는 순회가 끝나면 다시 호출했을 때 새 순회를 시작한다', async () => {
-    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockFetchedTargetProducts([productA]);
     mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
-    mockUpdateTargetProducts.mockResolvedValue(undefined);
 
     const invoke = createInvoker();
     await invoke('startUpdate');
     await invoke('startUpdate');
 
-    expect(mockUpdateTargetProducts).toHaveBeenCalledTimes(2);
+    expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(2);
   });
 
   it('startUpdate는 처리 중 예외가 발생하면 콘솔에 로깅하고, 다시 호출했을 때 새로 시작한다', async () => {
     const error = new Error('네이버 판매 상품 목록을 가져오지 못했습니다.');
-    mockFetchedTargetProducts([{ name: '상품A', originProductNo: 111 }]);
+    mockFetchedTargetProducts([productA]);
     mockGetSaleProducts.mockRejectedValueOnce(error);
     mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
 
@@ -271,8 +256,120 @@ describe('registerIpcHandlers', () => {
     await invoke('startUpdate');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(error);
-    expect(mockUpdateTargetProducts).toHaveBeenCalledTimes(1);
+    expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
+  });
 
-    consoleErrorSpy.mockRestore();
+  // 순회 테스트에서 상품 목록 조회와 로그인까지 마친 상태로 만든다.
+  const mockLoggedInWith = (targetProducts: unknown[]): void => {
+    mockFetchedTargetProducts(targetProducts);
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+  };
+
+  it('startUpdate는 순회를 시작하면 상품 전체가 wait 상태이고 isRunning이 true인 상태를 먼저 보낸다', async () => {
+    mockLoggedInWith([productA, productB]);
+
+    await invokeHandler('startUpdate');
+
+    expect(mockSend).toHaveBeenNthCalledWith(1, 'updateState', {
+      targetProducts: [
+        { ...productA, update: { status: 'wait' } },
+        { ...productB, update: { status: 'wait' } },
+      ],
+      currentIndex: null,
+      isRunning: true,
+    });
+  });
+
+  const getSentStates = (): UpdateState[] => mockSend.mock.calls.map(([, state]) => state);
+
+  it('startUpdate는 상품을 처리하기 전에 currentIndex를 그 상품의 인덱스로 바꾼 상태를 보낸다', async () => {
+    mockLoggedInWith([productA, productB]);
+
+    await invokeHandler('startUpdate');
+
+    const currentIndexes = getSentStates().map(({ currentIndex }) => currentIndex);
+
+    expect(currentIndexes).toEqual([null, 0, 0, 1, 1, null]);
+  });
+
+  const updateTime = 1700000000000;
+  const completeUpdate = { status: 'complete', price: 39990, baseFee: 3000, time: updateTime };
+
+  const getLastSentState = (): UpdateState => getSentStates().at(-1) as UpdateState;
+
+  it('startUpdate는 가격 수정에 성공하면 그 상품만 반환된 수정 결과를 반영한 상태를 보낸다', async () => {
+    mockLoggedInWith([productA, productB]);
+    mockUpdateTargetProductPrice.mockResolvedValue(completeUpdate);
+    mockDelaySeconds.mockReturnValueOnce(new Promise(() => {}));
+
+    void invokeHandler('startUpdate');
+    await vi.waitFor(() => expect(mockDelaySeconds).toHaveBeenCalled());
+
+    expect(getLastSentState().targetProducts).toEqual([
+      { ...productA, update: completeUpdate },
+      { ...productB, update: { status: 'wait' } },
+    ]);
+  });
+
+  it('startUpdate는 상품 하나에서 에러가 나면 콘솔에 로깅하고 그 상품만 error로 반영한 뒤 다음 상품을 처리한다', async () => {
+    const error = new Error('가격 수정 실패');
+    mockLoggedInWith([productA, productB]);
+    mockUpdateTargetProductPrice.mockRejectedValueOnce(error).mockResolvedValueOnce(completeUpdate);
+    vi.spyOn(Date, 'now').mockReturnValue(updateTime);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await invokeHandler('startUpdate');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(error);
+    expect(getLastSentState().targetProducts).toEqual([
+      { ...productA, update: { status: 'error', time: updateTime } },
+      { ...productB, update: completeUpdate },
+    ]);
+  });
+
+  it('startUpdate는 UnexpectedCatalogPageError가 나면 그 상품을 error로 반영하고 다음 상품은 처리하지 않는다', async () => {
+    mockLoggedInWith([productA, productB]);
+    mockUpdateTargetProductPrice.mockRejectedValueOnce(
+      new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.'),
+    );
+    vi.spyOn(Date, 'now').mockReturnValue(updateTime);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await invokeHandler('startUpdate');
+
+    expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
+    expect(getLastSentState().targetProducts).toEqual([
+      { ...productA, update: { status: 'error', time: updateTime } },
+      { ...productB, update: { status: 'wait' } },
+    ]);
+  });
+
+  it('startUpdate는 상품을 처리할 때마다 5초 대기한다', async () => {
+    mockLoggedInWith([productA, productB]);
+
+    await invokeHandler('startUpdate');
+
+    expect(mockDelaySeconds).toHaveBeenCalledTimes(2);
+    expect(mockDelaySeconds).toHaveBeenCalledWith(5);
+  });
+
+  it('startUpdate는 순회가 끝나면 currentIndex를 null로, isRunning을 false로 바꾼 상태를 보낸다', async () => {
+    mockLoggedInWith([productA]);
+
+    await invokeHandler('startUpdate');
+
+    expect(getLastSentState()).toMatchObject({ currentIndex: null, isRunning: false });
+  });
+
+  it('startUpdate는 치명적 실패로 중단해도 currentIndex를 null로, isRunning을 false로 바꾼 상태를 보낸다', async () => {
+    mockLoggedInWith([productA, productB]);
+    mockUpdateTargetProductPrice.mockRejectedValueOnce(
+      new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.'),
+    );
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await invokeHandler('startUpdate');
+
+    expect(getLastSentState()).toMatchObject({ currentIndex: null, isRunning: false });
   });
 });

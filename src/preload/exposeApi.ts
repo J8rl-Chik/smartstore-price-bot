@@ -5,7 +5,7 @@ import { electronAPI } from '@electron-toolkit/preload';
 import type { UpdateState } from '../domain/product/_type';
 import type { IpcInvoke, IpcListener } from './_type';
 
-// main이 순회 상태를 보내는 채널 이름. main/registerIpcHandlers.ts의 채널 이름과 같아야 한다.
+// main이 순회 상태를 보내는 채널 이름. main/state.ts의 채널 이름과 같아야 한다.
 const updateStateChannel = 'updateState';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.

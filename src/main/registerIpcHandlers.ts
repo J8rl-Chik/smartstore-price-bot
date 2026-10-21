@@ -3,6 +3,7 @@ import type { Page } from 'puppeteer';
 import { IpcInvoke } from '../preload/_type';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
+import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
 import getProductRows from '../integrations/googleSheets/getProductRows';
 import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
@@ -11,11 +12,10 @@ import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
 import shuffleArray from '../utils/shuffleArray';
 import validateEnv from '../utils/validateEnv';
-import updateTargetProducts from './updateTargetProducts';
+import delaySeconds from '../utils/delaySeconds';
+import updateTargetProductPrice from './updateTargetProductPrice';
+import { initState, sendState, setState, setUpdate } from './state';
 import type { TargetProduct } from '../domain/product/_type';
-
-// main이 순회 상태를 보내는 채널 이름. preload/exposeApi.ts의 구독 채널 이름과 같아야 한다.
-const updateStateChannel = 'updateState';
 
 /**
  * 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼.
@@ -74,20 +74,45 @@ export const registerIpcHandlers = (): void => {
 
       // 수정할 상품이 없으면 로그인하지 않고, 빈 목록으로 끝난 상태만 보낸다.
       if (targetProducts.length === 0) {
-        sender.send(updateStateChannel, { targetProducts, currentIndex: null, isRunning: false });
+        sendState(sender, { targetProducts: [], currentIndex: null, isRunning: false });
 
         return;
       }
 
       // 이미 로그인한 페이지가 있으면 다시 로그인하지 않고 재사용한다.
       if (!page) {
-        ({ page } = await createPage());
+        page = (await createPage()).page;
+
         await loginNaver(page);
       }
 
-      await updateTargetProducts(page, targetProducts, myStoreName, (state) => {
-        sender.send(updateStateChannel, state);
-      });
+      sendState(sender, initState(targetProducts));
+
+      /**
+       * 상품 하나의 실패는 그 상품만 error로 반영하고 계속하며,
+       * 네이버 쇼핑 접속 제한(UnexpectedCatalogPageError)처럼 다음 상품도 실패할 치명적 실패는 error로 반영한 뒤 중단한다.
+       */
+      for (const [index, targetProduct] of targetProducts.entries()) {
+        sendState(sender, setState({ currentIndex: index }));
+
+        try {
+          sendState(
+            sender,
+            setUpdate(index, await updateTargetProductPrice(page, targetProduct, myStoreName)),
+          );
+        } catch (error) {
+          console.error(error);
+          sendState(sender, setUpdate(index, { status: 'error', time: Date.now() }));
+
+          if (error instanceof UnexpectedCatalogPageError) {
+            break;
+          }
+        }
+
+        await delaySeconds(5);
+      }
+
+      sendState(sender, setState({ currentIndex: null, isRunning: false }));
     } catch (error) {
       console.error(error);
     } finally {
