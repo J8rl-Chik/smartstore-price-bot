@@ -8,7 +8,7 @@
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
-    "src/preload/*.d.ts"
+    "src/preload/_type.ts"
   ],
   "references": [{ "path": "./tsconfig.base.json" }],
   // [검사 대상 폴더 지정]
@@ -16,7 +16,7 @@
   // 1. env.d.ts : Vite의 환경 변수 타입을 정의하는 파일을 포함합니다.
   // 2. src/renderer/src/**/* : 렌더러 폴더 내부의 모든 웹 소스 파일들을 검사합니다.
   // 3. src/renderer/src/**/*.tsx : 리액트 컴포넌트(.tsx) 파일들을 집중적으로 검사합니다.
-  // 4. src/preload/*.d.ts : 프리로드 쪽에서 화면(렌더러)으로 넘겨줄 안전한 데이터 통로의 '타입 정의 파일'을 공유해서 읽습니다.
+  // 4. src/preload/_type.ts : 프리로드 쪽에서 화면(렌더러)으로 넘겨줄 안전한 데이터 통로의 '타입 정의 파일'을 공유해서 읽습니다.
 
   "compilerOptions": {
     // 타입스크립트 컴파일러에게 웹 환경에 맞춤 명령을 내리는 옵션 창고입니다.
