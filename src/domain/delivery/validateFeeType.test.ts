@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { validateFeeType } from './validateFeeType.js';
+import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 it('feeType이 무료면 "무료"를 반환한다.', () => {
   const freeFee = '무료';
@@ -22,5 +23,7 @@ it('feeType이 수량별이면 "수량별"을 반환한다.', () => {
 it('알 수 없는 feeType는 에러를 던진다.', () => {
   const unknownFee = '착불';
 
-  expect(() => validateFeeType(unknownFee)).toThrow('알 수 없는 배송비 유형입니다.');
+  expect(() => validateFeeType(unknownFee)).toThrow(
+    `${ERROR_MESSAGE.UNKNOWN_DELIVERY_FEE_TYPE} (feeType: 착불)`,
+  );
 });
