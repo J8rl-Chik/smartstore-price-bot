@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
 import { filterExcludedSellers } from './filterExcludedSellers.js';
+import type { Seller } from './_type.js';
 
-const sellers = [
+const sellers: Seller[] = [
   { name: '내 스토어', price: 10000, deliveryFee: 0, deliveryFeeType: '무료' },
   { name: '제외 판매처', price: 9000, deliveryFee: 0, deliveryFeeType: '무료' },
   { name: '일반 판매처', price: 11000, deliveryFee: 0, deliveryFeeType: '무료' },
