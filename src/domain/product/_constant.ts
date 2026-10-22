@@ -1,7 +1,5 @@
-import type { Column } from './_type.js';
-
 // 구글 시트 "A~L" 범위 12개 컬럼의 인덱스(프로그램 실행에 불필요한 범위는 제외).
-export const COLUMN: Column = {
+export const COLUMN = {
   name: 0,
   catalogURL: 1,
   activate: 2,

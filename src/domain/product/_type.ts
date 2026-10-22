@@ -1,4 +1,6 @@
 import type { Delivery, DeliveryFeeType } from '../delivery/_type.js';
+// COLUMN은 값이지만 ColumnKey의 typeof로만 쓰므로, 런타임에 _constant.js를 불러오지 않도록 import type으로 가져온다.
+import type { COLUMN } from './_constant.js';
 
 export interface ProductChannel {
   name: string;
@@ -26,11 +28,7 @@ export interface ProductRow {
   excludedSellerNames: string[];
 }
 
-export type ColumnKey = keyof ProductRow;
-
-export type Column = {
-  [K in ColumnKey]: number;
-};
+export type ColumnKey = keyof typeof COLUMN;
 
 export type RawProductRow = {
   [K in ColumnKey]: string;
