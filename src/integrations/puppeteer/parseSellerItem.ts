@@ -1,7 +1,7 @@
 import { JSDOM } from 'jsdom';
 import { Seller } from '../../domain/seller/filterExcludedSellers.js';
 import parseToNumberFromKRW from '../../domain/price/parseToNumberFromKRW.js';
-import { DELIVERY_FEE_TYPE } from '../../domain/delivery/delivery.js';
+import { DELIVERY_FEE_TYPE } from '../../domain/delivery/_constant.js';
 import { DeliveryFeeType } from '../../domain/delivery/_type.js';
 
 interface DeliveryFeeAndType {

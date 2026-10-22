@@ -1,5 +1,5 @@
 import type { Delivery, PriceWithDeliveryFee } from './_type.js';
-import { DELIVERY_FEE_TYPE } from './delivery.js';
+import { DELIVERY_FEE_TYPE } from './_constant.js';
 import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 export const buildPriceWithDeliveryFee = (

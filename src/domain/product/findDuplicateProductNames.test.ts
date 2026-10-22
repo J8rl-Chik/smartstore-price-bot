@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { findDuplicateProductNames } from './findDuplicateProductNames.js';
-import { DELIVERY_FEE_TYPE } from '../delivery/delivery.js';
+import { DELIVERY_FEE_TYPE } from '../delivery/_constant.js';
 import type { ProductRow } from './_type.js';
 
 const createProductRow = (name: string): ProductRow => ({

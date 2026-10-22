@@ -1,4 +1,4 @@
-import { DELIVERY_FEE_TYPE } from './delivery.js';
+import { DELIVERY_FEE_TYPE } from './_constant.js';
 
 export type DeliveryFeeType = (typeof DELIVERY_FEE_TYPE)[keyof typeof DELIVERY_FEE_TYPE];
 

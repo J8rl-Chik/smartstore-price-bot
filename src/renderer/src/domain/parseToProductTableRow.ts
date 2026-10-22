@@ -1,5 +1,5 @@
 import formatTime from './formatTime';
-import { DELIVERY_FEE_TYPE } from '../../../domain/delivery/delivery';
+import { DELIVERY_FEE_TYPE } from '../../../domain/delivery/_constant';
 import type { TargetProductWithUpdate } from '../../../domain/product/_type';
 import type { TProductTableRow } from './_type';
 

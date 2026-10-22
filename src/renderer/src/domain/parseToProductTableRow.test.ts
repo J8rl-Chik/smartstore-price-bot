@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseToProductTableRow } from './parseToProductTableRow';
-import { DELIVERY_FEE_TYPE } from '../../../domain/delivery/delivery';
+import { DELIVERY_FEE_TYPE } from '../../../domain/delivery/_constant';
 import type { TargetProductWithUpdate } from '../../../domain/product/_type';
 
 const createProduct = (

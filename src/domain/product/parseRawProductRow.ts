@@ -1,4 +1,4 @@
-import { DELIVERY_FEE_TYPE } from '../delivery/delivery.js';
+import { DELIVERY_FEE_TYPE } from '../delivery/_constant.js';
 import parseToNumberFromKRW from '../price/parseToNumberFromKRW.js';
 import type { DeliveryFeeType } from '../delivery/_type.js';
 import type { Column, ColumnKey, ProductRow, RawProductRow, RowValues } from './_type.js';

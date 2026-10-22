@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createTargetProducts } from './createTargetProducts.js';
-import { DELIVERY_FEE_TYPE } from '../delivery/delivery.js';
+import { DELIVERY_FEE_TYPE } from '../delivery/_constant.js';
 import type { ProductRow, SaleProduct } from './_type.js';
 
 const createSaleProduct = (name: string, originProductNo = 12345): SaleProduct => ({
