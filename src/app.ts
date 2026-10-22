@@ -10,7 +10,7 @@ import delaySeconds from './utils/delaySeconds.js';
 import delayMinutes from './utils/delayMinutes.js';
 import validateEnv from './utils/validateEnv.js';
 import shuffleArray from './utils/shuffleArray.js';
-import { parseProductRow } from './domain/product/parseRawProductRow.js';
+import { parseProductRow } from './domain/product/parseProductRow.js';
 import {
   excludeNewlyRegisteredProducts,
   getOriginProductNo,

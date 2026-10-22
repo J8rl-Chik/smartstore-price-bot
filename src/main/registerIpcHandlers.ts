@@ -7,7 +7,7 @@ import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCa
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
 import getProductRows from '../integrations/googleSheets/getProductRows';
 import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
-import { parseProductRow } from '../domain/product/parseRawProductRow';
+import { parseProductRow } from '../domain/product/parseProductRow';
 import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
 import shuffleArray from '../utils/shuffleArray';

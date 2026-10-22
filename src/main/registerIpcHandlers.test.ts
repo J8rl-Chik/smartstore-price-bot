@@ -43,7 +43,7 @@ vi.mock(import('../domain/product/saleProduct'), () => ({
     mockExcludeNewlyRegisteredProducts(...args),
 }));
 
-vi.mock(import('../domain/product/parseRawProductRow'), () => ({
+vi.mock(import('../domain/product/parseProductRow'), () => ({
   parseProductRow: (...args: unknown[]) => mockParseProductRow(...args),
 }));
 

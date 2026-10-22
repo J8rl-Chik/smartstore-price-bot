@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  parseExcludedSellerNames,
-  parseProductRow,
-  parseVirtualPrice,
-} from './parseRawProductRow.js';
+import { parseExcludedSellerNames, parseProductRow, parseVirtualPrice } from './parseProductRow.js';
 import { COLUMN } from './_constant.js';
 import type { ColumnKey, RowValues } from './_type.js';
 import { ERROR_MESSAGE } from '../error/errorMessage.js';
