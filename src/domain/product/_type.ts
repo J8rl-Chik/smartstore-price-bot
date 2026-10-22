@@ -27,6 +27,14 @@ export interface ProductRow {
   excludedSellerNames: string[];
 }
 
+/**
+ * 시트 행 하나를 ProductRow로 변환한 결과.
+ * 변환에 실패한 칸이 있으면 변환에 성공한 값만 담고, 실패한 칸마다 이유를 errorMessages에 모은다.
+ */
+export type ProductRowParseResult =
+  | { status: 'ok'; productRow: ProductRow }
+  | { status: 'error'; productRow: Partial<ProductRow>; errorMessages: string[] };
+
 export type ColumnKey = keyof typeof COLUMN;
 
 // 값이 빈 셀은 행에 포함되지 않는다. 그래서 크기가 고정이 아니다.

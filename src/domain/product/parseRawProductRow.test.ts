@@ -101,14 +101,17 @@ describe('parseProductRow', () => {
     ];
 
     expect(parseProductRow(rowValues)).toEqual({
-      name: '테스트 상품',
-      catalogURL: 'https://example.com/catalog',
-      feeType: '무료',
-      freeDeliveryPrice: 10_000,
-      productPrice: 15_000,
-      baseFee: 3_000,
-      virtualPrice: 2_000,
-      excludedSellerNames: ['판매처A', '판매처B', ''],
+      status: 'ok',
+      productRow: {
+        name: '테스트 상품',
+        catalogURL: 'https://example.com/catalog',
+        feeType: '무료',
+        freeDeliveryPrice: 10_000,
+        productPrice: 15_000,
+        baseFee: 3_000,
+        virtualPrice: 2_000,
+        excludedSellerNames: ['판매처A', '판매처B', ''],
+      },
     });
   });
 
@@ -128,25 +131,48 @@ describe('parseProductRow', () => {
       '판매처A,  판매처B,',
     ]);
 
-    expect(result.freeDeliveryPrice).toBe(10000);
-    expect(result.productPrice).toBe(15000);
-    expect(result.baseFee).toBe(2500);
-    expect(result.virtualPrice).toBe(1000);
+    expect(result).toMatchObject({
+      status: 'ok',
+      productRow: {
+        freeDeliveryPrice: 10000,
+        productPrice: 15000,
+        baseFee: 2500,
+        virtualPrice: 1000,
+      },
+    });
   });
 });
 
 describe('parseProductRow 에러', () => {
-  it('필드 파싱 중 에러가 발생하면 상품명을 포함해 에러를 감싼다', () => {
+  it('변환에 실패한 칸이 있으면 성공한 값과 실패한 칸의 에러 메시지를 함께 반환한다', () => {
     const row = createProductRow({ name: '무선 이어폰', productPrice: '가격미정' });
 
-    expect(() => parseProductRow(row)).toThrow(
-      `'무선 이어폰' 상품 파싱 에러: ${ERROR_MESSAGE.PRICE_NOT_NUMBER} (krw: 가격미정)`,
-    );
+    expect(parseProductRow(row)).toEqual({
+      status: 'error',
+      productRow: {
+        name: '무선 이어폰',
+        catalogURL: 'https://example.com/catalog',
+        feeType: '무료',
+        freeDeliveryPrice: 10_000,
+        productPrice: undefined,
+        baseFee: 3_000,
+        virtualPrice: 2_000,
+        excludedSellerNames: ['판매처A', ''],
+      },
+      errorMessages: [`productPrice: ${ERROR_MESSAGE.PRICE_NOT_NUMBER} (krw: 가격미정)`],
+    });
   });
 
-  it('name 컬럼 값이 없으면 "(이름 없음)"으로 표시한다', () => {
-    const row = [] as unknown as RowValues;
+  it('여러 칸이 실패하면 칸마다 에러 메시지를 모은다', () => {
+    const row = createProductRow({ feeType: '정기구독', baseFee: '가격미정', virtualPrice: '0' });
 
-    expect(() => parseProductRow(row as RowValues)).toThrow("'(이름 없음)' 상품 파싱 에러:");
+    expect(parseProductRow(row)).toMatchObject({
+      status: 'error',
+      errorMessages: [
+        `feeType: ${ERROR_MESSAGE.UNKNOWN_DELIVERY_FEE_TYPE} (feeType: 정기구독)`,
+        `baseFee: ${ERROR_MESSAGE.PRICE_NOT_NUMBER} (krw: 가격미정)`,
+        `virtualPrice: ${ERROR_MESSAGE.PRICE_NOT_POSITIVE} (krw: 0)`,
+      ],
+    });
   });
 });
