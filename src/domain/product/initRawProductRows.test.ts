@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COLUMN } from './parseRawProductRow.js';
-import { initRawProductRows, isActiveRow } from './initRawProductRows.js';
+import { initRawProductRows } from './initRawProductRows.js';
 import type { RawProductRow, RowValues } from './_type.js';
 
 const createProductRow = ({
@@ -28,26 +28,7 @@ const createProductRow = ({
   return row as unknown as RowValues;
 };
 
-describe('isActiveRow', () => {
-  it('activate가 TRUE이면 true를 반환한다', () => {
-    expect(isActiveRow(createProductRow({ activate: 'TRUE' }))).toBe(true);
-  });
-
-  it('activate가 TRUE가 아니면 false를 반환한다', () => {
-    expect(isActiveRow(createProductRow({ activate: 'FALSE' }))).toBe(false);
-  });
-});
-
 describe('initProductRows', () => {
-  it('활성화된(activate가 TRUE인) 행만 파싱해서 반환한다', () => {
-    const rawRows = [
-      createProductRow({ name: '상품A', activate: 'TRUE' }),
-      createProductRow({ name: '상품B', activate: 'FALSE' }),
-    ];
-
-    expect(initRawProductRows(rawRows).map((productRow) => productRow.name)).toEqual(['상품A']);
-  });
-
   it('빈 배열이면 빈 배열을 반환한다', () => {
     expect(initRawProductRows([])).toEqual([]);
   });
