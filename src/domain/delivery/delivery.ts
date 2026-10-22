@@ -1,4 +1,5 @@
 import type { Delivery, DeliveryFeeType, PriceWithDeliveryFee } from './_type.js';
+import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 export const DELIVERY_FEE_TYPE = {
   FREE: '무료',
@@ -25,7 +26,7 @@ export const createDelivery = ({
     return { feeType, baseFee };
   }
 
-  throw new Error('알 수 없는 배송비 유형입니다.');
+  throw new Error(`${ERROR_MESSAGE.UNKNOWN_DELIVERY_FEE_TYPE} (feeType: ${feeType})`);
 };
 
 export const buildPriceWithDeliveryFee = (
@@ -61,5 +62,7 @@ export const buildPriceWithDeliveryFee = (
     };
   }
 
-  throw new Error('알 수 없는 배송비 유형입니다.');
+  throw new Error(
+    `${ERROR_MESSAGE.UNKNOWN_DELIVERY_FEE_TYPE} (feeType: ${(delivery as Delivery).feeType})`,
+  );
 };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildPriceWithDeliveryFee, createDelivery } from './delivery.js';
 import type { Delivery, DeliveryFeeType } from './_type.js';
+import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 // baseFee는 parseProductRow 함수에서 검증했으므로, 10의 배수 값이라는 전제로 테스트했습니다.
 
@@ -33,7 +34,7 @@ describe('createDelivery 에러', () => {
     const invalidFeeType = '착불' as unknown as DeliveryFeeType;
 
     expect(() => createDelivery({ feeType: invalidFeeType, baseFee: 0 })).toThrow(
-      '알 수 없는 배송비 유형입니다',
+      `${ERROR_MESSAGE.UNKNOWN_DELIVERY_FEE_TYPE} (feeType: 착불)`,
     );
   });
 });
@@ -82,7 +83,7 @@ describe('buildPriceWithDeliveryFee', () => {
     const invalidDelivery = { feeType: '착불' } as unknown as Delivery;
 
     expect(() => buildPriceWithDeliveryFee(invalidDelivery, 10000)).toThrow(
-      '알 수 없는 배송비 유형입니다',
+      `${ERROR_MESSAGE.UNKNOWN_DELIVERY_FEE_TYPE} (feeType: 착불)`,
     );
   });
 });
