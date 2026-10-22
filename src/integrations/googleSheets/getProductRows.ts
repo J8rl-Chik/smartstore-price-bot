@@ -35,7 +35,10 @@ const fillEmptyCell = (row: string[]): RowValues => {
   return filledRowValues as RowValues;
 };
 
-// 시트의 activate 칸이 TRUE인 행만 가격 수정 대상이다.
+/**
+ * 시트의 activate 칸이 TRUE인 행만 가격 수정 대상이다.
+ * 도메인 규칙이지만, 쓰지 않을 행까지 빈 셀을 채우지 않도록 시트를 읽는 단계에서 먼저 거른다.
+ */
 const isActiveRow = (row: string[]): boolean => row[COLUMN.activate] === 'TRUE';
 
 async function getProductRows(): Promise<RowValues[]> {
