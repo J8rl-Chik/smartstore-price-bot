@@ -19,7 +19,7 @@ vi.mock(import('../domain/price/addVirtualPrice'), () => ({
   addVirtualPrice: (...args: unknown[]) => mockAddVirtualPrice(...args),
 }));
 
-vi.mock(import('../domain/price/price'), () => ({
+vi.mock(import('../domain/price/calculateTargetPrice'), () => ({
   calculateTargetPrice: (...args: unknown[]) => mockCalculateTargetPrice(...args),
 }));
 
