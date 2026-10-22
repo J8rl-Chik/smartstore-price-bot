@@ -1,9 +1,4 @@
-export interface Seller {
-  name: string;
-  price: number;
-  deliveryFee: number;
-  deliveryFeeType: string;
-}
+import type { Seller } from './_type.js';
 
 export const filterExcludedSellers = (sellers: Seller[], excludedSellerNames: string[]): Seller[] =>
   sellers.filter(({ name }) => !excludedSellerNames.includes(name));

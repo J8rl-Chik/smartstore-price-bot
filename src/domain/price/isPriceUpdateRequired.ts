@@ -1,4 +1,4 @@
-import { Seller } from '../seller/filterExcludedSellers.js';
+import type { Seller } from '../seller/_type.js';
 
 export const isPriceUpdateRequired = (
   currentMyStore: Pick<Seller, 'price' | 'deliveryFeeType'> | undefined,

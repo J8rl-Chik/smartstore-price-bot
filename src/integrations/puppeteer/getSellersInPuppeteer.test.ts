@@ -8,7 +8,7 @@ import getSellersInPuppeteer, {
 } from './getSellersInPuppeteer.js';
 import { UnexpectedCatalogPageError } from './validateCatalogPage.js';
 import { DELIVERY_FEE_TYPE } from '../../domain/delivery/_constant.js';
-import { Seller } from '../../domain/seller/filterExcludedSellers.js';
+import type { Seller } from '../../domain/seller/_type.js';
 
 const mockValidateCatalogPage = vi.fn();
 

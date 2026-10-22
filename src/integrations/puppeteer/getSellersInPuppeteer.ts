@@ -1,7 +1,7 @@
 import type { Page } from 'puppeteer';
 
 import parseSellerItem from './parseSellerItem.js';
-import { Seller } from '../../domain/seller/filterExcludedSellers.js';
+import type { Seller } from '../../domain/seller/_type.js';
 import validateCatalogPage, { UnexpectedCatalogPageError } from './validateCatalogPage.js';
 
 export const SELLER_ITEM_SELECTOR = '[class^="product_seller_info_wrap__"]';
