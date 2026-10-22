@@ -19,7 +19,6 @@ export interface SaleProduct {
 export interface ProductRow {
   name: string;
   catalogURL: string;
-  activate: string;
   feeType: DeliveryFeeType;
   freeDeliveryPrice: number;
   productPrice: number;

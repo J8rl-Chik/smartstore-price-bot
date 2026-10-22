@@ -19,7 +19,6 @@ export const parseProductRow = (rowValues: RowValues): ProductRow => {
     return {
       name: rowValues[COLUMN.name],
       catalogURL: rowValues[COLUMN.catalogURL],
-      activate: rowValues[COLUMN.activate],
       feeType: validateFeeType(rowValues[COLUMN.feeType]),
       freeDeliveryPrice: parseToNumberFromKRW(rowValues[COLUMN.freeDeliveryPrice]),
       productPrice: parseToNumberFromKRW(rowValues[COLUMN.productPrice]),

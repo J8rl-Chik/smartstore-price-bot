@@ -6,7 +6,6 @@ import type { ProductRow } from './_type.js';
 const createProductRow = (name: string): ProductRow => ({
   name,
   catalogURL: 'https://example.com',
-  activate: 'TRUE',
   feeType: DELIVERY_FEE_TYPE.FREE,
   freeDeliveryPrice: 0,
   productPrice: 0,

@@ -105,7 +105,6 @@ describe('parseProductRow', () => {
     expect(parseProductRow(rowValues)).toEqual({
       name: '테스트 상품',
       catalogURL: 'https://example.com/catalog',
-      activate: 'TRUE',
       feeType: '무료',
       freeDeliveryPrice: 10_000,
       productPrice: 15_000,

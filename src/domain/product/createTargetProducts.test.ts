@@ -19,7 +19,6 @@ const createSaleProduct = (name: string, originProductNo = 12345): SaleProduct =
 const createProductRow = (name: string, productPrice = 0): ProductRow => ({
   name,
   catalogURL: 'https://example.com',
-  activate: 'TRUE',
   feeType: DELIVERY_FEE_TYPE.FREE,
   freeDeliveryPrice: 30000,
   productPrice,
@@ -96,13 +95,12 @@ describe('createTargetProducts', () => {
     expect(result.map(({ sheet }) => sheet.productPrice)).toEqual([10000]);
   });
 
-  it('activate와 sellerManagementCode는 결과에 포함하지 않는다', () => {
+  it('sellerManagementCode, feeType, baseFee는 결과에 포함하지 않는다', () => {
     const saleProducts = [createSaleProduct('무선 이어폰')];
     const productRows = [createProductRow('무선 이어폰')];
 
     const [targetProduct] = createTargetProducts(saleProducts, productRows);
 
-    expect(targetProduct?.sheet).not.toHaveProperty('activate');
     expect(targetProduct?.store).not.toHaveProperty('sellerManagementCode');
     expect(targetProduct?.sheet).not.toHaveProperty('feeType');
     expect(targetProduct?.sheet).not.toHaveProperty('baseFee');
