@@ -23,7 +23,7 @@ vi.mock(import('../domain/price/price'), () => ({
   calculateTargetPrice: (...args: unknown[]) => mockCalculateTargetPrice(...args),
 }));
 
-vi.mock(import('../domain/delivery/delivery'), () => ({
+vi.mock(import('../domain/delivery/buildPriceWithDeliveryFee'), () => ({
   buildPriceWithDeliveryFee: (...args: unknown[]) => mockBuildPriceWithDeliveryFee(...args),
 }));
 

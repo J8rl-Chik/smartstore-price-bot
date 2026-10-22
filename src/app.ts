@@ -19,7 +19,8 @@ import {
 import { filterExcludedSellers } from './domain/seller/filterExcludedSellers.js';
 import { addVirtualPrice } from './domain/price/addVirtualPrice.js';
 import { calculateTargetPrice, isPriceUpdateRequired } from './domain/price/price.js';
-import { buildPriceWithDeliveryFee, createDelivery } from './domain/delivery/delivery.js';
+import { createDelivery } from './domain/delivery/createDelivery.js';
+import { buildPriceWithDeliveryFee } from './domain/delivery/buildPriceWithDeliveryFee.js';
 import { UnexpectedCatalogPageError } from './integrations/puppeteer/validateCatalogPage.js';
 
 // TODO: 분리할 필요있는지 확인, 에러 발생시 프로그램 종료되는지 확인.

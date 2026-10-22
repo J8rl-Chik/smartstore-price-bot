@@ -1,7 +1,7 @@
 import type { Page } from 'puppeteer';
 import getSellersInPuppeteer from '../integrations/puppeteer/getSellersInPuppeteer';
 import updatePrice from '../integrations/smartStore/updatePrice';
-import { buildPriceWithDeliveryFee } from '../domain/delivery/delivery';
+import { buildPriceWithDeliveryFee } from '../domain/delivery/buildPriceWithDeliveryFee';
 import { addVirtualPrice } from '../domain/price/addVirtualPrice';
 import { calculateTargetPrice } from '../domain/price/price';
 import { filterExcludedSellers } from '../domain/seller/filterExcludedSellers';
