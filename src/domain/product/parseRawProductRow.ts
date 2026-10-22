@@ -14,6 +14,11 @@ export const parseVirtualPrice = (virtualPrice: string): number | null => {
 export const parseExcludedSellerNames = (excludedSellerName: string): string[] =>
   excludedSellerName.split(',').map((sellerName) => sellerName.trim());
 
+/**
+ * 구글 시트 행 하나를 사용하기 편리한 형태(ProductRow)로 변환한다.
+ * 빈 셀 채우기와 활성화된 행 걸러내기는 getProductRows에서 이미 끝난 상태다.
+ * 변환에 실패한 칸이 있어도 에러를 던지지 않고 에러 결과로 반환해, 어떤 행을 고쳐야 하는지 UI에서 볼 수 있게 한다.
+ */
 export const parseProductRow = (rowValues: RowValues): ProductRowParseResult => {
   // 칸 하나를 변환하고, 실패하면 이유를 errorMessages에 모은 뒤 undefined를 반환한다.
   const errorMessages: string[] = [];

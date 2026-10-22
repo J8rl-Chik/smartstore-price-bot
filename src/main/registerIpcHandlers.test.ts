@@ -9,7 +9,7 @@ const mockLoginNaver = vi.fn();
 const mockGetSaleProducts = vi.fn();
 const mockGetProductRows = vi.fn();
 const mockExcludeNewlyRegisteredProducts = vi.fn();
-const mockInitRawProductRows = vi.fn();
+const mockParseProductRow = vi.fn();
 const mockFindDuplicateProductNames = vi.fn();
 const mockCreateTargetProducts = vi.fn();
 const mockShuffleArray = vi.fn();
@@ -43,8 +43,8 @@ vi.mock(import('../domain/product/saleProduct'), () => ({
     mockExcludeNewlyRegisteredProducts(...args),
 }));
 
-vi.mock(import('../domain/product/initRawProductRows'), () => ({
-  initRawProductRows: (...args: unknown[]) => mockInitRawProductRows(...args),
+vi.mock(import('../domain/product/parseRawProductRow'), () => ({
+  parseProductRow: (...args: unknown[]) => mockParseProductRow(...args),
 }));
 
 vi.mock(import('../domain/product/findDuplicateProductNames'), () => ({
@@ -108,7 +108,7 @@ describe('registerIpcHandlers', () => {
     mockGetSaleProducts.mockReset();
     mockGetProductRows.mockReset();
     mockExcludeNewlyRegisteredProducts.mockReset();
-    mockInitRawProductRows.mockReset();
+    mockParseProductRow.mockReset();
     mockFindDuplicateProductNames.mockReset();
     mockCreateTargetProducts.mockReset();
     mockShuffleArray.mockReset();
@@ -124,7 +124,6 @@ describe('registerIpcHandlers', () => {
     mockGetProductRows.mockResolvedValue([]);
     mockExcludeNewlyRegisteredProducts.mockReturnValue([]);
     mockShuffleArray.mockReturnValue([]);
-    mockInitRawProductRows.mockReturnValue([]);
     mockFindDuplicateProductNames.mockReturnValue([]);
     mockCreateTargetProducts.mockReturnValue(targetProducts);
   };
@@ -133,15 +132,19 @@ describe('registerIpcHandlers', () => {
     const rawSaleProducts = [{ id: 'raw' }];
     const filteredSaleProducts = [{ id: 'filtered' }];
     const shuffledSaleProducts = [{ id: 'shuffled' }];
-    const rawProductRows = [['상품A']];
-    const productRows = [{ name: '상품A' }];
+    const rawProductRows = [['상품A'], ['상품B']];
+    const productRow = { name: '상품A' };
     const targetProduct = { name: '상품A', originProductNo: 111 };
 
     mockGetSaleProducts.mockResolvedValue(rawSaleProducts);
     mockExcludeNewlyRegisteredProducts.mockReturnValue(filteredSaleProducts);
     mockShuffleArray.mockReturnValue(shuffledSaleProducts);
     mockGetProductRows.mockResolvedValue(rawProductRows);
-    mockInitRawProductRows.mockReturnValue(productRows);
+    mockParseProductRow.mockReturnValueOnce({ status: 'ok', productRow }).mockReturnValueOnce({
+      status: 'error',
+      productRow: { name: '상품B' },
+      errorMessages: ['productPrice: 에러'],
+    });
     mockCreateTargetProducts.mockReturnValue([targetProduct]);
     mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
 
@@ -149,8 +152,11 @@ describe('registerIpcHandlers', () => {
 
     expect(mockExcludeNewlyRegisteredProducts).toHaveBeenCalledWith(rawSaleProducts);
     expect(mockShuffleArray).toHaveBeenCalledWith(filteredSaleProducts);
-    expect(mockInitRawProductRows).toHaveBeenCalledWith(rawProductRows);
-    expect(mockCreateTargetProducts).toHaveBeenCalledWith(shuffledSaleProducts, productRows);
+    // map이 넘기는 인덱스·배열 인자는 관심사가 아니라 첫 번째 인자(행)만 비교한다.
+    expect(mockParseProductRow.mock.calls.map(([rowValues]) => rowValues)).toEqual(rawProductRows);
+    // 변환에 실패한 행(상품B)은 빼고 성공한 행만 넘긴다.
+    expect(mockFindDuplicateProductNames).toHaveBeenCalledWith([productRow]);
+    expect(mockCreateTargetProducts).toHaveBeenCalledWith(shuffledSaleProducts, [productRow]);
     expect(mockUpdateTargetProductPrice).toHaveBeenCalledWith(
       expect.anything(),
       targetProduct,

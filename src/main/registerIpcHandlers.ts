@@ -7,7 +7,7 @@ import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCa
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
 import getProductRows from '../integrations/googleSheets/getProductRows';
 import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
-import { initRawProductRows } from '../domain/product/initRawProductRows';
+import { parseProductRow } from '../domain/product/parseRawProductRow';
 import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
 import shuffleArray from '../utils/shuffleArray';
@@ -40,7 +40,10 @@ const fetchTargetProducts = async (): Promise<{
   const [saleProducts, rawProductRows] = await Promise.all([getSaleProducts(), getProductRows()]);
 
   const shuffledSaleProducts = shuffleArray(excludeNewlyRegisteredProducts(saleProducts));
-  const productRows = initRawProductRows(rawProductRows);
+  // TODO: 3단계에서 변환에 실패한 행도 renderer로 보낸다. 지금은 변환에 성공한 행만 쓴다.
+  const productRows = rawProductRows
+    .map(parseProductRow)
+    .flatMap((result) => (result.status === 'ok' ? [result.productRow] : []));
   const duplicateProductNames = findDuplicateProductNames(productRows);
   const targetProducts = createTargetProducts(shuffledSaleProducts, productRows);
 

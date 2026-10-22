@@ -10,7 +10,7 @@ import delaySeconds from './utils/delaySeconds.js';
 import delayMinutes from './utils/delayMinutes.js';
 import validateEnv from './utils/validateEnv.js';
 import shuffleArray from './utils/shuffleArray.js';
-import { initRawProductRows } from './domain/product/initRawProductRows.js';
+import { parseProductRow } from './domain/product/parseRawProductRow.js';
 import {
   excludeNewlyRegisteredProducts,
   getOriginProductNo,
@@ -41,7 +41,10 @@ const start = async (): Promise<void> => {
     console.time('실행 시간');
 
     const saleProducts = shuffleArray(excludeNewlyRegisteredProducts(await getSaleProducts()));
-    const productRows = initRawProductRows(await getProductRows());
+    // 변환에 성공한 행만 쓴다.
+    const productRows = (await getProductRows())
+      .map(parseProductRow)
+      .flatMap((result) => (result.status === 'ok' ? [result.productRow] : []));
     const { browser, page } = await createLoggedInPage();
     let productCount = 0;
 
