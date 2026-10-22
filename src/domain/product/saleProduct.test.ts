@@ -9,6 +9,7 @@ import {
   isNewlyRegisteredProduct,
 } from './saleProduct.js';
 import type { ProductChannel, SaleProduct } from './_type.js';
+import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 const createSaleProduct = (productChannel: Partial<ProductChannel>): SaleProduct => ({
   channelProducts: [
@@ -114,31 +115,30 @@ describe('isNewlyRegisteredProduct', () => {
 
 describe('에러: channelProducts가 비어 있는 경우', () => {
   const emptySaleProduct: SaleProduct = { channelProducts: [] };
+  const emptyChannelProductsMessage = `${ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED} (channelProducts가 비어 있음)`;
 
   it('getProductName 호출 시 에러를 던진다', () => {
-    expect(() => getProductName(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+    expect(() => getProductName(emptySaleProduct)).toThrow(emptyChannelProductsMessage);
   });
 
   it('getOriginProductNo 호출 시 에러를 던진다', () => {
-    expect(() => getOriginProductNo(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+    expect(() => getOriginProductNo(emptySaleProduct)).toThrow(emptyChannelProductsMessage);
   });
 
   it('getSalePrice 호출 시 에러를 던진다', () => {
-    expect(() => getSalePrice(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+    expect(() => getSalePrice(emptySaleProduct)).toThrow(emptyChannelProductsMessage);
   });
 
   it('getStockQuantity 호출 시 에러를 던진다', () => {
-    expect(() => getStockQuantity(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+    expect(() => getStockQuantity(emptySaleProduct)).toThrow(emptyChannelProductsMessage);
   });
 
   it('getDeliveryFee 호출 시 에러를 던진다', () => {
-    expect(() => getDeliveryFee(emptySaleProduct)).toThrow('channelProducts가 비어 있습니다');
+    expect(() => getDeliveryFee(emptySaleProduct)).toThrow(emptyChannelProductsMessage);
   });
 
   it('isNewlyRegisteredProduct 호출 시 에러를 던진다', () => {
-    expect(() => isNewlyRegisteredProduct(emptySaleProduct)).toThrow(
-      'channelProducts가 비어 있습니다',
-    );
+    expect(() => isNewlyRegisteredProduct(emptySaleProduct)).toThrow(emptyChannelProductsMessage);
   });
 });
 

@@ -1,11 +1,12 @@
 import type { ProductChannel, SaleProduct } from './_type.js';
+import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 // 현재 단일 채널로만 상품을 판매하므로 channelProducts는 요소가 1개다.
 const getFirstChannelProduct = (saleProduct: SaleProduct): ProductChannel => {
   const [channelProduct] = saleProduct.channelProducts;
 
   if (!channelProduct) {
-    throw new Error('channelProducts가 비어 있습니다.');
+    throw new Error(`${ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED} (channelProducts가 비어 있음)`);
   }
 
   return channelProduct;
