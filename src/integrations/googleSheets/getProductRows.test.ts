@@ -23,13 +23,22 @@ describe('getProductRows', () => {
     mockValuesGet.mockReset();
   });
 
-  it('시트에서 받은 문자열로 이루어진 행의 배열을 반환한다', async () => {
-    const rowValues1 = ['상품A', 'url1'];
-    const rowValues2 = ['상품B', 'url2'];
+  it('시트에서 받은 행마다 값을 칸 위치 그대로 유지한다', async () => {
+    const fullRowValues = Array.from({ length: 12 }, (_, columnIndex) => `값${columnIndex}`);
 
-    mockValuesGet.mockResolvedValue({ data: { values: [rowValues1, rowValues2] } });
+    mockValuesGet.mockResolvedValue({ data: { values: [fullRowValues] } });
 
-    await expect(getProductRows()).resolves.toEqual([rowValues1, rowValues2]);
+    await expect(getProductRows()).resolves.toEqual([fullRowValues]);
+  });
+
+  it('행 끝의 빈 셀이 생략된 짧은 행은 12칸이 되도록 빈 문자열로 채운다', async () => {
+    mockValuesGet.mockResolvedValue({ data: { values: [['상품A', 'url1']] } });
+
+    const [productRow] = await getProductRows();
+
+    expect(productRow).toHaveLength(12);
+    expect(productRow?.slice(0, 2)).toEqual(['상품A', 'url1']);
+    expect(productRow?.slice(2).every((cell) => cell === '')).toBe(true);
   });
 
   it('data.values가 없으면 원인을 남기고 에러를 던진다', async () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COLUMN } from './parseRawProductRow.js';
-import { fillEmptyCell, initRawProductRows, isActiveRow } from './initRawProductRows.js';
+import { initRawProductRows, isActiveRow } from './initRawProductRows.js';
 import type { RawProductRow, RowValues } from './_type.js';
 
 const createProductRow = ({
@@ -35,25 +35,6 @@ describe('isActiveRow', () => {
 
   it('activate가 TRUE가 아니면 false를 반환한다', () => {
     expect(isActiveRow(createProductRow({ activate: 'FALSE' }))).toBe(false);
-  });
-});
-
-describe('fillEmptyCell', () => {
-  it('원시 행 값을 컬럼 위치에 맞게 유지한다', () => {
-    const rawRow: string[] = [];
-    rawRow[COLUMN.virtualPrice] = '';
-
-    expect(fillEmptyCell(rawRow)[COLUMN.virtualPrice]).toBe('');
-  });
-
-  it('원시 행이 짧아도 부족한 칸을 빈 문자열로 채운다', () => {
-    const shortRawRow: string[] = [];
-    shortRawRow[COLUMN.name] = '상품A'; // catalogURL(1) 이후 칸이 없는 짧은 행
-
-    const productRow = fillEmptyCell(shortRawRow);
-
-    expect(productRow[COLUMN.catalogURL]).toBe('');
-    expect(productRow[COLUMN.excludedSellerNames]).toBe('');
   });
 });
 
