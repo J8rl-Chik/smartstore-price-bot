@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import getProductRows from './getProductRows.js';
-import { COLUMN } from '../../domain/product/parseRawProductRow.js';
+import { COLUMN } from '../../domain/product/_constant.js';
 
 const mockValuesGet = vi.fn();
 

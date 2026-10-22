@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { google, type sheets_v4 } from 'googleapis';
-import { COLUMN } from '../../domain/product/parseRawProductRow.js';
+import { COLUMN } from '../../domain/product/_constant.js';
 import type { RowValues } from '../../domain/product/_type.js';
 
 const getSheetsResource = (): sheets_v4.Resource$Spreadsheets => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COLUMN } from './parseRawProductRow.js';
+import { COLUMN } from './_constant.js';
 import { initRawProductRows } from './initRawProductRows.js';
 import type { RawProductRow, RowValues } from './_type.js';
 

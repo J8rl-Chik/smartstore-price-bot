@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
-  COLUMN,
   convertToRawProductRow,
   parseExcludedSellerNames,
   parseProductRow,
   parseVirtualPrice,
   validateFeeType,
 } from './parseRawProductRow.js';
+import { COLUMN } from './_constant.js';
 import type { DeliveryFeeType } from '../delivery/_type.js';
 import type { RawProductRow, RowValues } from './_type.js';
 import { ERROR_MESSAGE } from '../error/errorMessage.js';

@@ -1,5 +1,6 @@
 import parseToNumberFromKRW from '../price/parseToNumberFromKRW.js';
-import { COLUMN, parseProductRow } from './parseRawProductRow.js';
+import { COLUMN } from './_constant.js';
+import { parseProductRow } from './parseRawProductRow.js';
 import type { ProductRow, RowValues } from './_type.js';
 
 /**
