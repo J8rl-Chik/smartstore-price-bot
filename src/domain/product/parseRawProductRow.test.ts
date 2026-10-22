@@ -9,6 +9,7 @@ import {
 } from './parseRawProductRow.js';
 import type { DeliveryFeeType } from '../delivery/_type.js';
 import type { RawProductRow, RowValues } from './_type.js';
+import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 const createProductRow = ({
   name = '테스트 상품',
@@ -49,11 +50,13 @@ describe('parseVirtualPrice', () => {
   });
 
   it('virtualPrice가 "0"이면 에러를 던진다', () => {
-    expect(() => parseVirtualPrice('0')).toThrow('0보다 큰 값이어야 합니다.');
+    expect(() => parseVirtualPrice('0')).toThrow(`${ERROR_MESSAGE.PRICE_NOT_POSITIVE} (krw: 0)`);
   });
 
   it('virtualPrice가 숫자로 변환할 수 없는 값이면 에러를 던진다', () => {
-    expect(() => parseVirtualPrice('가격 미정')).toThrow('숫자로 변환할 수 없습니다.');
+    expect(() => parseVirtualPrice('가격 미정')).toThrow(
+      `${ERROR_MESSAGE.PRICE_NOT_NUMBER} (krw: 가격 미정)`,
+    );
   });
 });
 
@@ -206,7 +209,7 @@ describe('parseProductRow 에러', () => {
     const row = createProductRow({ name: '무선 이어폰', productPrice: '가격미정' });
 
     expect(() => parseProductRow(row)).toThrow(
-      "'무선 이어폰' 상품 파싱 에러: 숫자로 변환할 수 없습니다.",
+      `'무선 이어폰' 상품 파싱 에러: ${ERROR_MESSAGE.PRICE_NOT_NUMBER} (krw: 가격미정)`,
     );
   });
 

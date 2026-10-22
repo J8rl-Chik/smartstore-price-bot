@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import parseToNumberFromKRW from './parseToNumberFromKRW.js';
+import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 describe('parseToNumberFromKRW', () => {
   it('₩ 기호와 콤마가 포함된 문자열을 숫자로 변환한다', () => {
@@ -24,22 +25,28 @@ describe('parseToNumberFromKRW', () => {
 
 describe('에러 처리', () => {
   it('실수면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('1,000.5')).toThrow('정수여야 합니다');
+    expect(() => parseToNumberFromKRW('1,000.5')).toThrow(
+      `${ERROR_MESSAGE.PRICE_NOT_INTEGER} (krw: 1,000.5)`,
+    );
   });
 
   it('0이면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('0')).toThrow('0보다 큰 값이어야 합니다');
+    expect(() => parseToNumberFromKRW('0')).toThrow(`${ERROR_MESSAGE.PRICE_NOT_POSITIVE} (krw: 0)`);
   });
 
   it('빈 문자열이면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('')).toThrow('0보다 큰 값이어야 합니다');
+    expect(() => parseToNumberFromKRW('')).toThrow(`${ERROR_MESSAGE.PRICE_NOT_POSITIVE} (krw: )`);
   });
 
   it('음수면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('-10')).toThrow('0보다 큰 값이어야 합니다');
+    expect(() => parseToNumberFromKRW('-10')).toThrow(
+      `${ERROR_MESSAGE.PRICE_NOT_POSITIVE} (krw: -10)`,
+    );
   });
 
   it('숫자로 변환할 수 없는 문자열이면 에러를 던진다', () => {
-    expect(() => parseToNumberFromKRW('가격미정')).toThrow('숫자로 변환할 수 없습니다');
+    expect(() => parseToNumberFromKRW('가격미정')).toThrow(
+      `${ERROR_MESSAGE.PRICE_NOT_NUMBER} (krw: 가격미정)`,
+    );
   });
 });

@@ -1,16 +1,18 @@
+import { ERROR_MESSAGE } from '../error/errorMessage.js';
+
 const parseToNumberFromKRW = (krw: string): number => {
   const price = Number(krw.replaceAll(',', '').replaceAll('₩', ''));
 
   if (Number.isNaN(price)) {
-    throw new Error('숫자로 변환할 수 없습니다.');
+    throw new Error(`${ERROR_MESSAGE.PRICE_NOT_NUMBER} (krw: ${krw})`);
   }
 
   if (!Number.isInteger(price)) {
-    throw new Error('정수여야 합니다.');
+    throw new Error(`${ERROR_MESSAGE.PRICE_NOT_INTEGER} (krw: ${krw})`);
   }
 
   if (price <= 0) {
-    throw new Error('0보다 큰 값이어야 합니다.');
+    throw new Error(`${ERROR_MESSAGE.PRICE_NOT_POSITIVE} (krw: ${krw})`);
   }
 
   /**
