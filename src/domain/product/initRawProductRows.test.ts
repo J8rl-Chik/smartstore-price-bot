@@ -6,7 +6,6 @@ import type { ColumnKey, RowValues } from './_type.js';
 const createProductRow = ({
   name = '테스트 상품',
   catalogURL = 'https://example.com/catalog',
-  activate = 'TRUE',
   feeType = '무료',
   freeDeliveryPrice = '₩10,000',
   productPrice = '₩15,000',
@@ -17,7 +16,6 @@ const createProductRow = ({
   const row: string[] = [];
   row[COLUMN.name] = name;
   row[COLUMN.catalogURL] = catalogURL;
-  row[COLUMN.activate] = activate;
   row[COLUMN.feeType] = feeType;
   row[COLUMN.freeDeliveryPrice] = freeDeliveryPrice;
   row[COLUMN.productPrice] = productPrice;
