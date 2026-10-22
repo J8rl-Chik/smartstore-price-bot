@@ -15,7 +15,6 @@ export const ERROR_MESSAGE = {
 
   // 구글 시트 (integrations/googleSheets, domain/product)
   SHEET_FETCH_FAILED: 'Google Sheets에서 상품 목록을 가져오지 못했습니다.',
-  SHEET_ROW_EMPTY_CELL: '시트의 상품 행에 비어 있는 칸이 있습니다.',
   SHEET_ROW_PARSE_FAILED: '시트의 상품 행을 읽지 못했습니다.',
 
   // 가격 (domain/price)

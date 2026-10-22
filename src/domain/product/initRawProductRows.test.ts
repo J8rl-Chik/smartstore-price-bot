@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { COLUMN } from './_constant.js';
 import { initRawProductRows } from './initRawProductRows.js';
-import type { RawProductRow, RowValues } from './_type.js';
+import type { ColumnKey, RowValues } from './_type.js';
 
 const createProductRow = ({
   name = '테스트 상품',
@@ -13,7 +13,7 @@ const createProductRow = ({
   baseFee = '₩3,000',
   virtualPrice = '₩2,000',
   excludedSellerNames = '판매처A,',
-}: Partial<RawProductRow> = {}): RowValues => {
+}: Partial<Record<ColumnKey, string>> = {}): RowValues => {
   const row: string[] = [];
   row[COLUMN.name] = name;
   row[COLUMN.catalogURL] = catalogURL;

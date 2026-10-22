@@ -2,7 +2,7 @@ import { DELIVERY_FEE_TYPE } from '../delivery/_constant.js';
 import parseToNumberFromKRW from '../price/parseToNumberFromKRW.js';
 import type { DeliveryFeeType } from '../delivery/_type.js';
 import { COLUMN } from './_constant.js';
-import type { ColumnKey, ProductRow, RawProductRow, RowValues } from './_type.js';
+import type { ProductRow, RowValues } from './_type.js';
 
 export const parseVirtualPrice = (virtualPrice: string): number | null => {
   if (virtualPrice === '') {
@@ -23,53 +23,18 @@ export const validateFeeType = (feeType: string): DeliveryFeeType => {
   return feeType as DeliveryFeeType;
 };
 
-/**
- * 행(RowValues)은 길이가 보장되지 않는 string[]이라 특정 값이 채워져 있다고 장담할 수 없다.
- * 행(RowValues)에 undefined가 있는지 확인하고, 하나라도 있으면 에러를 던진다.
- * COLUMN 객체의 각 프로퍼티의 값은 구글 시트 행에서 어떤 값이 어디에 위치하는지 실제 인덱스 번호다.
- */
-
-// TODO: convert가 적절한 표현인지 확인.
-export const convertToRawProductRow = (rowVaues: RowValues): RawProductRow => {
-  const entries = (Object.entries(COLUMN) as [ColumnKey, number][]).map(
-    ([columnKey, columnIndex]): [ColumnKey, string] => {
-      const value = rowVaues.at(columnIndex);
-
-      if (value === undefined) {
-        throw new Error(`행에 undefined 값이 있습니다.`);
-      }
-
-      return [columnKey, value];
-    },
-  );
-
-  return Object.fromEntries(entries) as RawProductRow;
-};
-
 export const parseProductRow = (rowValues: RowValues): ProductRow => {
   try {
-    const {
-      name,
-      catalogURL,
-      activate,
-      feeType,
-      freeDeliveryPrice,
-      productPrice,
-      baseFee,
-      virtualPrice,
-      excludedSellerNames,
-    } = convertToRawProductRow(rowValues);
-
     return {
-      name,
-      catalogURL,
-      activate,
-      feeType: validateFeeType(feeType),
-      freeDeliveryPrice: parseToNumberFromKRW(freeDeliveryPrice),
-      productPrice: parseToNumberFromKRW(productPrice),
-      baseFee: parseToNumberFromKRW(baseFee),
-      virtualPrice: parseVirtualPrice(virtualPrice),
-      excludedSellerNames: parseExcludedSellerNames(excludedSellerNames),
+      name: rowValues[COLUMN.name],
+      catalogURL: rowValues[COLUMN.catalogURL],
+      activate: rowValues[COLUMN.activate],
+      feeType: validateFeeType(rowValues[COLUMN.feeType]),
+      freeDeliveryPrice: parseToNumberFromKRW(rowValues[COLUMN.freeDeliveryPrice]),
+      productPrice: parseToNumberFromKRW(rowValues[COLUMN.productPrice]),
+      baseFee: parseToNumberFromKRW(rowValues[COLUMN.baseFee]),
+      virtualPrice: parseVirtualPrice(rowValues[COLUMN.virtualPrice]),
+      excludedSellerNames: parseExcludedSellerNames(rowValues[COLUMN.excludedSellerNames]),
     };
   } catch (error) {
     const productName = rowValues[COLUMN.name] ?? '(이름 없음)';

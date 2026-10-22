@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  convertToRawProductRow,
   parseExcludedSellerNames,
   parseProductRow,
   parseVirtualPrice,
@@ -8,7 +7,7 @@ import {
 } from './parseRawProductRow.js';
 import { COLUMN } from './_constant.js';
 import type { DeliveryFeeType } from '../delivery/_type.js';
-import type { RawProductRow, RowValues } from './_type.js';
+import type { ColumnKey, RowValues } from './_type.js';
 import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
 const createProductRow = ({
@@ -21,7 +20,7 @@ const createProductRow = ({
   baseFee = '₩3,000',
   virtualPrice = '₩2,000',
   excludedSellerNames = '판매처A,',
-}: Partial<RawProductRow> = {}): RowValues => {
+}: Partial<Record<ColumnKey, string>> = {}): RowValues => {
   const row: string[] = [];
   row[COLUMN.name] = name;
   row[COLUMN.catalogURL] = catalogURL;
@@ -111,43 +110,6 @@ describe('validateFeeType', () => {
     const unknownFee = '착불' as DeliveryFeeType;
 
     expect(() => validateFeeType(unknownFee)).toThrow('알 수 없는 배송비 유형입니다.');
-  });
-});
-
-describe('convertToRawProductRow', () => {
-  it('제품 행을 이루는 문자열들을 객체 형태로 변환한다.', () => {
-    const rowValues: RowValues = [
-      '테스트 상품',
-      'https://example.com/catalog',
-      'TRUE',
-      '',
-      '',
-      '',
-      '무료',
-      '₩10,000',
-      '₩15,000',
-      '₩3,000',
-      '₩2,000',
-      '판매처A,',
-    ];
-
-    expect(convertToRawProductRow(rowValues)).toEqual({
-      name: '테스트 상품',
-      catalogURL: 'https://example.com/catalog',
-      activate: 'TRUE',
-      feeType: '무료',
-      freeDeliveryPrice: '₩10,000',
-      productPrice: '₩15,000',
-      baseFee: '₩3,000',
-      virtualPrice: '₩2,000',
-      excludedSellerNames: '판매처A,',
-    });
-  });
-
-  it('제품 행을 이루는 값들에 undefined 값이 있으면 에러를 던진다.', () => {
-    const rowValues = ['', undefined, '', '', '', '', '', '', '', '', '', ''];
-
-    expect(() => convertToRawProductRow(rowValues as unknown as RowValues)).toThrow();
   });
 });
 

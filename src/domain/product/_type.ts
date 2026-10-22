@@ -30,10 +30,6 @@ export interface ProductRow {
 
 export type ColumnKey = keyof typeof COLUMN;
 
-export type RawProductRow = {
-  [K in ColumnKey]: string;
-};
-
 // 값이 빈 셀은 행에 포함되지 않는다. 그래서 크기가 고정이 아니다.
 export type EmptyRowValues = string[];
 
