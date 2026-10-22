@@ -13,6 +13,7 @@ import { findDuplicateProductNames } from '../domain/product/findDuplicateProduc
 import shuffleArray from '../utils/shuffleArray';
 import validateEnv from '../utils/validateEnv';
 import delaySeconds from '../utils/delaySeconds';
+import tryCatch from '../utils/tryCatch';
 import updateTargetProductPrice from './updateTargetProductPrice';
 import { initState, sendState, setState, setUpdate } from './state';
 import type { TargetProduct } from '../domain/product/_type';
@@ -95,18 +96,19 @@ export const registerIpcHandlers = (): void => {
       for (const [index, targetProduct] of targetProducts.entries()) {
         sendState(sender, setState({ currentIndex: index }));
 
-        try {
-          sendState(
-            sender,
-            setUpdate(index, await updateTargetProductPrice(page, targetProduct, myStoreName)),
-          );
-        } catch (error) {
-          console.error(error);
-          sendState(sender, setUpdate(index, { status: 'error', time: Date.now() }));
+        const [error, update] = await tryCatch(
+          updateTargetProductPrice(page, targetProduct, myStoreName),
+        );
 
-          if (error instanceof UnexpectedCatalogPageError) {
-            break;
-          }
+        if (error) {
+          console.error(error);
+        }
+
+        sendState(sender, setUpdate(index, update ?? { status: 'error', time: Date.now() }));
+
+        // 다음 상품도 실패할 치명적 실패면 순회를 멈춘다.
+        if (error instanceof UnexpectedCatalogPageError) {
+          break;
         }
 
         await delaySeconds(5);
