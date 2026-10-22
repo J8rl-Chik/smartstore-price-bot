@@ -1,6 +1,5 @@
-import { DELIVERY_FEE_TYPE } from '../delivery/_constant.js';
 import parseToNumberFromKRW from '../price/parseToNumberFromKRW.js';
-import type { DeliveryFeeType } from '../delivery/_type.js';
+import { validateFeeType } from '../delivery/validateFeeType.js';
 import { COLUMN } from './_constant.js';
 import type { ProductRow, RowValues } from './_type.js';
 
@@ -14,14 +13,6 @@ export const parseVirtualPrice = (virtualPrice: string): number | null => {
 
 export const parseExcludedSellerNames = (excludedSellerName: string): string[] =>
   excludedSellerName.split(',').map((sellerName) => sellerName.trim());
-
-export const validateFeeType = (feeType: string): DeliveryFeeType => {
-  if (!(Object.values(DELIVERY_FEE_TYPE) as string[]).includes(feeType)) {
-    throw new Error('알 수 없는 배송비 유형입니다.');
-  }
-
-  return feeType as DeliveryFeeType;
-};
 
 export const parseProductRow = (rowValues: RowValues): ProductRow => {
   try {
