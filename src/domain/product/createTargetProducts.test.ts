@@ -22,7 +22,7 @@ const createProductRow = (name: string, productPrice = 0): ProductRow => ({
   feeType: DELIVERY_FEE_TYPE.FREE,
   freeDeliveryPrice: 30000,
   productPrice,
-  baseFee: 3000,
+  baseFee: 0,
   virtualPrice: null,
   excludedSellerNames: ['제외 판매처'],
 });
@@ -43,7 +43,7 @@ describe('createTargetProducts', () => {
         },
         sheet: {
           catalogURL: 'https://example.com',
-          delivery: { feeType: DELIVERY_FEE_TYPE.FREE },
+          delivery: { feeType: DELIVERY_FEE_TYPE.FREE, baseFee: 0 },
           freeDeliveryPrice: 30000,
           productPrice: 10000,
           virtualPrice: null,
@@ -55,7 +55,9 @@ describe('createTargetProducts', () => {
 
   it('배송비 유형이 유료이면 baseFee를 포함한 delivery를 만든다', () => {
     const saleProducts = [createSaleProduct('무선 이어폰')];
-    const productRows = [{ ...createProductRow('무선 이어폰'), feeType: DELIVERY_FEE_TYPE.PAID }];
+    const productRows = [
+      { ...createProductRow('무선 이어폰'), feeType: DELIVERY_FEE_TYPE.PAID, baseFee: 3000 },
+    ];
 
     const [targetProduct] = createTargetProducts(saleProducts, productRows);
 

@@ -20,7 +20,6 @@ import { filterExcludedSellers } from './domain/seller/filterExcludedSellers.js'
 import { addVirtualPrice } from './domain/price/addVirtualPrice.js';
 import { calculateTargetPrice } from './domain/price/calculateTargetPrice.js';
 import { isPriceUpdateRequired } from './domain/price/isPriceUpdateRequired.js';
-import { createDelivery } from './domain/delivery/createDelivery.js';
 import { buildPriceWithDeliveryFee } from './domain/delivery/buildPriceWithDeliveryFee.js';
 import { UnexpectedCatalogPageError } from './integrations/puppeteer/validateCatalogPage.js';
 
@@ -79,8 +78,10 @@ const start = async (): Promise<void> => {
           const targetPrice = calculateTargetPrice(prices, freeDeliveryPrice);
 
           if (isPriceUpdateRequired(currentMyStore, targetPrice, feeType)) {
-            const delivery = createDelivery({ feeType, baseFee });
-            const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(delivery, targetPrice);
+            const { deliveryFee, salePrice } = buildPriceWithDeliveryFee(
+              { feeType, baseFee },
+              targetPrice,
+            );
 
             const result = await updatePrice({
               productNo: getOriginProductNo(saleProduct),

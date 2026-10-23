@@ -1,4 +1,3 @@
-import { createDelivery } from '../delivery/createDelivery.js';
 import {
   getDeliveryFee,
   getOriginProductNo,
@@ -36,7 +35,7 @@ export const createTargetProducts = (
       },
       sheet: {
         catalogURL: productRow.catalogURL,
-        delivery: createDelivery({ feeType: productRow.feeType, baseFee: productRow.baseFee }),
+        delivery: { feeType: productRow.feeType, baseFee: productRow.baseFee },
         freeDeliveryPrice: productRow.freeDeliveryPrice,
         productPrice: productRow.productPrice,
         virtualPrice: productRow.virtualPrice,
