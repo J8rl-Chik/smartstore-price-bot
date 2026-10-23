@@ -77,7 +77,12 @@ it('onUpdateState를 호출하면 updateState 채널에 listener를 등록한다
 });
 
 it('updateState 채널로 상태가 오면 onUpdateState에 넘긴 callback에 상태만 전달한다', () => {
-  const state: UpdateState = { targetProducts: [], currentIndex: null, isRunning: true };
+  const state: UpdateState = {
+    targetProducts: [],
+    invalidProductRows: [],
+    currentIndex: null,
+    isRunning: true,
+  };
   const callback = vi.fn();
   const api = getExposedApi();
   api.onUpdateState(callback);

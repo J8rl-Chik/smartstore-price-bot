@@ -16,7 +16,7 @@ import delaySeconds from '../utils/delaySeconds';
 import tryCatch from '../utils/tryCatch';
 import updateTargetProductPrice from './updateTargetProductPrice';
 import { initState, sendState, setState, setUpdate } from './state';
-import type { TargetProduct } from '../domain/product/_type';
+import type { InvalidProductRow, TargetProduct } from '../domain/product/_type';
 
 /**
  * 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼.
@@ -32,22 +32,29 @@ const handleIpc = <E extends keyof IpcInvoke>(
   );
 };
 
-// 네이버 판매 상품과 구글 시트 행을 합쳐 가격 수정 대상 목록과 중복된 상품명을 만든다.
+// 네이버 판매 상품과 구글 시트 행을 합쳐 가격 수정 대상 목록, 중복된 상품명, 변환에 실패한 시트 행을 만든다.
 const fetchTargetProducts = async (): Promise<{
   targetProducts: TargetProduct[];
   duplicateProductNames: string[];
+  invalidProductRows: InvalidProductRow[];
 }> => {
   const [saleProducts, rawProductRows] = await Promise.all([getSaleProducts(), getProductRows()]);
-
   const shuffledSaleProducts = shuffleArray(excludeNewlyRegisteredProducts(saleProducts));
-  // TODO: 3단계에서 변환에 실패한 행도 renderer로 보낸다. 지금은 변환에 성공한 행만 쓴다.
-  const productRows = rawProductRows
-    .map(parseProductRow)
-    .flatMap((result) => (result.status === 'ok' ? [result.productRow] : []));
-  const duplicateProductNames = findDuplicateProductNames(productRows);
-  const targetProducts = createTargetProducts(shuffledSaleProducts, productRows);
+  const productRowResults = rawProductRows.map(parseProductRow);
 
-  return { targetProducts, duplicateProductNames };
+  // 변환에 성공한 행은 가격 수정에 쓰고, 실패한 행은 어떤 행을 왜 고쳐야 하는지 renderer에 보여주도록 모은다.
+  const validProductRows = productRowResults
+    .filter((result) => result.status === 'ok')
+    .map(({ productRow }) => productRow);
+
+  const invalidProductRows = productRowResults
+    .filter((result) => result.status === 'error')
+    .map(({ productRow, errorMessages }) => ({ name: productRow.name, errorMessages }));
+
+  const duplicateProductNames = findDuplicateProductNames(validProductRows);
+  const targetProducts = createTargetProducts(shuffledSaleProducts, validProductRows);
+
+  return { targetProducts, duplicateProductNames, invalidProductRows };
 };
 
 export const registerIpcHandlers = (): void => {
@@ -74,11 +81,16 @@ export const registerIpcHandlers = (): void => {
 
     try {
       const myStoreName = validateEnv('SMART_STORE_NAME');
-      const { targetProducts } = await fetchTargetProducts();
+      const { targetProducts, invalidProductRows } = await fetchTargetProducts();
 
-      // 수정할 상품이 없으면 로그인하지 않고, 빈 목록으로 끝난 상태만 보낸다.
+      // 수정할 상품이 없으면 로그인하지 않고, 빈 목록과 변환에 실패한 시트 행으로 끝난 상태만 보낸다.
       if (targetProducts.length === 0) {
-        sendState(sender, { targetProducts: [], currentIndex: null, isRunning: false });
+        sendState(sender, {
+          targetProducts: [],
+          invalidProductRows,
+          currentIndex: null,
+          isRunning: false,
+        });
 
         return;
       }
@@ -90,7 +102,7 @@ export const registerIpcHandlers = (): void => {
         await loginNaver(page);
       }
 
-      sendState(sender, initState(targetProducts));
+      sendState(sender, initState(targetProducts, invalidProductRows));
 
       /**
        * 상품 하나의 실패는 그 상품만 error로 반영하고 계속하며,

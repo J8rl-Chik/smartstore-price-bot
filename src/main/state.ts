@@ -1,5 +1,6 @@
 import type { WebContents } from 'electron';
 import type {
+  InvalidProductRow,
   TargetProduct,
   TargetProductUpdate,
   TargetProductWithUpdate,
@@ -9,18 +10,27 @@ import type {
 // main이 순회 상태를 보내는 채널 이름. preload/exposeApi.ts의 구독 채널 이름과 같아야 한다.
 const updateStateChannel = 'updateState';
 
-let state: UpdateState = { targetProducts: [], currentIndex: null, isRunning: false };
+let state: UpdateState = {
+  targetProducts: [],
+  invalidProductRows: [],
+  currentIndex: null,
+  isRunning: false,
+};
 
 /**
  * 순회를 시작할 때의 상태로 state를 초기화하고, 초기화한 상태를 반환한다.
- * 상품 전체를 wait로 두고, 아직 처리 중인 상품은 없다.
+ * 상품 전체를 wait로 두고, 아직 처리 중인 상품은 없다. 변환에 실패한 시트 행은 그대로 담는다.
  */
-export const initState = (targetProducts: TargetProduct[]): UpdateState => {
+export const initState = (
+  targetProducts: TargetProduct[],
+  invalidProductRows: InvalidProductRow[],
+): UpdateState => {
   state = {
     targetProducts: targetProducts.map((targetProduct) => ({
       ...targetProduct,
       update: { status: 'wait' },
     })),
+    invalidProductRows,
     currentIndex: null,
     isRunning: true,
   };

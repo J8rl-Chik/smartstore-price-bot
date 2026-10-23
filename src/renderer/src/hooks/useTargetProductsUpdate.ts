@@ -11,6 +11,7 @@ interface TargetProductsUpdate {
 
 const initialUpdateState: UpdateState = {
   targetProducts: [],
+  invalidProductRows: [],
   currentIndex: null,
   isRunning: false,
 };

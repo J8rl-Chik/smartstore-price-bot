@@ -79,12 +79,20 @@ export interface TargetProductWithUpdate extends TargetProduct {
   update: TargetProductUpdate;
 }
 
+// 변환에 실패한 시트 행. 어떤 행을 왜 고쳐야 하는지 renderer에서 보여주는 데 필요한 값만 담는다.
+export interface InvalidProductRow {
+  name: Partial<ProductRow>['name'];
+  errorMessages: string[];
+}
+
 /**
  * main이 가격 수정 순회 중 상태가 바뀔 때마다 통째로 보내는 상태.
+ * invalidProductRows: 변환에 실패해 가격 수정 대상에서 빠진 시트 행.
  * currentIndex: 지금 처리 중인 상품의 targetProducts 인덱스. 순회 중이 아니면 null.
  */
 export interface UpdateState {
   targetProducts: TargetProductWithUpdate[];
+  invalidProductRows: InvalidProductRow[];
   currentIndex: number | null;
   isRunning: boolean;
 }

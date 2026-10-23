@@ -220,6 +220,45 @@ describe('registerIpcHandlers', () => {
     expect(mockUpdateTargetProductPrice).not.toHaveBeenCalled();
     expect(mockSend).toHaveBeenCalledWith('updateState', {
       targetProducts: [],
+      invalidProductRows: [],
+      currentIndex: null,
+      isRunning: false,
+    });
+  });
+
+  const invalidProductRowResult = {
+    status: 'error',
+    productRow: { name: '상품C', feeType: '유료' },
+    errorMessages: ['productPrice: 에러'],
+  };
+
+  it('startUpdate는 변환에 실패한 시트 행을 상품명과 에러 메시지만 담아 순회 시작 상태로 보낸다', async () => {
+    mockFetchedTargetProducts([productA]);
+    mockGetProductRows.mockResolvedValue([['상품C']]);
+    mockParseProductRow.mockReturnValue(invalidProductRowResult);
+    mockCreatePage.mockResolvedValue({ browser: {}, page: { name: 'fake-page' } });
+
+    await invokeHandler('startUpdate');
+
+    expect(mockSend).toHaveBeenNthCalledWith(
+      1,
+      'updateState',
+      expect.objectContaining({
+        invalidProductRows: [{ name: '상품C', errorMessages: ['productPrice: 에러'] }],
+      }),
+    );
+  });
+
+  it('startUpdate는 수정할 상품이 없어도 변환에 실패한 시트 행을 담아 끝난 상태를 보낸다', async () => {
+    mockFetchedTargetProducts([]);
+    mockGetProductRows.mockResolvedValue([['상품C']]);
+    mockParseProductRow.mockReturnValue(invalidProductRowResult);
+
+    await invokeHandler('startUpdate');
+
+    expect(mockSend).toHaveBeenCalledWith('updateState', {
+      targetProducts: [],
+      invalidProductRows: [{ name: '상품C', errorMessages: ['productPrice: 에러'] }],
       currentIndex: null,
       isRunning: false,
     });
@@ -281,6 +320,7 @@ describe('registerIpcHandlers', () => {
         { ...productA, update: { status: 'wait' } },
         { ...productB, update: { status: 'wait' } },
       ],
+      invalidProductRows: [],
       currentIndex: null,
       isRunning: true,
     });

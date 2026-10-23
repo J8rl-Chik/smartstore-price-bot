@@ -90,6 +90,7 @@ test('main이 보낸 상태의 상품 목록을 targetProducts에 반영한다',
   await act(() => {
     emitUpdateState({
       targetProducts: [firstProduct, secondProduct],
+      invalidProductRows: [],
       currentIndex: null,
       isRunning: true,
     });
@@ -104,6 +105,7 @@ test('main이 보낸 상태의 currentIndex로 현재 상품과 순서를 알려
   await act(() => {
     emitUpdateState({
       targetProducts: [firstProduct, secondProduct],
+      invalidProductRows: [],
       currentIndex: 1,
       isRunning: true,
     });
@@ -117,11 +119,21 @@ test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순�
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
   await act(() => {
-    emitUpdateState({ targetProducts: [firstProduct], currentIndex: 0, isRunning: true });
+    emitUpdateState({
+      targetProducts: [firstProduct],
+      invalidProductRows: [],
+      currentIndex: 0,
+      isRunning: true,
+    });
   });
 
   await act(() => {
-    emitUpdateState({ targetProducts: [firstProduct], currentIndex: null, isRunning: false });
+    emitUpdateState({
+      targetProducts: [firstProduct],
+      invalidProductRows: [],
+      currentIndex: null,
+      isRunning: false,
+    });
   });
 
   expect(result.current.currentOrder).toBe(0);
@@ -145,7 +157,12 @@ test('startUpdate를 호출하면 첫 상태를 받기 전까지 isLoading이 tr
   expect(result.current.isLoading).toBe(true);
 
   await act(() => {
-    emitUpdateState({ targetProducts: [firstProduct], currentIndex: null, isRunning: true });
+    emitUpdateState({
+      targetProducts: [firstProduct],
+      invalidProductRows: [],
+      currentIndex: null,
+      isRunning: true,
+    });
   });
 
   expect(result.current.isLoading).toBe(false);
