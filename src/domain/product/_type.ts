@@ -30,10 +30,15 @@ export interface ProductRow {
 /**
  * 시트 행 하나를 ProductRow로 변환한 결과.
  * 변환에 실패한 칸이 있으면 변환에 성공한 값만 담고, 실패한 칸마다 이유를 errorMessages에 모은다.
+ * name, catalogURL은 변환 없이 시트 값을 그대로 쓰므로 실패한 결과에도 항상 있다.
  */
 export type ProductRowParseResult =
   | { status: 'ok'; productRow: ProductRow }
-  | { status: 'error'; productRow: Partial<ProductRow>; errorMessages: string[] };
+  | {
+      status: 'error';
+      productRow: Partial<ProductRow> & Pick<ProductRow, 'name' | 'catalogURL'>;
+      errorMessages: string[];
+    };
 
 export type ColumnKey = keyof typeof COLUMN;
 
@@ -81,7 +86,7 @@ export interface TargetProductWithUpdate extends TargetProduct {
 
 // 변환에 실패한 시트 행. 어떤 행을 왜 고쳐야 하는지 renderer에서 보여주는 데 필요한 값만 담는다.
 export interface InvalidProductRow {
-  name: Partial<ProductRow>['name'];
+  name: ProductRow['name'];
   errorMessages: string[];
 }
 
