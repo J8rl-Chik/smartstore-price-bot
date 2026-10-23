@@ -57,6 +57,12 @@ const fetchTargetProducts = async (): Promise<{
   return { targetProducts, duplicateProductNames, invalidProductRows };
 };
 
+/**
+ * 사용자가 puppeteer 브라우저의 탭이나 창을 닫았는지 확인한다.
+ * 탭만 닫으면 page가 닫히고, 창을 닫으면 브라우저 연결이 끊긴다.
+ */
+const isPageClosed = (page: Page): boolean => page.isClosed() || !page.browser().connected;
+
 export const registerIpcHandlers = (): void => {
   /**
    * startUpdate를 다시 호출해도 다시 로그인하지 않도록 로그인한 페이지를 보관한다.
@@ -95,8 +101,8 @@ export const registerIpcHandlers = (): void => {
         return;
       }
 
-      // 이미 로그인한 페이지가 있으면 다시 로그인하지 않고 재사용한다.
-      if (!page) {
+      // 이미 로그인한 페이지가 있으면 다시 로그인하지 않고 재사용한다. 사용자가 닫았다면 새로 열어 로그인한다.
+      if (!page || isPageClosed(page)) {
         page = (await createPage()).page;
 
         await loginNaver(page);
@@ -121,8 +127,8 @@ export const registerIpcHandlers = (): void => {
 
         sendState(sender, setUpdate(index, update ?? { status: 'error', time: Date.now() }));
 
-        // 다음 상품도 실패할 치명적 실패면 순회를 멈춘다.
-        if (error instanceof UnexpectedCatalogPageError) {
+        // 다음 상품도 실패할 치명적 실패거나, 사용자가 브라우저를 닫았으면 순회를 멈춘다.
+        if (error instanceof UnexpectedCatalogPageError || isPageClosed(page)) {
           break;
         }
 
