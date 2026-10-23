@@ -20,7 +20,11 @@ export interface UpdatePriceResult extends SmartStoreApiResult {
 interface OriginProduct {
   detailContent?: unknown;
   stockQuantity?: unknown;
-  deliveryInfo?: Record<string, unknown>;
+  deliveryInfo?: {
+    deliveryFee?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+
   [key: string]: unknown;
 }
 
@@ -77,7 +81,12 @@ async function updatePrice({
           ...sanitizedProduct,
           deliveryInfo: {
             ...sanitizedProduct.deliveryInfo,
-            deliveryFee,
+            // deliveryFee,
+            deliveryFee: {
+              ...sanitizedProduct.deliveryInfo?.deliveryFee,
+              ...deliveryFee,
+              differentialFeeByArea: '3000',
+            },
           },
           salePrice,
         },

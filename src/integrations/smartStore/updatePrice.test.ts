@@ -78,7 +78,7 @@ it('상품 조회는 GET, 가격 수정은 PUT으로 같은 상품 URL에 인증
   expect(putOption.headers.Authorization).toBe('token-abc');
 });
 
-it('detailContent/stockQuantity는 제거하고 deliveryFee/salePrice를 반영해 수정 요청을 보낸다', async () => {
+it('detailContent/stockQuantity는 제거하고 salePrice를 반영해 수정 요청을 보낸다', async () => {
   mockGenerateAccessToken.mockResolvedValue('token-abc');
   mockFetch
     .mockResolvedValueOnce({ json: () => Promise.resolve(createOriginProductResult()) })
@@ -96,11 +96,47 @@ it('detailContent/stockQuantity는 제거하고 deliveryFee/salePrice를 반영�
   expect(putBody.originProduct.detailContent).toBeUndefined();
   expect(putBody.originProduct.stockQuantity).toBeUndefined();
   expect(putBody.originProduct.name).toBe('기존 상품');
-  expect(putBody.originProduct.deliveryInfo).toMatchObject({
-    deliveryFee: { deliveryFeeType: 'FREE' },
-  });
   expect(putBody.originProduct.salePrice).toBe(50000);
   expect(putBody.smartstoreChannelProduct).toEqual({ channelProductNo: 1 });
+});
+
+it('원본 배송 정보와 배송비는 유지하고, 수정할 배송비와 지역별 차등 배송비를 덮어써 수정 요청을 보낸다', async () => {
+  const originDeliveryInfo = {
+    deliveryType: 'DELIVERY',
+    deliveryFee: {
+      deliveryFeeType: 'PAID',
+      deliveryFeePayType: 'PREPAID',
+      baseFee: 2500,
+      deliveryFeeByArea: { deliveryAreaType: 'AREA_2', area2extraFee: 5000 },
+    },
+  };
+
+  mockGenerateAccessToken.mockResolvedValue('token-abc');
+  mockFetch
+    .mockResolvedValueOnce({
+      json: () => Promise.resolve(createOriginProductResult({ deliveryInfo: originDeliveryInfo })),
+    })
+    .mockResolvedValueOnce({ json: () => Promise.resolve({ success: true }) });
+
+  await updatePrice({
+    productNo: 123,
+    deliveryFee: { deliveryFeeType: 'PAID', deliveryFeePayType: 'PREPAID', baseFee: 3000 },
+    salePrice: 50000,
+  });
+
+  const [, putOption] = mockFetch.mock.calls[1] as [string, { body: string }];
+  const putBody = JSON.parse(putOption.body);
+
+  expect(putBody.originProduct.deliveryInfo).toEqual({
+    deliveryType: 'DELIVERY',
+    deliveryFee: {
+      deliveryFeeType: 'PAID',
+      deliveryFeePayType: 'PREPAID',
+      baseFee: 3000,
+      deliveryFeeByArea: { deliveryAreaType: 'AREA_2', area2extraFee: 5000 },
+      differentialFeeByArea: '3000',
+    },
+  });
 });
 
 it('accessToken 발급이 실패하면 원인을 보존한 채 에러를 던진다', async () => {
