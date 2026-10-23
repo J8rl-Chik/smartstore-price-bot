@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 import { createTargetProducts } from './createTargetProducts.js';
 import { DELIVERY_FEE_TYPE } from '../delivery/_constant.js';
 import type { ProductRow, SaleProduct } from './_type.js';
@@ -27,92 +27,90 @@ const createProductRow = (name: string, productPrice = 0): ProductRow => ({
   excludedSellerNames: ['제외 판매처'],
 });
 
-describe('createTargetProducts', () => {
-  it('이름이 일치하는 saleProduct와 productRow를 TargetProduct 하나로 합친다', () => {
-    const saleProducts = [createSaleProduct('무선 이어폰', 111)];
-    const productRows = [createProductRow('무선 이어폰', 10000)];
+it('이름이 일치하는 saleProduct와 productRow를 TargetProduct 하나로 합친다', () => {
+  const saleProducts = [createSaleProduct('무선 이어폰', 111)];
+  const productRows = [createProductRow('무선 이어폰', 10000)];
 
-    expect(createTargetProducts(saleProducts, productRows)).toEqual([
-      {
-        name: '무선 이어폰',
-        originProductNo: 111,
-        store: {
-          salePrice: 10000,
-          stockQuantity: 10,
-          deliveryFee: 3000,
-        },
-        sheet: {
-          catalogURL: 'https://example.com',
-          delivery: { feeType: DELIVERY_FEE_TYPE.FREE, baseFee: 0 },
-          freeDeliveryPrice: 30000,
-          productPrice: 10000,
-          virtualPrice: null,
-          excludedSellerNames: ['제외 판매처'],
-        },
+  expect(createTargetProducts(saleProducts, productRows)).toEqual([
+    {
+      name: '무선 이어폰',
+      originProductNo: 111,
+      store: {
+        salePrice: 10000,
+        stockQuantity: 10,
+        deliveryFee: 3000,
       },
-    ]);
+      sheet: {
+        catalogURL: 'https://example.com',
+        delivery: { feeType: DELIVERY_FEE_TYPE.FREE, baseFee: 0 },
+        freeDeliveryPrice: 30000,
+        productPrice: 10000,
+        virtualPrice: null,
+        excludedSellerNames: ['제외 판매처'],
+      },
+    },
+  ]);
+});
+
+it('배송비 유형이 유료이면 baseFee를 포함한 delivery를 만든다', () => {
+  const saleProducts = [createSaleProduct('무선 이어폰')];
+  const productRows = [
+    { ...createProductRow('무선 이어폰'), feeType: DELIVERY_FEE_TYPE.PAID, baseFee: 3000 },
+  ];
+
+  const [targetProduct] = createTargetProducts(saleProducts, productRows);
+
+  expect(targetProduct?.sheet.delivery).toEqual({
+    feeType: DELIVERY_FEE_TYPE.PAID,
+    baseFee: 3000,
   });
+});
 
-  it('배송비 유형이 유료이면 baseFee를 포함한 delivery를 만든다', () => {
-    const saleProducts = [createSaleProduct('무선 이어폰')];
-    const productRows = [
-      { ...createProductRow('무선 이어폰'), feeType: DELIVERY_FEE_TYPE.PAID, baseFee: 3000 },
-    ];
+it('일치하는 productRow가 없는 saleProduct는 결과에서 제외한다', () => {
+  const saleProducts = [createSaleProduct('무선 이어폰'), createSaleProduct('블루투스 스피커')];
+  const productRows = [createProductRow('무선 이어폰')];
 
-    const [targetProduct] = createTargetProducts(saleProducts, productRows);
+  const result = createTargetProducts(saleProducts, productRows);
 
-    expect(targetProduct?.sheet.delivery).toEqual({
-      feeType: DELIVERY_FEE_TYPE.PAID,
-      baseFee: 3000,
-    });
-  });
+  expect(result.map(({ name }) => name)).toEqual(['무선 이어폰']);
+});
 
-  it('일치하는 productRow가 없는 saleProduct는 결과에서 제외한다', () => {
-    const saleProducts = [createSaleProduct('무선 이어폰'), createSaleProduct('블루투스 스피커')];
-    const productRows = [createProductRow('무선 이어폰')];
+it('saleProducts의 순서를 유지한다', () => {
+  const saleProducts = [createSaleProduct('블루투스 스피커'), createSaleProduct('무선 이어폰')];
+  const productRows = [createProductRow('무선 이어폰'), createProductRow('블루투스 스피커')];
 
-    const result = createTargetProducts(saleProducts, productRows);
+  const result = createTargetProducts(saleProducts, productRows);
 
-    expect(result.map(({ name }) => name)).toEqual(['무선 이어폰']);
-  });
+  expect(result.map(({ name }) => name)).toEqual(['블루투스 스피커', '무선 이어폰']);
+});
 
-  it('saleProducts의 순서를 유지한다', () => {
-    const saleProducts = [createSaleProduct('블루투스 스피커'), createSaleProduct('무선 이어폰')];
-    const productRows = [createProductRow('무선 이어폰'), createProductRow('블루투스 스피커')];
+it('같은 이름의 productRow가 여러 개면 첫 번째 행을 사용한다', () => {
+  const saleProducts = [createSaleProduct('무선 이어폰')];
+  const productRows = [
+    createProductRow('무선 이어폰', 10000),
+    createProductRow('무선 이어폰', 20000),
+  ];
 
-    const result = createTargetProducts(saleProducts, productRows);
+  const result = createTargetProducts(saleProducts, productRows);
 
-    expect(result.map(({ name }) => name)).toEqual(['블루투스 스피커', '무선 이어폰']);
-  });
+  expect(result.map(({ sheet }) => sheet.productPrice)).toEqual([10000]);
+});
 
-  it('같은 이름의 productRow가 여러 개면 첫 번째 행을 사용한다', () => {
-    const saleProducts = [createSaleProduct('무선 이어폰')];
-    const productRows = [
-      createProductRow('무선 이어폰', 10000),
-      createProductRow('무선 이어폰', 20000),
-    ];
+it('sellerManagementCode, feeType, baseFee는 결과에 포함하지 않는다', () => {
+  const saleProducts = [createSaleProduct('무선 이어폰')];
+  const productRows = [createProductRow('무선 이어폰')];
 
-    const result = createTargetProducts(saleProducts, productRows);
+  const [targetProduct] = createTargetProducts(saleProducts, productRows);
 
-    expect(result.map(({ sheet }) => sheet.productPrice)).toEqual([10000]);
-  });
+  expect(targetProduct?.store).not.toHaveProperty('sellerManagementCode');
+  expect(targetProduct?.sheet).not.toHaveProperty('feeType');
+  expect(targetProduct?.sheet).not.toHaveProperty('baseFee');
+});
 
-  it('sellerManagementCode, feeType, baseFee는 결과에 포함하지 않는다', () => {
-    const saleProducts = [createSaleProduct('무선 이어폰')];
-    const productRows = [createProductRow('무선 이어폰')];
+it('productRows가 빈 배열이면 빈 배열을 반환한다', () => {
+  expect(createTargetProducts([createSaleProduct('무선 이어폰')], [])).toEqual([]);
+});
 
-    const [targetProduct] = createTargetProducts(saleProducts, productRows);
-
-    expect(targetProduct?.store).not.toHaveProperty('sellerManagementCode');
-    expect(targetProduct?.sheet).not.toHaveProperty('feeType');
-    expect(targetProduct?.sheet).not.toHaveProperty('baseFee');
-  });
-
-  it('productRows가 빈 배열이면 빈 배열을 반환한다', () => {
-    expect(createTargetProducts([createSaleProduct('무선 이어폰')], [])).toEqual([]);
-  });
-
-  it('saleProducts가 빈 배열이면 빈 배열을 반환한다', () => {
-    expect(createTargetProducts([], [createProductRow('무선 이어폰')])).toEqual([]);
-  });
+it('saleProducts가 빈 배열이면 빈 배열을 반환한다', () => {
+  expect(createTargetProducts([], [createProductRow('무선 이어폰')])).toEqual([]);
 });
