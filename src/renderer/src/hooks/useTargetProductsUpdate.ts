@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
-import type { TargetProductWithUpdate, UpdateState } from '../../../domain/product/_type';
+import type {
+  InvalidProductRow,
+  TargetProductWithUpdate,
+  UpdateState,
+} from '../../../domain/product/_type';
 
 interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
+  invalidProductRows: InvalidProductRow[];
   isLoading: boolean;
   currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
@@ -46,13 +51,20 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     }
   };
 
-  const { targetProducts, currentIndex } = updateState;
+  const { targetProducts, invalidProductRows, currentIndex } = updateState;
 
   // 진행 상태는 별도 state로 두지 않고 targetProducts와 currentIndex에서 계산한다.
   const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
   const currentOrder = currentIndex === null ? 0 : currentIndex + 1;
 
-  return { targetProducts, isLoading, currentProduct, currentOrder, startUpdate };
+  return {
+    targetProducts,
+    invalidProductRows,
+    isLoading,
+    currentProduct,
+    currentOrder,
+    startUpdate,
+  };
 };
 
 export default useTargetProductsUpdate;

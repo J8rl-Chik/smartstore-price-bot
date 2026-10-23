@@ -28,6 +28,7 @@ test('처음에는 상품과 진행 상태가 비어 있다', async () => {
   const { result } = await renderHook(() => useTargetProductsUpdate());
 
   expect(result.current.targetProducts).toEqual([]);
+  expect(result.current.invalidProductRows).toEqual([]);
   expect(result.current.isLoading).toBe(false);
   expect(result.current.currentProduct).toBeUndefined();
   expect(result.current.currentOrder).toBe(0);
@@ -97,6 +98,22 @@ test('main이 보낸 상태의 상품 목록을 targetProducts에 반영한다',
   });
 
   expect(result.current.targetProducts).toEqual([firstProduct, secondProduct]);
+});
+
+test('main이 보낸 상태의 변환에 실패한 시트 행을 invalidProductRows에 반영한다', async () => {
+  const invalidProductRows = [{ name: '무선 충전기', errorMessages: ['productPrice: 에러'] }];
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => {
+    emitUpdateState({
+      targetProducts: [firstProduct],
+      invalidProductRows,
+      currentIndex: null,
+      isRunning: true,
+    });
+  });
+
+  expect(result.current.invalidProductRows).toEqual(invalidProductRows);
 });
 
 test('main이 보낸 상태의 currentIndex로 현재 상품과 순서를 알려준다', async () => {
