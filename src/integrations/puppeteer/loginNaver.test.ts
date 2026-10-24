@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
 import loginNaver from './loginNaver.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const mockEvaluate = vi.fn();
 
@@ -73,7 +74,7 @@ describe('loginNaver', () => {
     mockPage.click.mockRejectedValue(clickError);
 
     await expect(loginNaver(mockPage as unknown as Page)).rejects.toMatchObject({
-      message: '네이버 로그인에 실패했습니다.',
+      message: ERROR_MESSAGE.NAVER_LOGIN_FAILED,
       cause: clickError,
     });
   });
@@ -85,7 +86,7 @@ describe('loginNaver', () => {
     mockPage.goto.mockRejectedValue(gotoError);
 
     await expect(loginNaver(mockPage as unknown as Page)).rejects.toMatchObject({
-      message: '네이버 로그인에 실패했습니다.',
+      message: ERROR_MESSAGE.NAVER_LOGIN_FAILED,
       cause: gotoError,
     });
   });

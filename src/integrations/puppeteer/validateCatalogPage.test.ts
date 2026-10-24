@@ -7,6 +7,7 @@ import validateCatalogPage, {
   isRestrictedPage,
   UnexpectedCatalogPageError,
 } from './validateCatalogPage.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const restrictedMessage = '쇼핑 서비스 접속이 일시적';
 const loginMessage = '아이디 또는 전화번호';
@@ -201,7 +202,7 @@ describe('validateCatalogPage', () => {
     const mockPage = createMockPageShowing([restrictedMessage]);
 
     await expect(validateCatalogPage(mockPage as unknown as Page)).rejects.toThrow(
-      '네이버 쇼핑 접속이 일시적으로 제한되었습니다.',
+      ERROR_MESSAGE.CATALOG_BLOCKED,
     );
   });
 

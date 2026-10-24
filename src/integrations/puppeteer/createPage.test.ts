@@ -1,5 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import createPage from './createPage.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const { mockStealthPlugin, mockUse, mockLaunch, mockStealth } = vi.hoisted(() => {
   const mockDelete = vi.fn();
@@ -87,7 +88,7 @@ describe('createPage', () => {
     mockLaunch.mockResolvedValue({ pages: async () => [], newPage: vi.fn() });
 
     await expect(createPage()).rejects.toMatchObject({
-      message: '브라우저 페이지를 생성하지 못했습니다.',
+      message: ERROR_MESSAGE.BROWSER_PAGE_FAILED,
       cause: expect.objectContaining({ message: '브라우저 기본 페이지가 없습니다.' }),
     });
   });
@@ -98,7 +99,7 @@ describe('createPage', () => {
     mockLaunch.mockRejectedValue(launchError);
 
     await expect(createPage()).rejects.toMatchObject({
-      message: '브라우저 페이지를 생성하지 못했습니다.',
+      message: ERROR_MESSAGE.BROWSER_PAGE_FAILED,
       cause: launchError,
     });
   });
@@ -112,7 +113,7 @@ describe('createPage', () => {
     });
 
     await expect(createPage()).rejects.toMatchObject({
-      message: '브라우저 페이지를 생성하지 못했습니다.',
+      message: ERROR_MESSAGE.BROWSER_PAGE_FAILED,
       cause: createError,
     });
   });

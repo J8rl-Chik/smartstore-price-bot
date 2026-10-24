@@ -3,6 +3,7 @@ import type { Page } from 'puppeteer';
 
 import delayRandomSeconds from '../../utils/delayRandomSeconds.js';
 import validateEnv from '../../utils/validateEnv.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const loginNaver = async (page: Page): Promise<void> => {
   try {
@@ -36,7 +37,7 @@ const loginNaver = async (page: Page): Promise<void> => {
 
     await delayRandomSeconds(2, 3);
   } catch (error) {
-    throw new Error('네이버 로그인에 실패했습니다.', { cause: error });
+    throw new Error(ERROR_MESSAGE.NAVER_LOGIN_FAILED, { cause: error });
   }
 };
 

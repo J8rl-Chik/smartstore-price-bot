@@ -1,4 +1,5 @@
 import type { Page } from 'puppeteer';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 export const hasTextInBody = (text: string): boolean => document.body.innerText.includes(text);
 
@@ -19,7 +20,7 @@ const validateCatalogPage = async (page: Page): Promise<void> => {
     (await isRequiredLogin(page)) ||
     (await isRequiredSecureCheck(page))
   ) {
-    throw new UnexpectedCatalogPageError('네이버 쇼핑 접속이 일시적으로 제한되었습니다.');
+    throw new UnexpectedCatalogPageError(ERROR_MESSAGE.CATALOG_BLOCKED);
   }
 };
 

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { google, type sheets_v4 } from 'googleapis';
 import { COLUMN } from '../../domain/product/_constant.js';
 import type { RowValues } from '../../domain/product/_type.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const getSheetsResource = (): sheets_v4.Resource$Spreadsheets => {
   const auth = new google.auth.GoogleAuth({
@@ -60,7 +61,7 @@ async function getProductRows(): Promise<RowValues[]> {
 
     return data.values.filter(isActiveRow).map(fillEmptyCell);
   } catch (error) {
-    throw new Error('Google Sheets에서 상품 목록을 가져오지 못했습니다.', { cause: error });
+    throw new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED, { cause: error });
   }
 }
 

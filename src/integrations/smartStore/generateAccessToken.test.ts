@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import generateAccessToken from './generateAccessToken.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const mockFetch = vi.fn();
 const mockHashSync = vi.fn();
@@ -66,7 +67,7 @@ describe('generateAccessToken', () => {
     mockFetch.mockRejectedValue(networkError);
 
     await expect(generateAccessToken()).rejects.toMatchObject({
-      message: '네이버 접근 토큰을 발급받지 못했습니다.',
+      message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
       cause: networkError,
     });
   });
@@ -77,7 +78,7 @@ describe('generateAccessToken', () => {
     mockFetch.mockResolvedValue({ json: async () => Promise.reject(parseError) });
 
     await expect(generateAccessToken()).rejects.toMatchObject({
-      message: '네이버 접근 토큰을 발급받지 못했습니다.',
+      message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
       cause: parseError,
     });
   });
@@ -90,7 +91,7 @@ describe('generateAccessToken', () => {
     });
 
     await expect(generateAccessToken()).rejects.toMatchObject({
-      message: '네이버 접근 토큰을 발급받지 못했습니다.',
+      message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
       cause: signingError,
     });
   });
@@ -101,7 +102,7 @@ describe('generateAccessToken', () => {
     });
 
     await expect(generateAccessToken()).rejects.toMatchObject({
-      message: '네이버 접근 토큰을 발급받지 못했습니다.',
+      message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
       cause: expect.objectContaining({ message: '유효하지 않은 클라이언트입니다.' }),
     });
   });

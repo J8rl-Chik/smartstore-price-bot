@@ -3,6 +3,7 @@ import type { Page } from 'puppeteer';
 import parseSellerItem from './parseSellerItem.js';
 import type { Seller } from '../../domain/seller/_type.js';
 import validateCatalogPage, { UnexpectedCatalogPageError } from './validateCatalogPage.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 export const SELLER_ITEM_SELECTOR = '[class^="product_seller_info_wrap__"]';
 
@@ -54,7 +55,7 @@ const getSellersInPuppeteer = async (
       throw error;
     }
 
-    throw new Error('네이버 판매처 목록을 가져오지 못했습니다.', { cause: error });
+    throw new Error(ERROR_MESSAGE.SELLERS_FETCH_FAILED, { cause: error });
   }
 };
 

@@ -5,6 +5,7 @@ import fetch from 'node-fetch';
 import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
 } from './checkSmartStoreApiSucceeded.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 interface AccessTokenResult extends SmartStoreApiResult {
   access_token: string;
@@ -40,7 +41,7 @@ async function generateAccessToken(): Promise<string> {
 
     return result.access_token;
   } catch (error) {
-    throw new Error('네이버 접근 토큰을 발급받지 못했습니다.', { cause: error });
+    throw new Error(ERROR_MESSAGE.ACCESS_TOKEN_FAILED, { cause: error });
   }
 }
 

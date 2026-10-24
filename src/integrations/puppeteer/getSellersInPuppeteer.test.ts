@@ -9,6 +9,7 @@ import getSellersInPuppeteer, {
 import { UnexpectedCatalogPageError } from './validateCatalogPage.js';
 import { DELIVERY_FEE_TYPE } from '../../domain/delivery/_constant.js';
 import type { Seller } from '../../domain/seller/_type.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const mockValidateCatalogPage = vi.fn();
 
@@ -185,7 +186,7 @@ describe('getSellersInPuppeteer', () => {
     await expect(
       getSellersInPuppeteer(mockPage as unknown as Page, catalogUrl, productName),
     ).rejects.toMatchObject({
-      message: '네이버 판매처 목록을 가져오지 못했습니다.',
+      message: ERROR_MESSAGE.SELLERS_FETCH_FAILED,
       cause: gotoError,
     });
   });
@@ -201,7 +202,7 @@ describe('getSellersInPuppeteer', () => {
     await expect(
       getSellersInPuppeteer(mockPage as unknown as Page, catalogUrl, productName),
     ).rejects.toMatchObject({
-      message: '네이버 판매처 목록을 가져오지 못했습니다.',
+      message: ERROR_MESSAGE.SELLERS_FETCH_FAILED,
       cause: parseError,
     });
   });
@@ -229,7 +230,7 @@ describe('getSellersInPuppeteer', () => {
     await expect(
       getSellersInPuppeteer(mockPage as unknown as Page, catalogUrl, productName),
     ).rejects.toMatchObject({
-      message: '네이버 판매처 목록을 가져오지 못했습니다.',
+      message: ERROR_MESSAGE.SELLERS_FETCH_FAILED,
       cause: evaluateError,
     });
   });

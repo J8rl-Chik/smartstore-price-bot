@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import getProductRows from './getProductRows.js';
 import { COLUMN } from '../../domain/product/_constant.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const mockValuesGet = vi.fn();
 
@@ -64,7 +65,7 @@ it('data.values가 없으면 원인을 남기고 에러를 던진다', async () 
   mockValuesGet.mockResolvedValue({ data: {} });
 
   await expect(getProductRows()).rejects.toMatchObject({
-    message: 'Google Sheets에서 상품 목록을 가져오지 못했습니다.',
+    message: ERROR_MESSAGE.SHEET_FETCH_FAILED,
     cause: expect.objectContaining({ message: '시트에서 데이터를 가져오지 못했습니다.' }),
   });
 });
@@ -74,7 +75,7 @@ it('Sheets API 호출이 실패하면 원인을 보존한 채 에러를 던진�
   mockValuesGet.mockRejectedValue(apiError);
 
   await expect(getProductRows()).rejects.toMatchObject({
-    message: 'Google Sheets에서 상품 목록을 가져오지 못했습니다.',
+    message: ERROR_MESSAGE.SHEET_FETCH_FAILED,
     cause: apiError,
   });
 });

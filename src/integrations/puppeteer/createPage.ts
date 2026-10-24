@@ -1,6 +1,7 @@
 import puppeteerExtra, { type PuppeteerExtra } from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import type { Browser, Page } from 'puppeteer';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 interface BrowserPage {
   browser: Browser;
@@ -49,7 +50,7 @@ const createPage = async (): Promise<BrowserPage> => {
 
     return { browser, page };
   } catch (error) {
-    throw new Error('브라우저 페이지를 생성하지 못했습니다.', { cause: error });
+    throw new Error(ERROR_MESSAGE.BROWSER_PAGE_FAILED, { cause: error });
   }
 };
 

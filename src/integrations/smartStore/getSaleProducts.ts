@@ -5,6 +5,7 @@ import generateAccessToken from './generateAccessToken.js';
 import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
 } from './checkSmartStoreApiSucceeded.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 interface SaleProductsResult extends SmartStoreApiResult {
   contents: SaleProduct[];
@@ -30,7 +31,7 @@ async function getSaleProducts(): Promise<SaleProduct[]> {
 
     return result.contents;
   } catch (error) {
-    throw new Error('네이버 판매 상품 목록을 가져오지 못했습니다.', { cause: error });
+    throw new Error(ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED, { cause: error });
   }
 }
 

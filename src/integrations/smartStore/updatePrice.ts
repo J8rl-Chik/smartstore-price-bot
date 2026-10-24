@@ -5,6 +5,7 @@ import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
 } from './checkSmartStoreApiSucceeded.js';
 import { DeliveryFee } from '../../domain/delivery/_type.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 interface UpdatePriceParam {
   productNo: number;
@@ -100,7 +101,7 @@ async function updatePrice({
 
     return result;
   } catch (error) {
-    throw new Error('네이버 상품 가격을 수정하지 못했습니다.', { cause: error });
+    throw new Error(ERROR_MESSAGE.PRICE_UPDATE_FAILED, { cause: error });
   }
 }
 

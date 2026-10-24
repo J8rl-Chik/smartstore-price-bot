@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import getSaleProducts from './getSaleProducts.js';
 import { type SaleProduct } from '../../domain/product/_type.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const mockFetch = vi.fn();
 const mockGenerateAccessToken = vi.fn();
@@ -69,7 +70,7 @@ describe('getSaleProducts', () => {
     mockGenerateAccessToken.mockRejectedValue(tokenError);
 
     await expect(getSaleProducts()).rejects.toMatchObject({
-      message: '네이버 판매 상품 목록을 가져오지 못했습니다.',
+      message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
       cause: tokenError,
     });
   });
@@ -81,7 +82,7 @@ describe('getSaleProducts', () => {
     mockGenerateAccessToken.mockResolvedValue('token-abc');
 
     await expect(getSaleProducts()).rejects.toMatchObject({
-      message: '네이버 판매 상품 목록을 가져오지 못했습니다.',
+      message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
       cause: networkError,
     });
   });
@@ -93,7 +94,7 @@ describe('getSaleProducts', () => {
     mockGenerateAccessToken.mockResolvedValue('token-abc');
 
     await expect(getSaleProducts()).rejects.toMatchObject({
-      message: '네이버 판매 상품 목록을 가져오지 못했습니다.',
+      message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
       cause: parseError,
     });
   });
@@ -105,7 +106,7 @@ describe('getSaleProducts', () => {
     });
 
     await expect(getSaleProducts()).rejects.toMatchObject({
-      message: '네이버 판매 상품 목록을 가져오지 못했습니다.',
+      message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
       cause: expect.objectContaining({ message: '유효하지 않은 요청입니다.' }),
     });
   });

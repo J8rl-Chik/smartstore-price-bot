@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import updatePrice, { type ProductResult } from './updatePrice.js';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const mockFetch = vi.fn();
 const mockGenerateAccessToken = vi.fn();
@@ -146,7 +147,7 @@ it('accessToken 발급이 실패하면 원인을 보존한 채 에러를 던진�
   await expect(
     updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
   ).rejects.toMatchObject({
-    message: '네이버 상품 가격을 수정하지 못했습니다.',
+    message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: tokenError,
   });
 });
@@ -159,7 +160,7 @@ it('원본 상품 조회(GET)가 실패하면 원인을 보존한 채 에러를 
   await expect(
     updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
   ).rejects.toMatchObject({
-    message: '네이버 상품 가격을 수정하지 못했습니다.',
+    message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: readError,
   });
 });
@@ -174,7 +175,7 @@ it('가격 수정(PUT) 요청이 실패하면 원인을 보존한 채 에러를 
   await expect(
     updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
   ).rejects.toMatchObject({
-    message: '네이버 상품 가격을 수정하지 못했습니다.',
+    message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: updateError,
   });
 });
@@ -190,7 +191,7 @@ it('수정 응답에 message가 있으면(네이버 쪽 업데이트 실패) 원
   await expect(
     updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
   ).rejects.toMatchObject({
-    message: '네이버 상품 가격을 수정하지 못했습니다.',
+    message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: expect.objectContaining({ message: '유효하지 않은 상품입니다.' }),
   });
 });
@@ -205,7 +206,7 @@ it('응답 파싱이 실패해도 원인을 보존한 채 에러를 던진다', 
   await expect(
     updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
   ).rejects.toMatchObject({
-    message: '네이버 상품 가격을 수정하지 못했습니다.',
+    message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: parseError,
   });
 });
