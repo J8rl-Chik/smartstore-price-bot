@@ -5,6 +5,7 @@ import { buildPriceWithDeliveryFee } from '../domain/delivery/buildPriceWithDeli
 import { addVirtualPrice } from '../domain/price/addVirtualPrice';
 import { calculateTargetPrice } from '../domain/price/calculateTargetPrice';
 import { filterExcludedSellers } from '../domain/seller/filterExcludedSellers';
+import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import type { TargetProduct, TargetProductUpdate } from '../domain/product/_type';
 
 // 판매처 조회부터 가격 수정까지 상품 하나를 처리하고, 수정 결과를 complete 상태로 반환한다.
@@ -20,7 +21,7 @@ const updateTargetProductPrice = async (
   );
 
   if (sellers.length === 0) {
-    throw new Error(`${targetProduct.name}: 가격 목록이 없습니다.`);
+    throw new Error(`${ERROR_MESSAGE.SELLERS_EMPTY} (name: ${targetProduct.name})`);
   }
 
   const filteredSellers = filterExcludedSellers(sellers, [

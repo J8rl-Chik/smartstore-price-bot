@@ -1,3 +1,5 @@
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
+
 export interface SmartStoreApiResult {
   message?: string;
   [key: string]: unknown;
@@ -9,7 +11,7 @@ export interface SmartStoreApiResult {
  */
 const checkSmartStoreApiSucceeded = (result: SmartStoreApiResult): void => {
   if (result.message) {
-    throw new Error(result.message);
+    throw new Error(`${ERROR_MESSAGE.SMART_STORE_API_FAILED} (message: ${result.message})`);
   }
 };
 

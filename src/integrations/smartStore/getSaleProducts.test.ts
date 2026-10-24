@@ -107,7 +107,9 @@ describe('getSaleProducts', () => {
 
     await expect(getSaleProducts()).rejects.toMatchObject({
       message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
-      cause: expect.objectContaining({ message: '유효하지 않은 요청입니다.' }),
+      cause: expect.objectContaining({
+        message: `${ERROR_MESSAGE.SMART_STORE_API_FAILED} (message: 유효하지 않은 요청입니다.)`,
+      }),
     });
   });
 });

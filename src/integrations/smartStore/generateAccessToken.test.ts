@@ -103,7 +103,9 @@ describe('generateAccessToken', () => {
 
     await expect(generateAccessToken()).rejects.toMatchObject({
       message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
-      cause: expect.objectContaining({ message: '유효하지 않은 클라이언트입니다.' }),
+      cause: expect.objectContaining({
+        message: `${ERROR_MESSAGE.SMART_STORE_API_FAILED} (message: 유효하지 않은 클라이언트입니다.)`,
+      }),
     });
   });
 });

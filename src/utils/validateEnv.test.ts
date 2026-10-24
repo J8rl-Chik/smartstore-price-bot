@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import validateEnv from './validateEnv.js';
+import { ERROR_MESSAGE } from '../domain/error/errorMessage.js';
 
 describe('validateEnv', () => {
   afterEach(() => {
@@ -16,12 +17,12 @@ describe('validateEnv', () => {
   });
 
   it('환경 변수가 설정되지 않았으면 키 이름을 포함한 에러를 던진다', () => {
-    expect(() => validateEnv(key)).toThrow(`환경 변수 ${key}가 설정되지 않았습니다.`);
+    expect(() => validateEnv(key)).toThrow(`${ERROR_MESSAGE.ENV_NOT_SET} (key: ${key})`);
   });
 
   it('환경 변수가 빈 문자열이면 에러를 던진다', () => {
     vi.stubEnv(key, '');
 
-    expect(() => validateEnv(key)).toThrow(`환경 변수 ${key}가 설정되지 않았습니다.`);
+    expect(() => validateEnv(key)).toThrow(`${ERROR_MESSAGE.ENV_NOT_SET} (key: ${key})`);
   });
 });

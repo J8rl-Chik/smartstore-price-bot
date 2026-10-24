@@ -192,7 +192,9 @@ it('수정 응답에 message가 있으면(네이버 쪽 업데이트 실패) 원
     updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
   ).rejects.toMatchObject({
     message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
-    cause: expect.objectContaining({ message: '유효하지 않은 상품입니다.' }),
+    cause: expect.objectContaining({
+      message: `${ERROR_MESSAGE.SMART_STORE_API_FAILED} (message: 유효하지 않은 상품입니다.)`,
+    }),
   });
 });
 

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
 import updateTargetProductPrice from './updateTargetProductPrice';
+import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import type { TargetProduct, TargetProductUpdate } from '../domain/product/_type';
 
 vi.mock(import('../integrations/puppeteer/getSellersInPuppeteer'), () => ({
@@ -100,7 +101,7 @@ it('상품의 카탈로그 URL과 상품명으로 판매처를 조회한다', as
 it('판매처가 없으면 가격을 수정하지 않고 에러를 던진다', async () => {
   mockGetSellersInPuppeteer.mockResolvedValue([]);
 
-  await expect(run()).rejects.toThrow('상품A: 가격 목록이 없습니다.');
+  await expect(run()).rejects.toThrow(`${ERROR_MESSAGE.SELLERS_EMPTY} (name: 상품A)`);
   expect(mockUpdatePrice).not.toHaveBeenCalled();
 });
 
