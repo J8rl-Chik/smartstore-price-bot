@@ -14,6 +14,17 @@ it('무료 배송이면 deliveryFeeType만 FREE로 설정하고 salePrice는 tar
   });
 });
 
+it('무료 배송에 baseFee가 0원으로 들어와도 baseFee 없이 FREE로 설정하고 salePrice는 targetPrice 그대로다', () => {
+  const freeDeliveryWithZeroBaseFee = { feeType: '무료', baseFee: 0 } as const;
+
+  const result = buildPriceWithDeliveryFee(freeDeliveryWithZeroBaseFee, 10000);
+
+  expect(result).toEqual({
+    deliveryFee: { deliveryFeeType: 'FREE' },
+    salePrice: 10000,
+  });
+});
+
 it('유료 배송이면 baseFee를 포함하고 salePrice에서 baseFee를 뺀다', () => {
   const result = buildPriceWithDeliveryFee({ feeType: '유료', baseFee: 3000 }, 10000);
 
