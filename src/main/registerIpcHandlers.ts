@@ -7,7 +7,6 @@ import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCa
 import validateEnv from '../utils/validateEnv';
 import delaySeconds from '../utils/delaySeconds';
 import tryCatch from '../utils/tryCatch';
-import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import fetchTargetProducts from './fetchTargetProducts';
 import updateTargetProductPrice from './updateTargetProductPrice';
 import { initState, sendState, setState, setUpdate } from './state';
@@ -95,11 +94,12 @@ export const registerIpcHandlers = (): void => {
         }
 
         // 화면에는 가장 바깥 에러의 메시지만 보내고, cause로 감싼 원인 에러는 위의 로그로만 남긴다.
-        const message = error instanceof Error ? error.message : ERROR_MESSAGE.UNKNOWN_ERROR;
-
         sendState(
           sender,
-          setUpdate(index, update ?? { status: 'error', message, time: Date.now() }),
+          setUpdate(
+            index,
+            error ? { status: 'error', message: error.message, time: Date.now() } : update,
+          ),
         );
 
         // 다음 상품도 실패할 치명적 실패거나, 사용자가 브라우저를 닫았으면 순회를 멈춘다.
