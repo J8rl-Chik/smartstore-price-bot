@@ -6,14 +6,7 @@ import type { UpdateState } from '../domain/product/_type';
 const mockHandle = vi.fn();
 const mockCreatePage = vi.fn();
 const mockLoginNaver = vi.fn();
-const mockGetSaleProducts = vi.fn();
-const mockGetProductRows = vi.fn();
-const mockExcludeNewlyRegisteredProducts = vi.fn();
-const mockGetProductName = vi.fn();
-const mockParseProductRow = vi.fn();
-const mockFindDuplicateProductNames = vi.fn();
-const mockCreateTargetProducts = vi.fn();
-const mockShuffleArray = vi.fn();
+const mockFetchTargetProducts = vi.fn();
 const mockValidateEnv = vi.fn();
 const mockUpdateTargetProductPrice = vi.fn();
 const mockDelaySeconds = vi.fn();
@@ -31,34 +24,8 @@ vi.mock(import('../integrations/puppeteer/loginNaver'), () => ({
   default: (...args: unknown[]) => mockLoginNaver(...args),
 }));
 
-vi.mock(import('../integrations/smartStore/getSaleProducts'), () => ({
-  default: (...args: unknown[]) => mockGetSaleProducts(...args),
-}));
-
-vi.mock(import('../integrations/googleSheets/getProductRows'), () => ({
-  default: (...args: unknown[]) => mockGetProductRows(...args),
-}));
-
-vi.mock(import('../domain/product/saleProduct'), () => ({
-  excludeNewlyRegisteredProducts: (...args: unknown[]) =>
-    mockExcludeNewlyRegisteredProducts(...args),
-  getProductName: (...args: unknown[]) => mockGetProductName(...args),
-}));
-
-vi.mock(import('../domain/product/parseProductRow'), () => ({
-  parseProductRow: (...args: unknown[]) => mockParseProductRow(...args),
-}));
-
-vi.mock(import('../domain/product/findDuplicateProductNames'), () => ({
-  findDuplicateProductNames: (...args: unknown[]) => mockFindDuplicateProductNames(...args),
-}));
-
-vi.mock(import('../domain/product/createTargetProducts'), () => ({
-  createTargetProducts: (...args: unknown[]) => mockCreateTargetProducts(...args),
-}));
-
-vi.mock(import('../utils/shuffleArray'), () => ({
-  default: (...args: unknown[]) => mockShuffleArray(...args),
+vi.mock(import('./fetchTargetProducts'), () => ({
+  default: (...args: unknown[]) => mockFetchTargetProducts(...args),
 }));
 
 vi.mock(import('../utils/validateEnv'), () => ({
@@ -107,86 +74,29 @@ describe('registerIpcHandlers', () => {
     mockHandle.mockReset();
     mockCreatePage.mockReset();
     mockLoginNaver.mockReset();
-    mockGetSaleProducts.mockReset();
-    mockGetProductRows.mockReset();
-    mockExcludeNewlyRegisteredProducts.mockReset();
-    mockGetProductName.mockReset();
-    mockParseProductRow.mockReset();
-    mockFindDuplicateProductNames.mockReset();
-    mockCreateTargetProducts.mockReset();
-    mockShuffleArray.mockReset();
+    mockFetchTargetProducts.mockReset();
     mockValidateEnv.mockReset();
     mockUpdateTargetProductPrice.mockReset();
     mockDelaySeconds.mockReset();
     mockSend.mockReset();
   });
 
-  // startUpdate가 조회할 가격 수정 대상 목록을 정한다. 목록 생성 과정의 중간값은 이 테스트들의 관심사가 아니다.
-  const mockFetchedTargetProducts = (targetProducts: unknown[]): void => {
-    mockGetSaleProducts.mockResolvedValue([]);
-    mockGetProductRows.mockResolvedValue([]);
-    mockExcludeNewlyRegisteredProducts.mockReturnValue([]);
-    mockShuffleArray.mockReturnValue([]);
-    mockFindDuplicateProductNames.mockReturnValue([]);
-    mockCreateTargetProducts.mockReturnValue(targetProducts);
+  // startUpdate가 조회할 가격 수정 대상 목록과 변환에 실패한 시트 행을 정한다.
+  const mockFetchedTargetProducts = (
+    targetProducts: unknown[],
+    invalidProductRows: unknown[] = [],
+  ): void => {
+    mockFetchTargetProducts.mockResolvedValue({
+      targetProducts,
+      duplicateProductNames: [],
+      invalidProductRows,
+    });
   };
 
   // 순회가 닫힘 여부를 확인하는 isClosed와 browser().connected만 가진 가짜 page를 만든다.
   const createFakePage = ({ isClosed = false, isConnected = true } = {}): unknown => ({
     isClosed: () => isClosed,
     browser: () => ({ connected: isConnected }),
-  });
-
-  it('startUpdate는 판매 상품과 시트 행을 가공해 합친 목록의 상품으로 가격 수정을 처리한다', async () => {
-    const rawSaleProducts = [{ id: 'raw' }];
-    const filteredSaleProducts = [{ id: 'filtered' }];
-    const shuffledSaleProducts = [{ id: 'shuffled' }];
-    const rawProductRows = [['상품A'], ['상품B']];
-    const productRow = { name: '상품A' };
-    const targetProduct = { name: '상품A', originProductNo: 111 };
-
-    mockGetSaleProducts.mockResolvedValue(rawSaleProducts);
-    mockExcludeNewlyRegisteredProducts.mockReturnValue(filteredSaleProducts);
-    mockShuffleArray.mockReturnValue(shuffledSaleProducts);
-    mockGetProductRows.mockResolvedValue(rawProductRows);
-    mockParseProductRow.mockReturnValueOnce({ status: 'ok', productRow }).mockReturnValueOnce({
-      status: 'error',
-      productRow: { name: '상품B' },
-      errorMessages: ['productPrice: 에러'],
-    });
-    mockCreateTargetProducts.mockReturnValue([targetProduct]);
-    mockCreatePage.mockResolvedValue({ browser: {}, page: createFakePage() });
-
-    await invokeHandler('startUpdate');
-
-    expect(mockExcludeNewlyRegisteredProducts).toHaveBeenCalledWith(rawSaleProducts);
-    expect(mockShuffleArray).toHaveBeenCalledWith(filteredSaleProducts);
-    // map이 넘기는 인덱스·배열 인자는 관심사가 아니라 첫 번째 인자(행)만 비교한다.
-    expect(mockParseProductRow.mock.calls.map(([rowValues]) => rowValues)).toEqual(rawProductRows);
-    // 변환에 실패한 행(상품B)은 빼고 성공한 행만 넘긴다.
-    expect(mockFindDuplicateProductNames).toHaveBeenCalledWith([productRow]);
-    expect(mockCreateTargetProducts).toHaveBeenCalledWith(shuffledSaleProducts, [productRow]);
-    expect(mockUpdateTargetProductPrice).toHaveBeenCalledWith(
-      expect.anything(),
-      targetProduct,
-      undefined,
-    );
-  });
-
-  it('startUpdate는 판매 상품과 시트 행을 동시에 요청한다', () => {
-    /**
-     * 두 조회를 영원히 끝나지 않는 Promise로 만든 뒤 핸들러를 실행한다.
-     * 동시에 요청(Promise.all)하면 한쪽이 끝나지 않아도 두 함수가 모두 호출된다.
-     * 순서대로 요청(await를 두 번 나눠 씀)하면 앞의 조회에서 멈춰 뒤의 함수는 호출되지 않는다.
-     * 핸들러의 결과는 기다리지 않으므로 void로 호출한다.
-     */
-    mockGetSaleProducts.mockReturnValue(new Promise(() => {}));
-    mockGetProductRows.mockReturnValue(new Promise(() => {}));
-
-    void invokeHandler('startUpdate');
-
-    expect(mockGetSaleProducts).toHaveBeenCalled();
-    expect(mockGetProductRows).toHaveBeenCalled();
   });
 
   const productA = { name: '상품A', originProductNo: 111 };
@@ -235,23 +145,10 @@ describe('registerIpcHandlers', () => {
     });
   });
 
-  const invalidProductRowResult = {
-    status: 'error',
-    productRow: { name: '상품C', feeType: '유료' },
-    errorMessages: ['productPrice: 에러'],
-  };
+  const invalidProductRow = { name: '상품C', errorMessages: ['productPrice: 에러'] };
 
-  // 판매 상품을 이름만 가진 가짜 객체로 정하고, getProductName이 그 이름을 돌려주게 한다.
-  const mockSaleProductNames = (names: string[]): void => {
-    mockShuffleArray.mockReturnValue(names.map((name) => ({ name })));
-    mockGetProductName.mockImplementation(({ name }: { name: string }) => name);
-  };
-
-  it('startUpdate는 변환에 실패한 시트 행을 상품명과 에러 메시지만 담아 순회 시작 상태로 보낸다', async () => {
-    mockFetchedTargetProducts([productA]);
-    mockSaleProductNames(['상품C']);
-    mockGetProductRows.mockResolvedValue([['상품C']]);
-    mockParseProductRow.mockReturnValue(invalidProductRowResult);
+  it('startUpdate는 변환에 실패한 시트 행을 담아 순회 시작 상태로 보낸다', async () => {
+    mockFetchedTargetProducts([productA], [invalidProductRow]);
     mockCreatePage.mockResolvedValue({ browser: {}, page: createFakePage() });
 
     await invokeHandler('startUpdate');
@@ -259,40 +156,21 @@ describe('registerIpcHandlers', () => {
     expect(mockSend).toHaveBeenNthCalledWith(
       1,
       'updateState',
-      expect.objectContaining({
-        invalidProductRows: [{ name: '상품C', errorMessages: ['productPrice: 에러'] }],
-      }),
+      expect.objectContaining({ invalidProductRows: [invalidProductRow] }),
     );
   });
 
   it('startUpdate는 수정할 상품이 없어도 변환에 실패한 시트 행을 담아 끝난 상태를 보낸다', async () => {
-    mockFetchedTargetProducts([]);
-    mockSaleProductNames(['상품C']);
-    mockGetProductRows.mockResolvedValue([['상품C']]);
-    mockParseProductRow.mockReturnValue(invalidProductRowResult);
+    mockFetchedTargetProducts([], [invalidProductRow]);
 
     await invokeHandler('startUpdate');
 
     expect(mockSend).toHaveBeenCalledWith('updateState', {
       targetProducts: [],
-      invalidProductRows: [{ name: '상품C', errorMessages: ['productPrice: 에러'] }],
+      invalidProductRows: [invalidProductRow],
       currentIndex: null,
       isRunning: false,
     });
-  });
-
-  it('startUpdate는 판매 상품에 이름이 없는 변환 실패 시트 행은 보내지 않는다', async () => {
-    mockFetchedTargetProducts([]);
-    mockSaleProductNames(['상품A']);
-    mockGetProductRows.mockResolvedValue([['상품C']]);
-    mockParseProductRow.mockReturnValue(invalidProductRowResult);
-
-    await invokeHandler('startUpdate');
-
-    expect(mockSend).toHaveBeenCalledWith(
-      'updateState',
-      expect.objectContaining({ invalidProductRows: [] }),
-    );
   });
 
   it('startUpdate는 순회가 도는 중에 다시 호출되면 새 순회를 시작하지 않는다', async () => {
@@ -322,7 +200,7 @@ describe('registerIpcHandlers', () => {
   it('startUpdate는 처리 중 예외가 발생하면 콘솔에 로깅하고, 다시 호출했을 때 새로 시작한다', async () => {
     const error = new Error('네이버 판매 상품 목록을 가져오지 못했습니다.');
     mockFetchedTargetProducts([productA]);
-    mockGetSaleProducts.mockRejectedValueOnce(error);
+    mockFetchTargetProducts.mockRejectedValueOnce(error);
     mockCreatePage.mockResolvedValue({ browser: {}, page: createFakePage() });
 
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
