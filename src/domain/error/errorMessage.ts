@@ -4,6 +4,9 @@
  * 화면에서 같은 메시지로 보이는 에러는 코드 하나로 합치고, 세부 원인은 에러의 cause로 남긴다.
  */
 export const ERROR_MESSAGE = {
+  // Error가 아닌 값이 던져져 메시지를 알 수 없을 때 (main)
+  UNKNOWN_ERROR: '알 수 없는 에러가 발생했습니다.',
+
   // 환경 설정 (utils/validateEnv)
   ENV_NOT_SET: '환경 변수가 설정되지 않았습니다.',
 

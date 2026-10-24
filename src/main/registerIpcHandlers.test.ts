@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { registerIpcHandlers } from './registerIpcHandlers';
 import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
+import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import type { UpdateState } from '../domain/product/_type';
 
 const mockHandle = vi.fn();
@@ -277,9 +278,38 @@ describe('registerIpcHandlers', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(error);
     expect(getLastSentState().targetProducts).toEqual([
-      { ...productA, update: { status: 'error', time: updateTime } },
+      { ...productA, update: { status: 'error', message: '가격 수정 실패', time: updateTime } },
       { ...productB, update: completeUpdate },
     ]);
+  });
+
+  it('startUpdate는 원인 에러를 cause로 감싼 에러가 나면 가장 바깥 에러의 메시지만 담아 보낸다', async () => {
+    const error = new Error('네이버 상품 가격을 수정하지 못했습니다.', {
+      cause: new Error('네이버 접근 토큰을 발급받지 못했습니다.'),
+    });
+    mockLoggedInWith([productA]);
+    mockUpdateTargetProductPrice.mockRejectedValueOnce(error);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await invokeHandler('startUpdate');
+
+    expect(getLastSentState().targetProducts[0].update).toMatchObject({
+      status: 'error',
+      message: '네이버 상품 가격을 수정하지 못했습니다.',
+    });
+  });
+
+  it('startUpdate는 Error가 아닌 값이 던져지면 알 수 없는 에러 메시지를 담아 보낸다', async () => {
+    mockLoggedInWith([productA]);
+    mockUpdateTargetProductPrice.mockRejectedValueOnce('문자열 에러');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await invokeHandler('startUpdate');
+
+    expect(getLastSentState().targetProducts[0].update).toMatchObject({
+      status: 'error',
+      message: ERROR_MESSAGE.UNKNOWN_ERROR,
+    });
   });
 
   it('startUpdate는 UnexpectedCatalogPageError가 나면 그 상품을 error로 반영하고 다음 상품은 처리하지 않는다', async () => {
@@ -294,7 +324,14 @@ describe('registerIpcHandlers', () => {
 
     expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
     expect(getLastSentState().targetProducts).toEqual([
-      { ...productA, update: { status: 'error', time: updateTime } },
+      {
+        ...productA,
+        update: {
+          status: 'error',
+          message: '네이버 쇼핑 접속이 일시적으로 제한되었습니다.',
+          time: updateTime,
+        },
+      },
       { ...productB, update: { status: 'wait' } },
     ]);
   });

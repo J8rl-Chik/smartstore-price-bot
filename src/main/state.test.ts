@@ -92,7 +92,7 @@ describe('setState', () => {
 });
 
 describe('setUpdate', () => {
-  const errorUpdate = { status: 'error', time: 1700000000000 } as const;
+  const errorUpdate = { status: 'error', message: '가격 수정 실패', time: 1700000000000 } as const;
 
   it('index 위치의 상품만 수정 결과를 바꾼다', () => {
     initState([productA, productB], []);

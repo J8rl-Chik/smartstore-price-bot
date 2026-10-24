@@ -109,7 +109,7 @@ describe('complete 상태이면', () => {
 
 describe('error 상태이면', () => {
   const updateTime = new Date('2026-10-14T11:35:09').getTime();
-  const update = { status: 'error', time: updateTime } as const;
+  const update = { status: 'error', message: '가격 수정 실패', time: updateTime } as const;
 
   it('수정가는 없고 상태는 error이다', () => {
     const result = parseToProductTableRow(createProduct({ update }));

@@ -74,11 +74,12 @@ export interface TargetProduct {
 /**
  * 가격 수정 상태에 따라 가진 값이 달라서 status로 구분하는 유니온으로 둔다.
  * price: 배송비를 제외한 수정 판매가, time: 수정(또는 실패)한 시각의 타임스탬프(ms)
+ * message: 실패한 이유. cause로 감싼 원인 에러가 아니라 가장 바깥 에러의 메시지를 담는다.
  */
 export type TargetProductUpdate =
   | { status: 'wait' }
   | { status: 'complete'; price: number; baseFee: number; time: number }
-  | { status: 'error'; time: number };
+  | { status: 'error'; message: string; time: number };
 
 export interface TargetProductWithUpdate extends TargetProduct {
   update: TargetProductUpdate;
