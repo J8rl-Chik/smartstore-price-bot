@@ -6,7 +6,7 @@ import loginNaver from '../integrations/puppeteer/loginNaver';
 import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
 import getProductRows from '../integrations/googleSheets/getProductRows';
-import { excludeNewlyRegisteredProducts } from '../domain/product/saleProduct';
+import { excludeNewlyRegisteredProducts, getProductName } from '../domain/product/saleProduct';
 import { parseProductRow } from '../domain/product/parseProductRow';
 import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
@@ -47,8 +47,11 @@ const fetchTargetProducts = async (): Promise<{
     .filter((result) => result.status === 'ok')
     .map(({ productRow }) => productRow);
 
+  // 판매 중이 아닌 상품의 행은 고쳐도 가격 수정 대상이 되지 않으므로, 판매 상품에 이름이 있는 실패 행만 보낸다.
+  const saleProductNames = new Set(shuffledSaleProducts.map(getProductName));
   const invalidProductRows = productRowResults
     .filter((result) => result.status === 'error')
+    .filter(({ productRow }) => saleProductNames.has(productRow.name))
     .map(({ productRow, errorMessages }) => ({ name: productRow.name, errorMessages }));
 
   const duplicateProductNames = findDuplicateProductNames(validProductRows);
