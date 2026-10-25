@@ -1,7 +1,4 @@
 import type { WebContents } from 'electron';
-import type { Page } from 'puppeteer';
-import createPage from '../integrations/puppeteer/createPage';
-import loginNaver from '../integrations/puppeteer/loginNaver';
 import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
 import validateEnv from '../utils/validateEnv';
 import delaySeconds from '../utils/delaySeconds';
@@ -9,23 +6,15 @@ import tryCatch from '../utils/tryCatch';
 import fetchTargetProducts from './fetchTargetProducts';
 import updateTargetProductPrice from './updateTargetProductPrice';
 import { initState, sendState, setState, setUpdate } from './state';
-
-/**
- * 사용자가 puppeteer 브라우저의 탭이나 창을 닫았는지 확인한다.
- * 탭만 닫으면 page가 닫히고, 창을 닫으면 브라우저 연결이 끊긴다.
- */
-const isPageClosed = (page: Page): boolean => page.isClosed() || !page.browser().connected;
+import { getLoggedInPage, isPageClosed } from './browserSession';
 
 /**
  * 상품 목록 조회, 로그인, 가격 수정 순회까지 처리하는 startUpdate 핸들러를 만든다.
  * 진행 상태는 응답이 아니라 updateState 채널로 요청한 창에 보낸다.
- * 핸들러를 여러 번 호출해도 page와 isUpdateRunning을 공유하도록 두 값을 이 함수의 클로저에 보관한다.
+ * 핸들러를 여러 번 호출해도 isUpdateRunning을 공유하도록 이 함수의 클로저에 보관한다.
  * TODO: 목록 조회·로그인 실패를 renderer에 알리는 방법을 추가한다.
- * TODO: browser를 닫을 수 있도록 browser와 page를 하나로 묶어 보관하고, 종료 시 browser.close()를 호출한다.
  */
 const createStartUpdate = (): ((sender: WebContents) => Promise<void>) => {
-  // startUpdate를 다시 호출해도 다시 로그인하지 않도록 로그인한 페이지를 보관한다.
-  let page: Page | null = null;
   // 순회가 도는 중에 startUpdate가 다시 들어오면 같은 page로 순회가 두 개 돌지 않도록 막는다.
   let isUpdateRunning = false;
 
@@ -52,12 +41,7 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<void>) => {
         return;
       }
 
-      // 이미 로그인한 페이지가 있으면 다시 로그인하지 않고 재사용한다. 사용자가 닫았다면 새로 열어 로그인한다.
-      if (!page || isPageClosed(page)) {
-        page = (await createPage()).page;
-
-        await loginNaver(page);
-      }
+      const page = await getLoggedInPage();
 
       sendState(sender, initState(targetProducts, invalidProductRows));
 
