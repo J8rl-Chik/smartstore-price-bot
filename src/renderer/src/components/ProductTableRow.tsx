@@ -50,6 +50,12 @@ const StatusCell = styled.td`
   text-align: center;
 `;
 
+const ErrorMessage = styled.div`
+  margin-top: 4px;
+  font-size: 12px;
+  color: ${({ theme }) => theme.color.red500};
+`;
+
 const UpdateTimeCell = styled.td`
   ${cell}
   font-size: 13px;
@@ -80,6 +86,7 @@ const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element =
     </UpdatedPriceCell>
     <StatusCell>
       <StatusBadge status={product.status} />
+      {product.errorMessage !== null && <ErrorMessage>{product.errorMessage}</ErrorMessage>}
     </StatusCell>
     <UpdateTimeCell>{product.updateTime}</UpdateTimeCell>
   </ProductTableRowContainer>

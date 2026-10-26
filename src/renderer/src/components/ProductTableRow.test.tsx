@@ -106,3 +106,26 @@ test('상태 뱃지와 수정 시간을 보여준다', async () => {
   await expect.element(screen.getByText('완료')).toBeVisible();
   await expect.element(screen.getByText('13:34:48')).toBeVisible();
 });
+
+test('실패 이유가 있으면 상태 칸에 상태 뱃지와 함께 보여준다', async () => {
+  const screen = await renderRow({
+    ...baseProduct,
+    updatedPrice: null,
+    status: 'error',
+    errorMessage: '네이버 상품 가격을 수정하지 못했습니다.',
+  });
+
+  const statusCell = screen.getByRole('cell', { name: /에러/ });
+
+  await expect.element(statusCell.getByText('에러')).toBeVisible();
+  await expect
+    .element(statusCell.getByText('네이버 상품 가격을 수정하지 못했습니다.'))
+    .toBeVisible();
+});
+
+test('실패 이유가 없으면 상태 뱃지만 보여준다', async () => {
+  const screen = await renderRow(baseProduct);
+
+  // exact로 비교해 상태 칸에 뱃지 문구 말고 다른 글자가 없는지 확인한다.
+  await expect.element(screen.getByRole('cell', { name: '완료', exact: true })).toBeVisible();
+});
