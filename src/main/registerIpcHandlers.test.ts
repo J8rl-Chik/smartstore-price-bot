@@ -48,3 +48,15 @@ it('startUpdate 채널이 호출되면 요청한 창(sender)을 핸들러에 전
 
   expect(mockStartUpdate).toHaveBeenCalledWith(sender);
 });
+
+it('startUpdate 핸들러가 돌려준 결과를 응답으로 돌려준다', async () => {
+  mockStartUpdate.mockResolvedValue({ status: 'error', message: '네이버 로그인에 실패했습니다.' });
+  mockCreateStartUpdate.mockReturnValue(mockStartUpdate);
+
+  registerIpcHandlers();
+
+  await expect(findRegisteredCallback('startUpdate')({ sender: {} })).resolves.toEqual({
+    status: 'error',
+    message: '네이버 로그인에 실패했습니다.',
+  });
+});

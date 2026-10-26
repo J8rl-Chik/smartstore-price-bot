@@ -61,12 +61,23 @@ const getExposedApi = (): Api => {
 };
 
 it('startUpdate를 호출하면 startUpdate 채널로 invoke를 호출한다', async () => {
-  mockInvoke.mockResolvedValue(undefined);
+  mockInvoke.mockResolvedValue({ status: 'done' });
 
   const api = getExposedApi();
   await api.startUpdate();
 
   expect(mockInvoke).toHaveBeenCalledWith('startUpdate');
+});
+
+it('startUpdate는 main이 돌려준 결과를 그대로 반환한다', async () => {
+  mockInvoke.mockResolvedValue({ status: 'error', message: '네이버 로그인에 실패했습니다.' });
+
+  const api = getExposedApi();
+
+  await expect(api.startUpdate()).resolves.toEqual({
+    status: 'error',
+    message: '네이버 로그인에 실패했습니다.',
+  });
 });
 
 it('onUpdateState를 호출하면 updateState 채널에 listener를 등록한다', () => {

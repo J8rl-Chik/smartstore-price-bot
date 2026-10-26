@@ -7,20 +7,22 @@ import fetchTargetProducts from './fetchTargetProducts';
 import updateTargetProductPrice from './updateTargetProductPrice';
 import { initState, sendState, setState, setUpdate } from './state';
 import { getLoggedInPage, isPageClosed } from './browserSession';
+import { ERROR_MESSAGE } from '../domain/error/errorMessage';
+import type { StartUpdateResult } from '../preload/_type';
 
 /**
  * 상품 목록 조회, 로그인, 가격 수정 순회까지 처리하는 startUpdate 핸들러를 만든다.
- * 진행 상태는 응답이 아니라 updateState 채널로 요청한 창에 보낸다.
+ * 진행 상태는 응답이 아니라 updateState 채널로 요청한 창에 보내고, 응답으로는 처리 결과만 돌려준다.
+ * 목록 조회·로그인 실패는 throw하지 않고 error 결과로 돌려준다. throw하면 Electron이 메시지 앞에 접두어를 붙여 보내기 때문이다.
  * 핸들러를 여러 번 호출해도 isUpdateRunning을 공유하도록 이 함수의 클로저에 보관한다.
- * TODO: 목록 조회·로그인 실패를 renderer에 알리는 방법을 추가한다.
  */
-const createStartUpdate = (): ((sender: WebContents) => Promise<void>) => {
+const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResult>) => {
   // 순회가 도는 중에 startUpdate가 다시 들어오면 같은 page로 순회가 두 개 돌지 않도록 막는다.
   let isUpdateRunning = false;
 
   return async (sender) => {
     if (isUpdateRunning) {
-      return;
+      return { status: 'running' };
     }
 
     isUpdateRunning = true;
@@ -38,7 +40,7 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<void>) => {
           isRunning: false,
         });
 
-        return;
+        return { status: 'done' };
       }
 
       const page = await getLoggedInPage();
@@ -78,8 +80,15 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<void>) => {
       }
 
       sendState(sender, setState({ currentIndex: null, isRunning: false }));
+
+      return { status: 'done' };
     } catch (error) {
       console.error(error);
+
+      return {
+        status: 'error',
+        message: error instanceof Error ? error.message : ERROR_MESSAGE.UNKNOWN_ERROR,
+      };
     } finally {
       isUpdateRunning = false;
     }

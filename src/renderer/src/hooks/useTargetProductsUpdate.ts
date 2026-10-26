@@ -11,6 +11,8 @@ interface TargetProductsUpdate {
   isLoading: boolean;
   currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
+  // 목록 조회·로그인처럼 순회를 시작하기 전에 실패한 이유. 실패하지 않았으면 null
+  startUpdateErrorMessage: string | null;
   startUpdate: () => Promise<void>;
 }
 
@@ -28,6 +30,7 @@ const initialUpdateState: UpdateState = {
 const useTargetProductsUpdate = (): TargetProductsUpdate => {
   const [updateState, setUpdateState] = useState<UpdateState>(initialUpdateState);
   const [isLoading, setIsLoading] = useState(false);
+  const [startUpdateErrorMessage, setStartUpdateErrorMessage] = useState<string | null>(null);
 
   // onUpdateState가 반환하는 구독 해제 함수를 그대로 cleanup으로 넘긴다.
   useEffect(
@@ -42,9 +45,15 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
 
   const startUpdate = async (): Promise<void> => {
     setIsLoading(true);
+    // 다시 시작하면 이전 실패 이유를 지운다.
+    setStartUpdateErrorMessage(null);
 
     try {
-      await window.api.startUpdate();
+      const result = await window.api.startUpdate();
+
+      if (result.status === 'error') {
+        setStartUpdateErrorMessage(result.message);
+      }
     } finally {
       // main이 상태를 보내지 못하고 끝나도(목록 조회·로그인 실패) 로딩이 풀리도록 한다.
       setIsLoading(false);
@@ -63,6 +72,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     isLoading,
     currentProduct,
     currentOrder,
+    startUpdateErrorMessage,
     startUpdate,
   };
 };

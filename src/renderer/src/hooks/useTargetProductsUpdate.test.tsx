@@ -20,7 +20,7 @@ window.api = {
 beforeEach(() => {
   vi.resetAllMocks();
 
-  mockStartUpdate.mockResolvedValue(undefined);
+  mockStartUpdate.mockResolvedValue({ status: 'done' });
   mockOnUpdateState.mockReturnValue(mockUnsubscribe);
 });
 
@@ -32,6 +32,7 @@ test('처음에는 상품과 진행 상태가 비어 있다', async () => {
   expect(result.current.isLoading).toBe(false);
   expect(result.current.currentProduct).toBeUndefined();
   expect(result.current.currentOrder).toBe(0);
+  expect(result.current.startUpdateErrorMessage).toBeNull();
 });
 
 test('렌더링하면 updateState 구독을 등록하고, 언마운트하면 해제한다', async () => {
@@ -191,4 +192,37 @@ test('상태를 받지 못하고 window.api.startUpdate가 끝나도 isLoading�
   await act(() => result.current.startUpdate());
 
   expect(result.current.isLoading).toBe(false);
+});
+
+test('window.api.startUpdate가 error 결과를 돌려주면 그 메시지를 startUpdateErrorMessage에 담는다', async () => {
+  mockStartUpdate.mockResolvedValue({ status: 'error', message: '네이버 로그인에 실패했습니다.' });
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => result.current.startUpdate());
+
+  expect(result.current.startUpdateErrorMessage).toBe('네이버 로그인에 실패했습니다.');
+});
+
+test('window.api.startUpdate가 running 결과를 돌려주면 startUpdateErrorMessage는 null이다', async () => {
+  mockStartUpdate.mockResolvedValue({ status: 'running' });
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => result.current.startUpdate());
+
+  expect(result.current.startUpdateErrorMessage).toBeNull();
+});
+
+test('실패한 뒤 다시 시작해 done 결과를 받으면 이전 실패 이유를 지운다', async () => {
+  mockStartUpdate
+    .mockResolvedValueOnce({ status: 'error', message: '네이버 로그인에 실패했습니다.' })
+    .mockResolvedValueOnce({ status: 'done' });
+
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => result.current.startUpdate());
+  await act(() => result.current.startUpdate());
+
+  expect(result.current.startUpdateErrorMessage).toBeNull();
 });

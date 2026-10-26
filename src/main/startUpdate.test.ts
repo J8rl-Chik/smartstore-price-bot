@@ -4,6 +4,7 @@ import createStartUpdate from './startUpdate';
 import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
 import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import type { UpdateState } from '../domain/product/_type';
+import type { StartUpdateResult } from '../preload/_type';
 
 const mockGetLoggedInPage = vi.fn();
 const mockIsPageClosed = vi.fn();
@@ -52,7 +53,7 @@ const fakeSender = { send: mockSend } as unknown as WebContents;
  * 새 핸들러를 만들어 한 번 호출한다. 핸들러마다 isUpdateRunning이 새로 생기므로 테스트끼리 섞이지 않는다.
  * 순회 중 재호출처럼 호출 간 공유 상태를 검증할 때는 createStartUpdate()로 만든 핸들러를 여러 번 호출한다.
  */
-const runStartUpdate = (): Promise<void> => createStartUpdate()(fakeSender);
+const runStartUpdate = (): Promise<StartUpdateResult> => createStartUpdate()(fakeSender);
 
 // 조회할 가격 수정 대상 목록과 변환에 실패한 시트 행을 정한다.
 const mockFetchedTargetProducts = (
@@ -82,6 +83,19 @@ it('상품마다 로그인한 페이지, 상품, 내 스토어 이름으로 가�
   expect(mockValidateEnv).toHaveBeenCalledWith('SMART_STORE_NAME');
   expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(1, fakePage, productA, '내 스토어');
   expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(2, fakePage, productB, '내 스토어');
+});
+
+it('순회를 끝내면 done 결과를 돌려준다', async () => {
+  mockFetchedTargetProducts([productA]);
+  mockGetLoggedInPage.mockResolvedValue(fakePage);
+
+  await expect(runStartUpdate()).resolves.toEqual({ status: 'done' });
+});
+
+it('수정할 상품이 없어 끝나도 done 결과를 돌려준다', async () => {
+  mockFetchedTargetProducts([]);
+
+  await expect(runStartUpdate()).resolves.toEqual({ status: 'done' });
 });
 
 it('수정할 상품이 없으면 로그인과 순회를 하지 않고 빈 목록으로 끝난 상태를 보낸다', async () => {
@@ -140,6 +154,18 @@ it('순회가 도는 중에 다시 호출되면 새 순회를 시작하지 않�
   expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
 });
 
+it('순회가 도는 중에 다시 호출되면 running 결과를 돌려준다', async () => {
+  mockFetchedTargetProducts([productA]);
+  mockGetLoggedInPage.mockResolvedValue(fakePage);
+  mockUpdateTargetProductPrice.mockReturnValue(new Promise(() => {}));
+
+  const startUpdate = createStartUpdate();
+  void startUpdate(fakeSender);
+  await vi.waitFor(() => expect(mockUpdateTargetProductPrice).toHaveBeenCalled());
+
+  await expect(startUpdate(fakeSender)).resolves.toEqual({ status: 'running' });
+});
+
 it('순회가 끝나면 다시 호출했을 때 새 순회를 시작한다', async () => {
   mockFetchedTargetProducts([productA]);
   mockGetLoggedInPage.mockResolvedValue(fakePage);
@@ -165,6 +191,40 @@ it('처리 중 예외가 발생하면 콘솔에 로깅하고, 다시 호출했�
 
   expect(consoleErrorSpy).toHaveBeenCalledWith(error);
   expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
+});
+
+it('목록 조회에 실패하면 throw하지 않고 error 결과로 가장 바깥 에러의 메시지를 돌려준다', async () => {
+  mockFetchTargetProducts.mockRejectedValue(
+    new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED, { cause: new Error('원인 에러') }),
+  );
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await expect(runStartUpdate()).resolves.toEqual({
+    status: 'error',
+    message: ERROR_MESSAGE.SHEET_FETCH_FAILED,
+  });
+});
+
+it('로그인에 실패하면 순회 상태를 보내지 않고 error 결과로 메시지를 돌려준다', async () => {
+  mockFetchedTargetProducts([productA]);
+  mockGetLoggedInPage.mockRejectedValue(new Error(ERROR_MESSAGE.NAVER_LOGIN_FAILED));
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await expect(runStartUpdate()).resolves.toEqual({
+    status: 'error',
+    message: ERROR_MESSAGE.NAVER_LOGIN_FAILED,
+  });
+  expect(mockSend).not.toHaveBeenCalled();
+});
+
+it('순회를 시작하기 전에 Error가 아닌 값이 던져지면 알 수 없는 에러 메시지를 돌려준다', async () => {
+  mockFetchTargetProducts.mockRejectedValue('문자열 에러');
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await expect(runStartUpdate()).resolves.toEqual({
+    status: 'error',
+    message: ERROR_MESSAGE.UNKNOWN_ERROR,
+  });
 });
 
 // 순회 테스트에서 상품 목록 조회와 로그인까지 마친 상태로 만든다.
