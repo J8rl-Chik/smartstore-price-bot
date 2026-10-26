@@ -1,4 +1,9 @@
-// renderer(웹 페이지)가 안전하게 접근할 수 있는 API를 window 객체에 노출한다.
+/**
+ * renderer(웹 페이지)가 안전하게 접근할 수 있는 API를 window 객체에 노출한다.
+ * 진입점(index.ts)과 분리해 exposeApi를 함수로만 export한다.
+ * 진입점처럼 import하자마자 실행되면 테스트에서 electron mock을 준비하기 전에 실행되고, 호출 시점도 정할 수 없기 때문이다.
+ * 이 파일을 import해도 아무것도 실행되지 않으므로, 테스트는 mock을 준비한 뒤 원하는 시점에 exposeApi()를 호출한다.
+ */
 import { contextBridge, ipcRenderer } from 'electron';
 // electron-toolkit이 제공하는 공통 헬퍼(ipcRenderer 래퍼 등)
 import { electronAPI } from '@electron-toolkit/preload';
