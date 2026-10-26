@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 interface Props {
   onClick: () => void;
-  isLoading: boolean;
+  isPreparing: boolean;
 }
 
 const StartButtonContainer = styled.button`
@@ -29,9 +29,9 @@ const StartButtonContainer = styled.button`
   }
 `;
 
-const StartButton = ({ onClick, isLoading }: Props): React.JSX.Element => {
+const StartButton = ({ onClick, isPreparing }: Props): React.JSX.Element => {
   return (
-    <StartButtonContainer onClick={onClick} disabled={isLoading}>
+    <StartButtonContainer onClick={onClick} disabled={isPreparing}>
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
         <path d="M3 2l7 4-7 4V2z" fill="white" />
       </svg>

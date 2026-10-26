@@ -3,13 +3,13 @@ import Header from './Header';
 import { customRender } from '../customRender';
 
 test('시맨틱 header(banner) 랜드마크로 렌더링된다', async () => {
-  const screen = await customRender(<Header onStartUpdate={vi.fn()} isLoading={false} />);
+  const screen = await customRender(<Header onStartUpdate={vi.fn()} isPreparing={false} />);
 
   await expect.element(screen.getByRole('banner')).toBeVisible();
 });
 
 test('로고와 타이틀을 보여준다', async () => {
-  const screen = await customRender(<Header onStartUpdate={vi.fn()} isLoading={false} />);
+  const screen = await customRender(<Header onStartUpdate={vi.fn()} isPreparing={false} />);
 
   await expect.element(screen.getByText('S')).toBeVisible();
   await expect
@@ -18,14 +18,16 @@ test('로고와 타이틀을 보여준다', async () => {
 });
 
 test('자동 수정 시작 버튼을 보여준다', async () => {
-  const screen = await customRender(<Header onStartUpdate={vi.fn()} isLoading={false} />);
+  const screen = await customRender(<Header onStartUpdate={vi.fn()} isPreparing={false} />);
 
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeVisible();
 });
 
 test('자동 수정 시작 버튼을 클릭하면 onStartUpdate가 호출된다', async () => {
   const handleStartUpdate = vi.fn();
-  const screen = await customRender(<Header onStartUpdate={handleStartUpdate} isLoading={false} />);
+  const screen = await customRender(
+    <Header onStartUpdate={handleStartUpdate} isPreparing={false} />,
+  );
 
   await screen.getByRole('button', { name: '자동 수정 시작' }).click();
 

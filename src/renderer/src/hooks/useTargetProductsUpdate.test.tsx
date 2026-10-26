@@ -29,7 +29,7 @@ test('처음에는 상품과 진행 상태가 비어 있다', async () => {
 
   expect(result.current.targetProducts).toEqual([]);
   expect(result.current.invalidProductRows).toEqual([]);
-  expect(result.current.isLoading).toBe(false);
+  expect(result.current.isPreparing).toBe(false);
   expect(result.current.currentProduct).toBeUndefined();
   expect(result.current.currentOrder).toBe(0);
   expect(result.current.startUpdateErrorMessage).toBeNull();
@@ -163,7 +163,7 @@ test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순�
   expect(result.current.currentProduct).toBeUndefined();
 });
 
-test('main이 보낸 상태의 isPreparing이 true이면 isLoading이 true이다', async () => {
+test('main이 보낸 상태의 isPreparing을 그대로 알려준다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
   await act(() => {
@@ -176,10 +176,10 @@ test('main이 보낸 상태의 isPreparing이 true이면 isLoading이 true이다
     });
   });
 
-  expect(result.current.isLoading).toBe(true);
+  expect(result.current.isPreparing).toBe(true);
 });
 
-test('main이 보낸 상태의 isPreparing이 false로 바뀌면 isLoading이 false이다', async () => {
+test('main이 보낸 상태의 isPreparing이 false로 바뀌면 isPreparing도 false로 바뀐다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
   await act(() => {
@@ -202,7 +202,7 @@ test('main이 보낸 상태의 isPreparing이 false로 바뀌면 isLoading이 fa
     });
   });
 
-  expect(result.current.isLoading).toBe(false);
+  expect(result.current.isPreparing).toBe(false);
 });
 
 test('window.api.startUpdate가 error 결과를 돌려주면 그 메시지를 startUpdateErrorMessage에 담는다', async () => {

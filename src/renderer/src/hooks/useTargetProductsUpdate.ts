@@ -8,7 +8,7 @@ import type {
 interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
   invalidProductRows: InvalidProductRow[];
-  isLoading: boolean;
+  isPreparing: boolean;
   currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
   // 목록 조회·로그인처럼 순회를 시작하기 전에 실패한 이유. 실패하지 않았으면 null
@@ -55,8 +55,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
   return {
     targetProducts,
     invalidProductRows,
-    // 화면은 main의 준비 단계를 로딩으로 보여준다.
-    isLoading: isPreparing,
+    isPreparing,
     currentProduct,
     currentOrder,
     startUpdateErrorMessage,

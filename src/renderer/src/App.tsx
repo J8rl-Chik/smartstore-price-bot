@@ -18,7 +18,7 @@ const App = (): React.JSX.Element => {
   const {
     targetProducts,
     invalidProductRows,
-    isLoading,
+    isPreparing,
     currentProduct,
     currentOrder,
     startUpdate,
@@ -32,7 +32,7 @@ const App = (): React.JSX.Element => {
   return (
     <StyleProvider>
       <AppContainer>
-        <Header onStartUpdate={startUpdate} isLoading={isLoading} />
+        <Header onStartUpdate={startUpdate} isPreparing={isPreparing} />
         <ProgressBar
           totalCount={targetProducts.length}
           currentOrder={currentOrder}
