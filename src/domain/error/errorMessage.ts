@@ -1,10 +1,10 @@
 /**
- * 에러 코드와 사용자에게 보여줄 메시지를 한곳에서 관리한다.
- * main은 코드로 에러를 던지고, renderer는 코드로 메시지를 찾아 보여준다.
- * 화면에서 같은 메시지로 보이는 에러는 코드 하나로 합치고, 세부 원인은 에러의 cause로 남긴다.
+ * 에러 메시지를 한곳에서 관리한다.
+ * main은 이 메시지로 에러를 던지고, 가장 바깥 에러의 메시지를 문자열 그대로 renderer에 보낸다.
+ * 화면에서 같은 메시지로 보이는 에러는 키 하나로 합치고, 세부 원인은 에러의 cause로 남긴다.
  */
 export const ERROR_MESSAGE = {
-  // Error가 아닌 값이 던져져 메시지를 알 수 없을 때 (main)
+  // Error가 아닌 값이 던져져 메시지를 알 수 없을 때 (utils/tryCatch)
   UNKNOWN_ERROR: '알 수 없는 에러가 발생했습니다.',
 
   // 환경 설정 (utils/validateEnv)
@@ -35,5 +35,3 @@ export const ERROR_MESSAGE = {
   SELLERS_FETCH_FAILED: '네이버 판매처 목록을 가져오지 못했습니다.',
   SELLERS_EMPTY: '가격 목록이 없습니다.',
 } as const;
-
-export type ErrorCode = keyof typeof ERROR_MESSAGE;
