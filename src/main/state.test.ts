@@ -1,142 +1,140 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { WebContents } from 'electron';
-import { initState, sendState, setState, setUpdate } from './state';
-import type { TargetProduct, UpdateState } from '../domain/product/_type';
+import type { TargetProductWithUpdate, UpdateState } from '../domain/product/_type';
 
-const createTargetProduct = (originProductNo: number, name: string): TargetProduct => ({
-  name,
-  originProductNo,
+const mockSend = vi.fn();
+
+// 상태를 보내는 send만 가진 가짜 sender
+const fakeSender = { send: mockSend } as unknown as WebContents;
+
+// 상태를 모듈 최상위에 보관하므로, 테스트끼리 섞이지 않도록 테스트마다 모듈을 새로 불러온다.
+beforeEach(() => {
+  vi.resetModules();
+});
+
+afterEach(() => {
+  mockSend.mockReset();
+});
+
+const importState = () => import('./state');
+
+const getSentStates = (): UpdateState[] => mockSend.mock.calls.map(([, state]) => state);
+
+it('updateState 채널로 상태를 보낸다', async () => {
+  const { sendState } = await importState();
+
+  sendState(fakeSender, {});
+
+  expect(mockSend).toHaveBeenCalledWith('updateState', expect.any(Object));
+});
+
+it('처음 보내면 빈 초기 상태에 넘긴 값만 덮어쓴 상태 전체를 보낸다', async () => {
+  const { sendState } = await importState();
+
+  sendState(fakeSender, { isPreparing: true });
+
+  expect(getSentStates()).toEqual([
+    {
+      targetProducts: [],
+      invalidProductRows: [],
+      currentIndex: null,
+      isPreparing: true,
+      isRunning: false,
+    },
+  ]);
+});
+
+const productA: TargetProductWithUpdate = {
+  name: '상품A',
+  originProductNo: 111,
   store: { salePrice: 45000, stockQuantity: 10, deliveryFee: 3000 },
   sheet: {
-    catalogURL: `https://search.shopping.naver.com/catalog/${originProductNo}`,
+    catalogURL: 'https://search.shopping.naver.com/catalog/111',
     virtualPrice: 44000,
     freeDeliveryPrice: 40000,
     productPrice: 30000,
     excludedSellerNames: ['제외 스토어'],
     delivery: { feeType: '유료', baseFee: 3000 },
   },
-});
+  update: { status: 'wait' },
+};
 
-const productA = createTargetProduct(111, '상품A');
-const productB = createTargetProduct(222, '상품B');
+it('넘기지 않은 값은 이전에 보낸 상태의 값을 유지한다', async () => {
+  const { sendState } = await importState();
 
-describe('initState', () => {
-  it('상품 전체를 wait 상태로 두고, currentIndex는 null, isPreparing은 false, isRunning은 true인 상태로 초기화한다', () => {
-    expect(initState([productA, productB], [])).toEqual({
-      targetProducts: [
-        { ...productA, update: { status: 'wait' } },
-        { ...productB, update: { status: 'wait' } },
-      ],
-      invalidProductRows: [],
-      currentIndex: null,
-      isPreparing: false,
-      isRunning: true,
-    });
-  });
+  sendState(fakeSender, { targetProducts: [productA], isRunning: true });
+  sendState(fakeSender, { currentIndex: 0 });
 
-  it('상품 목록이 비어 있으면 빈 목록으로 초기화한다', () => {
-    expect(initState([], [])).toEqual({
-      targetProducts: [],
-      invalidProductRows: [],
-      currentIndex: null,
-      isPreparing: false,
-      isRunning: true,
-    });
-  });
-
-  it('변환에 실패한 시트 행은 받은 그대로 담는다', () => {
-    const invalidProductRows = [{ name: '상품C', errorMessages: ['productPrice: 에러'] }];
-
-    expect(initState([productA], invalidProductRows).invalidProductRows).toEqual(
-      invalidProductRows,
-    );
-  });
-
-  it('이전에 바꾼 상태를 버리고 새 상품 목록으로 다시 초기화한다', () => {
-    initState([productA], [{ name: '상품C', errorMessages: ['productPrice: 에러'] }]);
-    setState({ currentIndex: 0, isPreparing: true, isRunning: false });
-
-    expect(initState([productB], [])).toEqual({
-      targetProducts: [{ ...productB, update: { status: 'wait' } }],
-      invalidProductRows: [],
-      currentIndex: null,
-      isPreparing: false,
-      isRunning: true,
-    });
+  expect(getSentStates().at(-1)).toEqual({
+    targetProducts: [productA],
+    invalidProductRows: [],
+    currentIndex: 0,
+    isPreparing: false,
+    isRunning: true,
   });
 });
 
-describe('setState', () => {
-  it('넘긴 값만 덮어쓰고 나머지는 기존 상태를 유지한다', () => {
-    const initialState = initState([productA], []);
+it('이전에 보낸 상태 객체는 바꾸지 않는다', async () => {
+  const { sendState } = await importState();
 
-    expect(setState({ currentIndex: 0 })).toEqual({
-      targetProducts: initialState.targetProducts,
-      invalidProductRows: [],
-      currentIndex: 0,
-      isPreparing: false,
-      isRunning: true,
-    });
-  });
+  sendState(fakeSender, { isRunning: true });
+  sendState(fakeSender, { isRunning: false });
 
-  it('이전 호출에서 바꾼 값을 이어서 유지한다', () => {
-    initState([productA], []);
-    setState({ currentIndex: 0 });
+  const [firstState] = getSentStates();
 
-    expect(setState({ isRunning: false })).toMatchObject({ currentIndex: 0, isRunning: false });
-  });
-
-  it('이전에 반환한 상태 객체는 바꾸지 않는다', () => {
-    const initialState = initState([productA], []);
-
-    setState({ isRunning: false });
-
-    expect(initialState.isRunning).toBe(true);
-  });
+  expect(firstState.isRunning).toBe(true);
 });
 
-describe('setUpdate', () => {
-  const errorUpdate = { status: 'error', message: '가격 수정 실패', time: 1700000000000 } as const;
+const productB: TargetProductWithUpdate = { ...productA, name: '상품B', originProductNo: 222 };
+const errorUpdate = { status: 'error', message: '가격 수정 실패', time: 1700000000000 } as const;
+const completeUpdate = {
+  status: 'complete',
+  price: 39990,
+  baseFee: 3000,
+  time: 1700000000000,
+} as const;
 
-  it('index 위치의 상품만 수정 결과를 바꾼다', () => {
-    initState([productA, productB], []);
+it('sendUpdate는 index 위치의 상품만 수정 결과를 바꾼 상태를 보낸다', async () => {
+  const { sendState, sendUpdate } = await importState();
 
-    expect(setUpdate(1, errorUpdate).targetProducts).toEqual([
-      { ...productA, update: { status: 'wait' } },
-      { ...productB, update: errorUpdate },
-    ]);
-  });
+  sendState(fakeSender, { targetProducts: [productA, productB] });
+  sendUpdate(fakeSender, 1, errorUpdate);
 
-  it('상품 목록 외의 값은 기존 상태를 유지한다', () => {
-    initState([productA], []);
-    setState({ currentIndex: 0 });
-
-    expect(setUpdate(0, errorUpdate)).toMatchObject({ currentIndex: 0, isRunning: true });
-  });
-
-  it('이전에 반환한 상태의 상품 목록은 바꾸지 않는다', () => {
-    const initialState = initState([productA], []);
-
-    setUpdate(0, errorUpdate);
-
-    expect(initialState.targetProducts[0].update).toEqual({ status: 'wait' });
-  });
+  expect(getSentStates().at(-1)?.targetProducts).toEqual([
+    productA,
+    { ...productB, update: errorUpdate },
+  ]);
 });
 
-describe('sendState', () => {
-  it('넘긴 상태를 요청한 창의 updateState 채널로 보낸다', () => {
-    const mockSend = vi.fn();
-    const sender = { send: mockSend } as unknown as WebContents;
-    const state: UpdateState = {
-      targetProducts: [],
-      invalidProductRows: [],
-      currentIndex: null,
-      isPreparing: false,
-      isRunning: false,
-    };
+it('sendUpdate는 앞에서 반영한 다른 상품의 수정 결과를 유지한다', async () => {
+  const { sendState, sendUpdate } = await importState();
 
-    sendState(sender, state);
+  sendState(fakeSender, { targetProducts: [productA, productB] });
+  sendUpdate(fakeSender, 0, errorUpdate);
+  sendUpdate(fakeSender, 1, completeUpdate);
 
-    expect(mockSend).toHaveBeenCalledWith('updateState', state);
-  });
+  expect(getSentStates().at(-1)?.targetProducts).toEqual([
+    { ...productA, update: errorUpdate },
+    { ...productB, update: completeUpdate },
+  ]);
+});
+
+it('sendUpdate는 상품 목록 외의 값은 기존 상태를 유지한다', async () => {
+  const { sendState, sendUpdate } = await importState();
+
+  sendState(fakeSender, { targetProducts: [productA], currentIndex: 0, isRunning: true });
+  sendUpdate(fakeSender, 0, errorUpdate);
+
+  expect(getSentStates().at(-1)).toMatchObject({ currentIndex: 0, isRunning: true });
+});
+
+it('sendUpdate는 이전에 보낸 상품 목록을 바꾸지 않는다', async () => {
+  const { sendState, sendUpdate } = await importState();
+
+  sendState(fakeSender, { targetProducts: [productA] });
+  sendUpdate(fakeSender, 0, errorUpdate);
+
+  const [firstState] = getSentStates();
+
+  expect(firstState.targetProducts[0].update).toEqual({ status: 'wait' });
 });

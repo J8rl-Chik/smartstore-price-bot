@@ -322,6 +322,18 @@ it('가격 수정에 성공하면 그 상품만 반환된 수정 결과를 반�
   ]);
 });
 
+it('수정 결과를 반영해도 이전에 보낸 상품 목록은 바꾸지 않는다', async () => {
+  mockLoggedInWith([productA]);
+  mockUpdateTargetProductPrice.mockResolvedValue(completeUpdate);
+
+  await runStartUpdate();
+
+  // 두 번째로 보낸 상태가 상품 전체를 wait로 둔 순회 시작 상태다.
+  const [, initialState] = getSentStates();
+
+  expect(initialState.targetProducts[0].update).toEqual({ status: 'wait' });
+});
+
 it('상품 하나에서 에러가 나면 콘솔에 로깅하고 그 상품만 error로 반영한 뒤 다음 상품을 처리한다', async () => {
   const error = new Error('가격 수정 실패');
   mockLoggedInWith([productA, productB]);
