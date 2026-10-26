@@ -16,6 +16,8 @@ export interface TProductTableRow {
   // 수정가가 아직 없으면 null. "—"로 표시한다.
   updatedPrice: PriceWithFee | null;
   status: ProductUpdateStatus;
+  // 수정에 실패(error)했을 때만 있는 실패 이유. 그 외 상태이면 null
+  errorMessage: string | null;
   // 수정을 시도하기 전이면 "—"
   updateTime: FormattedTime | '—';
 }
