@@ -206,6 +206,26 @@ it('순회가 끝나면 다시 호출했을 때 새 순회를 시작한다', asy
   expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(2);
 });
 
+it('다시 시작하면 이전 순회의 상품 목록을 이어받지 않고 빈 상태로 준비 중 상태를 보낸다', async () => {
+  mockFetchedTargetProducts([productA]);
+  mockGetLoggedInPage.mockResolvedValue(fakePage);
+
+  const startUpdate = createStartUpdate();
+  await startUpdate(fakeSender);
+  mockSend.mockClear();
+  await startUpdate(fakeSender);
+
+  const [preparingState] = getSentStates();
+
+  expect(preparingState).toEqual({
+    targetProducts: [],
+    invalidProductRows: [],
+    currentIndex: null,
+    isPreparing: true,
+    isRunning: false,
+  });
+});
+
 it('처리 중 예외가 발생하면 콘솔에 로깅하고, 다시 호출했을 때 새로 시작한다', async () => {
   const error = new Error('네이버 판매 상품 목록을 가져오지 못했습니다.');
   mockFetchedTargetProducts([productA]);
@@ -294,15 +314,10 @@ it('상품을 처리하기 전에 currentIndex를 그 상품의 인덱스로 바
 
   await runStartUpdate();
 
-  /**
-   * 준비 중 상태는 이전 테스트가 남긴 state 위에 isPreparing만 덮어써 currentIndex가 정해지지 않으므로,
-   * 준비를 마친 뒤 보낸 상태만 확인한다.
-   */
-  const currentIndexes = getSentStates()
-    .filter(({ isPreparing }) => !isPreparing)
-    .map(({ currentIndex }) => currentIndex);
+  const currentIndexes = getSentStates().map(({ currentIndex }) => currentIndex);
 
-  expect(currentIndexes).toEqual([null, 0, 0, 1, 1, null]);
+  // 준비 중, 순회 시작, 상품마다 처리 전·결과 반영, 순회 끝 순서로 보낸다.
+  expect(currentIndexes).toEqual([null, null, 0, 0, 1, 1, null]);
 });
 
 const updateTime = 1700000000000;

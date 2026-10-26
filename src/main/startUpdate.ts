@@ -5,7 +5,7 @@ import delaySeconds from '../utils/delaySeconds';
 import tryCatch from '../utils/tryCatch';
 import fetchTargetProducts from './fetchTargetProducts';
 import updateTargetProductPrice from './updateTargetProductPrice';
-import { sendState, sendUpdate } from './state';
+import { createStateSender } from './state';
 import { getLoggedInPage, isPageClosed } from './browserSession';
 import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import type { StartUpdateResult } from '../preload/_type';
@@ -25,8 +25,10 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
     }
 
     isUpdateRunning = true;
+    // 상태는 순회마다 빈 초기 상태에서 시작하고, 이 순회를 시작한 창에만 보낸다.
+    const { sendState, sendUpdate } = createStateSender(sender);
     // 목록 조회·로그인은 오래 걸릴 수 있어, 시작하자마자 준비 중인 상태부터 보낸다.
-    sendState(sender, { isPreparing: true });
+    sendState({ isPreparing: true });
 
     try {
       const myStoreName = validateEnv('SMART_STORE_NAME');
@@ -34,7 +36,7 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
 
       // 수정할 상품이 없으면 로그인하지 않고, 빈 목록과 변환에 실패한 시트 행으로 끝난 상태만 보낸다.
       if (targetProducts.length === 0) {
-        sendState(sender, {
+        sendState({
           targetProducts: [],
           invalidProductRows,
           currentIndex: null,
@@ -48,7 +50,7 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
       const page = await getLoggedInPage();
 
       // 상품 전체를 wait로 두고, 아직 처리 중인 상품은 없는 순회 시작 상태를 보낸다.
-      sendState(sender, {
+      sendState({
         targetProducts: targetProducts.map((targetProduct) => ({
           ...targetProduct,
           update: { status: 'wait' },
@@ -64,7 +66,7 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
        * 네이버 쇼핑 접속 제한(UnexpectedCatalogPageError)처럼 다음 상품도 실패할 치명적 실패는 error로 반영한 뒤 중단한다.
        */
       for (const [index, targetProduct] of targetProducts.entries()) {
-        sendState(sender, { currentIndex: index });
+        sendState({ currentIndex: index });
 
         const [error, update] = await tryCatch(
           updateTargetProductPrice(page, targetProduct, myStoreName),
@@ -76,7 +78,6 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
 
         // 화면에는 가장 바깥 에러의 메시지만 보내고, cause로 감싼 원인 에러는 위의 로그로만 남긴다.
         sendUpdate(
-          sender,
           index,
           error ? { status: 'error', message: error.message, time: Date.now() } : update,
         );
@@ -89,13 +90,13 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
         await delaySeconds(5);
       }
 
-      sendState(sender, { currentIndex: null, isRunning: false });
+      sendState({ currentIndex: null, isRunning: false });
 
       return { status: 'done' };
     } catch (error) {
       console.error(error);
       // 준비 중에 실패해도 화면이 준비 중 상태에 머물지 않도록 준비를 끝낸 상태를 보낸다.
-      sendState(sender, { isPreparing: false });
+      sendState({ isPreparing: false });
 
       return {
         status: 'error',
