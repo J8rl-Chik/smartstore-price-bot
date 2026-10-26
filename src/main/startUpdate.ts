@@ -26,6 +26,8 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
     }
 
     isUpdateRunning = true;
+    // 목록 조회·로그인은 오래 걸릴 수 있어, 시작하자마자 준비 중인 상태부터 보낸다.
+    sendState(sender, setState({ isPreparing: true }));
 
     try {
       const myStoreName = validateEnv('SMART_STORE_NAME');
@@ -37,6 +39,7 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
           targetProducts: [],
           invalidProductRows,
           currentIndex: null,
+          isPreparing: false,
           isRunning: false,
         });
 
@@ -84,6 +87,8 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
       return { status: 'done' };
     } catch (error) {
       console.error(error);
+      // 준비 중에 실패해도 화면이 준비 중 상태에 머물지 않도록 준비를 끝낸 상태를 보낸다.
+      sendState(sender, setState({ isPreparing: false }));
 
       return {
         status: 'error',

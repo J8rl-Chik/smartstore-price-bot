@@ -94,6 +94,7 @@ test('main이 보낸 상태의 상품 목록을 targetProducts에 반영한다',
       targetProducts: [firstProduct, secondProduct],
       invalidProductRows: [],
       currentIndex: null,
+      isPreparing: false,
       isRunning: true,
     });
   });
@@ -110,6 +111,7 @@ test('main이 보낸 상태의 변환에 실패한 시트 행을 invalidProductR
       targetProducts: [firstProduct],
       invalidProductRows,
       currentIndex: null,
+      isPreparing: false,
       isRunning: true,
     });
   });
@@ -125,6 +127,7 @@ test('main이 보낸 상태의 currentIndex로 현재 상품과 순서를 알려
       targetProducts: [firstProduct, secondProduct],
       invalidProductRows: [],
       currentIndex: 1,
+      isPreparing: false,
       isRunning: true,
     });
   });
@@ -141,6 +144,7 @@ test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순�
       targetProducts: [firstProduct],
       invalidProductRows: [],
       currentIndex: 0,
+      isPreparing: false,
       isRunning: true,
     });
   });
@@ -150,6 +154,7 @@ test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순�
       targetProducts: [firstProduct],
       invalidProductRows: [],
       currentIndex: null,
+      isPreparing: false,
       isRunning: false,
     });
   });
@@ -158,38 +163,44 @@ test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순�
   expect(result.current.currentProduct).toBeUndefined();
 });
 
-test('startUpdate를 호출하면 첫 상태를 받기 전까지 isLoading이 true이고, 받으면 false이다', async () => {
-  // 순회가 끝나지 않은 상태를 만들기 위해 window.api.startUpdate를 끝나지 않게 둔다.
-  mockStartUpdate.mockReturnValue(new Promise(() => {}));
-
+test('main이 보낸 상태의 isPreparing이 true이면 isLoading이 true이다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-  /**
-   * 콜백이 startUpdate의 Promise를 반환하면 act가 끝나지 않는 Promise를 기다리며 멈추므로,
-   * 블록 본문으로 써서 startUpdate를 시작만 시킨다.
-   */
   await act(() => {
-    void result.current.startUpdate();
+    emitUpdateState({
+      targetProducts: [],
+      invalidProductRows: [],
+      currentIndex: null,
+      isPreparing: true,
+      isRunning: false,
+    });
   });
 
   expect(result.current.isLoading).toBe(true);
+});
+
+test('main이 보낸 상태의 isPreparing이 false로 바뀌면 isLoading이 false이다', async () => {
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => {
+    emitUpdateState({
+      targetProducts: [],
+      invalidProductRows: [],
+      currentIndex: null,
+      isPreparing: true,
+      isRunning: false,
+    });
+  });
 
   await act(() => {
     emitUpdateState({
       targetProducts: [firstProduct],
       invalidProductRows: [],
       currentIndex: null,
+      isPreparing: false,
       isRunning: true,
     });
   });
-
-  expect(result.current.isLoading).toBe(false);
-});
-
-test('상태를 받지 못하고 window.api.startUpdate가 끝나도 isLoading이 false이다', async () => {
-  const { result, act } = await renderHook(() => useTargetProductsUpdate());
-
-  await act(() => result.current.startUpdate());
 
   expect(result.current.isLoading).toBe(false);
 });

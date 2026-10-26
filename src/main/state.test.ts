@@ -21,7 +21,7 @@ const productA = createTargetProduct(111, '상품A');
 const productB = createTargetProduct(222, '상품B');
 
 describe('initState', () => {
-  it('상품 전체를 wait 상태로 두고, currentIndex는 null, isRunning은 true인 상태로 초기화한다', () => {
+  it('상품 전체를 wait 상태로 두고, currentIndex는 null, isPreparing은 false, isRunning은 true인 상태로 초기화한다', () => {
     expect(initState([productA, productB], [])).toEqual({
       targetProducts: [
         { ...productA, update: { status: 'wait' } },
@@ -29,6 +29,7 @@ describe('initState', () => {
       ],
       invalidProductRows: [],
       currentIndex: null,
+      isPreparing: false,
       isRunning: true,
     });
   });
@@ -38,6 +39,7 @@ describe('initState', () => {
       targetProducts: [],
       invalidProductRows: [],
       currentIndex: null,
+      isPreparing: false,
       isRunning: true,
     });
   });
@@ -52,12 +54,13 @@ describe('initState', () => {
 
   it('이전에 바꾼 상태를 버리고 새 상품 목록으로 다시 초기화한다', () => {
     initState([productA], [{ name: '상품C', errorMessages: ['productPrice: 에러'] }]);
-    setState({ currentIndex: 0, isRunning: false });
+    setState({ currentIndex: 0, isPreparing: true, isRunning: false });
 
     expect(initState([productB], [])).toEqual({
       targetProducts: [{ ...productB, update: { status: 'wait' } }],
       invalidProductRows: [],
       currentIndex: null,
+      isPreparing: false,
       isRunning: true,
     });
   });
@@ -71,6 +74,7 @@ describe('setState', () => {
       targetProducts: initialState.targetProducts,
       invalidProductRows: [],
       currentIndex: 0,
+      isPreparing: false,
       isRunning: true,
     });
   });
@@ -127,6 +131,7 @@ describe('sendState', () => {
       targetProducts: [],
       invalidProductRows: [],
       currentIndex: null,
+      isPreparing: false,
       isRunning: false,
     };
 

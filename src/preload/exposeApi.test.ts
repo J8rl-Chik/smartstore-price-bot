@@ -92,6 +92,7 @@ it('updateState 채널로 상태가 오면 onUpdateState에 넘긴 callback에 �
     targetProducts: [],
     invalidProductRows: [],
     currentIndex: null,
+    isPreparing: false,
     isRunning: true,
   };
   const callback = vi.fn();

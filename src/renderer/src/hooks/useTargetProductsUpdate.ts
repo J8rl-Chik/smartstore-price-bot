@@ -20,6 +20,7 @@ const initialUpdateState: UpdateState = {
   targetProducts: [],
   invalidProductRows: [],
   currentIndex: null,
+  isPreparing: false,
   isRunning: false,
 };
 
@@ -29,38 +30,23 @@ const initialUpdateState: UpdateState = {
  */
 const useTargetProductsUpdate = (): TargetProductsUpdate => {
   const [updateState, setUpdateState] = useState<UpdateState>(initialUpdateState);
-  const [isLoading, setIsLoading] = useState(false);
   const [startUpdateErrorMessage, setStartUpdateErrorMessage] = useState<string | null>(null);
 
   // onUpdateState가 반환하는 구독 해제 함수를 그대로 cleanup으로 넘긴다.
-  useEffect(
-    () =>
-      window.api.onUpdateState((state) => {
-        // 첫 상태는 main이 목록 조회와 로그인을 마친 뒤 보내므로, 상태를 받으면 로딩이 끝난 것이다.
-        setIsLoading(false);
-        setUpdateState(state);
-      }),
-    [],
-  );
+  useEffect(() => window.api.onUpdateState(setUpdateState), []);
 
   const startUpdate = async (): Promise<void> => {
-    setIsLoading(true);
     // 다시 시작하면 이전 실패 이유를 지운다.
     setStartUpdateErrorMessage(null);
 
-    try {
-      const result = await window.api.startUpdate();
+    const result = await window.api.startUpdate();
 
-      if (result.status === 'error') {
-        setStartUpdateErrorMessage(result.message);
-      }
-    } finally {
-      // main이 상태를 보내지 못하고 끝나도(목록 조회·로그인 실패) 로딩이 풀리도록 한다.
-      setIsLoading(false);
+    if (result.status === 'error') {
+      setStartUpdateErrorMessage(result.message);
     }
   };
 
-  const { targetProducts, invalidProductRows, currentIndex } = updateState;
+  const { targetProducts, invalidProductRows, currentIndex, isPreparing } = updateState;
 
   // 진행 상태는 별도 state로 두지 않고 targetProducts와 currentIndex에서 계산한다.
   const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
@@ -69,7 +55,8 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
   return {
     targetProducts,
     invalidProductRows,
-    isLoading,
+    // 화면은 main의 준비 단계를 로딩으로 보여준다.
+    isLoading: isPreparing,
     currentProduct,
     currentOrder,
     startUpdateErrorMessage,

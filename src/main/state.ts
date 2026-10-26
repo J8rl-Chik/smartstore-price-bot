@@ -12,12 +12,14 @@ let state: UpdateState = {
   targetProducts: [],
   invalidProductRows: [],
   currentIndex: null,
+  isPreparing: false,
   isRunning: false,
 };
 
 /**
  * 순회를 시작할 때의 상태로 state를 초기화하고, 초기화한 상태를 반환한다.
  * 상품 전체를 wait로 두고, 아직 처리 중인 상품은 없다. 변환에 실패한 시트 행은 그대로 담는다.
+ * 준비(목록 조회·로그인)를 마친 뒤 호출하므로 isPreparing은 false다.
  */
 export const initState = (
   targetProducts: TargetProduct[],
@@ -30,6 +32,7 @@ export const initState = (
     })),
     invalidProductRows,
     currentIndex: null,
+    isPreparing: false,
     isRunning: true,
   };
 

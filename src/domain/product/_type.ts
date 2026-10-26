@@ -95,10 +95,12 @@ export interface InvalidProductRow {
  * main이 가격 수정 순회 중 상태가 바뀔 때마다 통째로 보내는 상태.
  * invalidProductRows: 변환에 실패해 가격 수정 대상에서 빠진 시트 행.
  * currentIndex: 지금 처리 중인 상품의 targetProducts 인덱스. 순회 중이 아니면 null.
+ * isPreparing: 상품 목록 조회·로그인처럼 순회를 시작하기 전 준비 중인지 여부.
  */
 export interface UpdateState {
   targetProducts: TargetProductWithUpdate[];
   invalidProductRows: InvalidProductRow[];
   currentIndex: number | null;
+  isPreparing: boolean;
   isRunning: boolean;
 }

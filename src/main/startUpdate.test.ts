@@ -109,6 +109,7 @@ it('수정할 상품이 없으면 로그인과 순회를 하지 않고 빈 목�
     targetProducts: [],
     invalidProductRows: [],
     currentIndex: null,
+    isPreparing: false,
     isRunning: false,
   });
 });
@@ -122,7 +123,7 @@ it('변환에 실패한 시트 행을 담아 순회 시작 상태로 보낸다',
   await runStartUpdate();
 
   expect(mockSend).toHaveBeenNthCalledWith(
-    1,
+    2,
     'updateState',
     expect.objectContaining({ invalidProductRows: [invalidProductRow] }),
   );
@@ -137,8 +138,22 @@ it('수정할 상품이 없어도 변환에 실패한 시트 행을 담아 끝�
     targetProducts: [],
     invalidProductRows: [invalidProductRow],
     currentIndex: null,
+    isPreparing: false,
     isRunning: false,
   });
+});
+
+const getSentStates = (): UpdateState[] => mockSend.mock.calls.map(([, state]) => state);
+
+const getLastSentState = (): UpdateState => getSentStates().at(-1) as UpdateState;
+
+it('목록 조회·로그인을 시작하기 전에 isPreparing이 true인 상태를 보낸다', async () => {
+  mockFetchTargetProducts.mockReturnValue(new Promise(() => {}));
+
+  void runStartUpdate();
+  await vi.waitFor(() => expect(mockFetchTargetProducts).toHaveBeenCalled());
+
+  expect(getLastSentState()).toMatchObject({ isPreparing: true });
 });
 
 it('순회가 도는 중에 다시 호출되면 새 순회를 시작하지 않는다', async () => {
@@ -164,6 +179,20 @@ it('순회가 도는 중에 다시 호출되면 running 결과를 돌려준다',
   await vi.waitFor(() => expect(mockUpdateTargetProductPrice).toHaveBeenCalled());
 
   await expect(startUpdate(fakeSender)).resolves.toEqual({ status: 'running' });
+});
+
+it('순회가 도는 중에 다시 호출되면 상태를 보내지 않는다', async () => {
+  mockFetchedTargetProducts([productA]);
+  mockGetLoggedInPage.mockResolvedValue(fakePage);
+  mockUpdateTargetProductPrice.mockReturnValue(new Promise(() => {}));
+
+  const startUpdate = createStartUpdate();
+  void startUpdate(fakeSender);
+  await vi.waitFor(() => expect(mockUpdateTargetProductPrice).toHaveBeenCalled());
+  const sentCount = mockSend.mock.calls.length;
+  await startUpdate(fakeSender);
+
+  expect(mockSend).toHaveBeenCalledTimes(sentCount);
 });
 
 it('순회가 끝나면 다시 호출했을 때 새 순회를 시작한다', async () => {
@@ -205,6 +234,15 @@ it('목록 조회에 실패하면 throw하지 않고 error 결과로 가장 바�
   });
 });
 
+it('목록 조회에 실패하면 isPreparing을 false로 바꾼 상태를 보낸다', async () => {
+  mockFetchTargetProducts.mockRejectedValue(new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED));
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await runStartUpdate();
+
+  expect(getLastSentState()).toMatchObject({ isPreparing: false });
+});
+
 it('로그인에 실패하면 순회 상태를 보내지 않고 error 결과로 메시지를 돌려준다', async () => {
   mockFetchedTargetProducts([productA]);
   mockGetLoggedInPage.mockRejectedValue(new Error(ERROR_MESSAGE.NAVER_LOGIN_FAILED));
@@ -214,7 +252,8 @@ it('로그인에 실패하면 순회 상태를 보내지 않고 error 결과로 
     status: 'error',
     message: ERROR_MESSAGE.NAVER_LOGIN_FAILED,
   });
-  expect(mockSend).not.toHaveBeenCalled();
+  // 준비 시작과 준비 끝 상태만 보내고, 순회 상태는 보내지 않는다.
+  expect(getSentStates().map(({ isPreparing }) => isPreparing)).toEqual([true, false]);
 });
 
 it('순회를 시작하기 전에 Error가 아닌 값이 던져지면 알 수 없는 에러 메시지를 돌려준다', async () => {
@@ -233,38 +272,41 @@ const mockLoggedInWith = (targetProducts: unknown[]): void => {
   mockGetLoggedInPage.mockResolvedValue(fakePage);
 };
 
-it('순회를 시작하면 상품 전체가 wait 상태이고 isRunning이 true인 상태를 먼저 보낸다', async () => {
+it('준비를 마치면 상품 전체가 wait 상태이고 isRunning이 true인 순회 시작 상태를 보낸다', async () => {
   mockLoggedInWith([productA, productB]);
 
   await runStartUpdate();
 
-  expect(mockSend).toHaveBeenNthCalledWith(1, 'updateState', {
+  expect(mockSend).toHaveBeenNthCalledWith(2, 'updateState', {
     targetProducts: [
       { ...productA, update: { status: 'wait' } },
       { ...productB, update: { status: 'wait' } },
     ],
     invalidProductRows: [],
     currentIndex: null,
+    isPreparing: false,
     isRunning: true,
   });
 });
-
-const getSentStates = (): UpdateState[] => mockSend.mock.calls.map(([, state]) => state);
 
 it('상품을 처리하기 전에 currentIndex를 그 상품의 인덱스로 바꾼 상태를 보낸다', async () => {
   mockLoggedInWith([productA, productB]);
 
   await runStartUpdate();
 
-  const currentIndexes = getSentStates().map(({ currentIndex }) => currentIndex);
+  /**
+   * 준비 중 상태는 이전 테스트가 남긴 state 위에 isPreparing만 덮어써 currentIndex가 정해지지 않으므로,
+   * 준비를 마친 뒤 보낸 상태만 확인한다.
+   */
+  const currentIndexes = getSentStates()
+    .filter(({ isPreparing }) => !isPreparing)
+    .map(({ currentIndex }) => currentIndex);
 
   expect(currentIndexes).toEqual([null, 0, 0, 1, 1, null]);
 });
 
 const updateTime = 1700000000000;
 const completeUpdate = { status: 'complete', price: 39990, baseFee: 3000, time: updateTime };
-
-const getLastSentState = (): UpdateState => getSentStates().at(-1) as UpdateState;
 
 it('가격 수정에 성공하면 그 상품만 반환된 수정 결과를 반영한 상태를 보낸다', async () => {
   mockLoggedInWith([productA, productB]);
