@@ -418,6 +418,28 @@ it('UnexpectedCatalogPageError가 나면 그 상품을 error로 반영하고 다
   ]);
 });
 
+it('cause로 감싼 UnexpectedCatalogPageError가 나면 원인 에러의 메시지를 반영하고 다음 상품은 처리하지 않는다', async () => {
+  mockLoggedInWith([productA, productB]);
+  mockUpdateTargetProductPrice.mockRejectedValueOnce(
+    new Error(ERROR_MESSAGE.SELLERS_FETCH_FAILED, {
+      cause: new UnexpectedCatalogPageError(ERROR_MESSAGE.CATALOG_BLOCKED),
+    }),
+  );
+  vi.spyOn(Date, 'now').mockReturnValue(updateTime);
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await runStartUpdate();
+
+  expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
+  expect(getLastSentState().targetProducts).toEqual([
+    {
+      ...productA,
+      update: { status: 'error', message: ERROR_MESSAGE.CATALOG_BLOCKED, time: updateTime },
+    },
+    { ...productB, update: { status: 'wait' } },
+  ]);
+});
+
 it('사용자가 브라우저를 닫으면 다음 상품은 처리하지 않고 끝난 상태를 보낸다', async () => {
   mockLoggedInWith([productA, productB]);
   mockIsPageClosed.mockReturnValue(true);

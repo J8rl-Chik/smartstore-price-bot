@@ -206,11 +206,8 @@ describe('getSellersInPuppeteer', () => {
       cause: parseError,
     });
   });
-  /**
-   * UnexpectedCatalogPageError는 프로그램을 중단시켜야 하는 에러라 감싸면 안 된다.
-   * app.ts가 instanceof로 이 에러를 구분해 상품 단위 skip 대신 실행을 멈춘다.
-   */
-  it('카탈로그 검증 에러(UnexpectedCatalogPageError)는 감싸지 않고 그대로 전파한다', async () => {
+  // 호출하는 쪽은 findErrorInCause로 cause를 따라가 UnexpectedCatalogPageError를 구분한다.
+  it('카탈로그 검증 에러(UnexpectedCatalogPageError)도 cause에 담아 감싸서 던진다', async () => {
     const mockPage = createMockPage();
     const catalogError = new UnexpectedCatalogPageError('접속 제한');
 
@@ -218,7 +215,10 @@ describe('getSellersInPuppeteer', () => {
 
     await expect(
       getSellersInPuppeteer(mockPage as unknown as Page, catalogUrl, productName),
-    ).rejects.toThrow(catalogError);
+    ).rejects.toMatchObject({
+      message: ERROR_MESSAGE.SELLERS_FETCH_FAILED,
+      cause: catalogError,
+    });
   });
 
   it('카탈로그 검증 중 그 외 에러가 나면 원인을 보존한 채 감싸서 던진다', async () => {

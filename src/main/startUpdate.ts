@@ -3,6 +3,7 @@ import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCa
 import validateEnv from '../utils/validateEnv';
 import delaySeconds from '../utils/delaySeconds';
 import tryCatch from '../utils/tryCatch';
+import findErrorInCause from '../utils/findErrorInCause';
 import fetchTargetProducts from './fetchTargetProducts';
 import updateTargetProductPrice from './updateTargetProductPrice';
 import { createStateSender } from './state';
@@ -25,6 +26,7 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
     }
 
     isUpdateRunning = true;
+
     // 상태는 순회마다 빈 초기 상태에서 시작하고, 이 순회를 시작한 창에만 보낸다.
     const { sendState, sendUpdate } = createStateSender(sender);
     // 목록 조회·로그인은 오래 걸릴 수 있어, 시작하자마자 준비 중인 상태부터 보낸다.
@@ -76,14 +78,22 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
           console.error(error);
         }
 
-        // 화면에는 가장 바깥 에러의 메시지만 보내고, cause로 감싼 원인 에러는 위의 로그로만 남긴다.
+        // 중간 계층이 ERROR_MESSAGE로 감싸 던지므로, cause까지 따라가 치명적 실패인지 확인한다.
+        const fatalError = findErrorInCause(error, UnexpectedCatalogPageError);
+
+        /**
+         * 화면에는 가장 바깥 에러의 메시지만 보내고, cause로 감싼 원인 에러는 위의 로그로만 남긴다.
+         * 치명적 실패만 예외로 원인 에러의 메시지(접속 제한)를 보낸다. 바깥 메시지로는 다시 시도하면 된다는 걸 알 수 없기 때문이다.
+         */
         sendUpdate(
           index,
-          error ? { status: 'error', message: error.message, time: Date.now() } : update,
+          error
+            ? { status: 'error', message: (fatalError ?? error).message, time: Date.now() }
+            : update,
         );
 
         // 다음 상품도 실패할 치명적 실패거나, 사용자가 브라우저를 닫았으면 순회를 멈춘다.
-        if (error instanceof UnexpectedCatalogPageError || isPageClosed(page)) {
+        if (fatalError || isPageClosed(page)) {
           break;
         }
 

@@ -10,6 +10,7 @@ import delaySeconds from './utils/delaySeconds.js';
 import delayMinutes from './utils/delayMinutes.js';
 import validateEnv from './utils/validateEnv.js';
 import shuffleArray from './utils/shuffleArray.js';
+import findErrorInCause from './utils/findErrorInCause.js';
 import { parseProductRow } from './domain/product/parseProductRow.js';
 import {
   excludeNewlyRegisteredProducts,
@@ -95,7 +96,8 @@ const start = async (): Promise<void> => {
           }
         }
       } catch (error) {
-        if (error instanceof UnexpectedCatalogPageError) {
+        // getSellersInPuppeteer가 감싸 던지므로 cause까지 따라가 접속 제한인지 확인한다.
+        if (findErrorInCause(error, UnexpectedCatalogPageError)) {
           throw error;
         }
 
