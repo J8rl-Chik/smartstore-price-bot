@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import findErrorInCause from './findErrorInCause';
+import findErrorInCause from './findErrorInCause.js';
 
 class TargetError extends Error {}
 
