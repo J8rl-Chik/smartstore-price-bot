@@ -1,5 +1,6 @@
 import { ipcMain, type WebContents } from 'electron';
 import { IpcInvoke } from '../preload/_type';
+import { START_UPDATE_CHANNEL } from '../preload/ipcChannel';
 import createStartUpdate from './startUpdate';
 
 /**
@@ -17,5 +18,5 @@ const handleIpc = <E extends keyof IpcInvoke>(
 };
 
 export const registerIpcHandlers = (): void => {
-  handleIpc('startUpdate', createStartUpdate());
+  handleIpc(START_UPDATE_CHANNEL, createStartUpdate());
 };

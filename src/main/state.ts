@@ -6,9 +6,7 @@ import type {
   TargetProductWithUpdate,
   UpdateState,
 } from '../domain/product/_type';
-
-// main이 순회 상태를 보내는 채널 이름. preload/exposeApi.ts의 구독 채널 이름과 같아야 한다.
-const updateStateChannel = 'updateState';
+import { UPDATE_STATE_CHANNEL } from '../preload/ipcChannel';
 
 let state: UpdateState = {
   targetProducts: [],
@@ -61,5 +59,5 @@ export const setUpdate = (index: number, update: TargetProductUpdate): UpdateSta
 
 // 상태가 바뀔 때마다 상태 전체를 요청한 창의 updateState 채널로 보낸다.
 export const sendState = (sender: WebContents, nextState: UpdateState): void => {
-  sender.send(updateStateChannel, nextState);
+  sender.send(UPDATE_STATE_CHANNEL, nextState);
 };
