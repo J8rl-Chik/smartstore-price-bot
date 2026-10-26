@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Header from './components/Header';
 import ProductTable from './components/ProductTable';
 import ProgressBar from './components/ProgressBar';
+import StartUpdateErrorBanner from './components/StartUpdateErrorBanner';
 import StyleProvider from './components/StyleProvider';
 import { parseToProductTableRow } from './domain/parseToProductTableRow';
 import useTargetProductsUpdate from './hooks/useTargetProductsUpdate';
@@ -21,6 +22,7 @@ const App = (): React.JSX.Element => {
     isPreparing,
     currentProduct,
     currentOrder,
+    startUpdateErrorMessage,
     startUpdate,
   } = useTargetProductsUpdate();
 
@@ -33,6 +35,9 @@ const App = (): React.JSX.Element => {
     <StyleProvider>
       <AppContainer>
         <Header onStartUpdate={startUpdate} isPreparing={isPreparing} />
+        {startUpdateErrorMessage !== null && (
+          <StartUpdateErrorBanner message={startUpdateErrorMessage} />
+        )}
         <ProgressBar
           totalCount={targetProducts.length}
           currentOrder={currentOrder}
