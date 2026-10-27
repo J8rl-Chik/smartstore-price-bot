@@ -12,3 +12,4 @@ electron-vite-quick-start
 .vscode
 out
 *.tsbuildinfo
+benchmark
