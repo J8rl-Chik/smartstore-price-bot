@@ -264,7 +264,7 @@ if (await isRestrictedPage(page)) {
 
 - **흩어진 메시지**: 에러 메시지 25곳이 17개 파일에 문자열로 직접 적혀 있었습니다.
 - **중복된 메시지**: 같은 문구가 여러 곳에 있었습니다. 예를 들어 `'알 수 없는 배송비 유형입니다.'`는 3곳에 있었습니다.
-- **중단할 에러를 구분하기 어려운 구조**: 접속 차단처럼 다음 상품도 실패할 에러는 순회를 멈춰야 합니다. 하지만 가장 바깥 에러가 `UnexpectedCatalogPageError`일 때만 구분할 수 있어서, 중간 계층이 이 에러만 감싸지 않고 다시 던져야 했습니다.
+- **중단할 에러를 구분하기 어려운 구조**: 접속 차단처럼 다음 상품도 실패할 에러는 순회를 멈춰야 합니다. 하지만 이 에러(`UnexpectedCatalogPageError`)는 가장 바깥에 있을 때만 구분할 수 있어서, 어디서 던지든 거치는 중간 함수마다 감싸지 않고 그대로 다시 던져야 했습니다.
 
 **T — 과제**
 
@@ -274,11 +274,11 @@ if (await isRestrictedPage(page)) {
 
 **A — 행동**
 
-**1. 에러 메시지를 한 파일에 모으고, 화면에 보낼 기준을 정했습니다.**
+**1. 에러 메시지를 한 파일에 모으고, 이해하기 쉬운 말로 다듬었습니다.**
 
 메시지가 흩어져 있어 찾기 어렵고 중복이 생겨서, 사용자에게 보여줄 메시지를 `errorMessage.ts` 한 객체에 모았습니다. 원인이 된 값은 뒤에 괄호로 붙여, 어떤 값 때문에 실패했는지 알 수 있게 했습니다.
 
-IPC를 거치면 `message`만 남기 때문에, 에러는 이 문구로 감싸 던지고 화면에는 가장 바깥 에러의 메시지만 보냅니다. 자세한 원인은 `cause`에 담아 로그로 남깁니다. 이 메시지가 IPC를 거쳐 최종적으로 사용자에게 보이기 때문에, 문구는 이해하기 쉬운 말로 적었습니다.
+메시지는 IPC를 거쳐 최종적으로 사용자에게 보이기 때문에, 문구는 이해하기 쉬운 말로 적었습니다.
 
 | 변경 전                              | 변경 후                                          |
 | ------------------------------------ | ------------------------------------------------ |
@@ -292,7 +292,6 @@ export const ERROR_MESSAGE = {
 } as const;
 
 throw new Error(`${ERROR_MESSAGE.UNKNOWN_DELIVERY_FEE_TYPE} (feeType: ${feeType})`);
-throw new Error(ERROR_MESSAGE.SELLERS_FETCH_FAILED, { cause: error });
 ```
 
 **2. 실패해도 멈추지 않고 결과로 돌려줬습니다.**
@@ -323,26 +322,15 @@ const feeType = parseCell(errorMessages, 'feeType', () =>
 const [error, update] = await tryCatch(updateTargetProductPrice(page, targetProduct, myStoreName));
 ```
 
-**3. 순회를 시작하기 전 실패는 throw하지 않고 결과로 돌려줬습니다.**
+**3. 접속 제한 에러를 마지막에 받는 곳에서 찾았습니다.**
 
-`ipcMain.handle`에서 throw하면 Electron이 메시지 앞에 접두어(`Error invoking remote method 'startUpdate': ...`)를 붙여서, 실패를 결과 객체로 돌려주게 했습니다.
-
-```ts
-type StartUpdateResult =
-  { status: 'done' } | { status: 'running' } | { status: 'error'; message: string };
-```
-
-**4. 접속 제한 에러는 `cause`를 따라가 찾았습니다.**
-
-중간 계층마다 접속 제한 에러만 예외로 다시 던지지 않도록, 모든 계층이 똑같이 감싸 던지고 `findErrorInCause`로 안쪽의 접속 제한 에러를 찾아 순회를 멈추게 했습니다. 바깥 메시지로는 다시 시도하면 되는지 알 수 없어서, 이때만 원인 메시지를 화면에 보냅니다.
+중간 함수마다 접속 제한 에러를 따로 처리하지 않도록, 중간 함수는 다른 에러처럼 감싸 던지게 두고 마지막에 에러를 받는 순회에서 `cause`를 따라가 찾는 `findErrorInCause`를 만들고, 찾으면 순회를 멈추게 했습니다.
 
 ```ts
-const fatalError = findErrorInCause(error, UnexpectedCatalogPageError);
-sendUpdate(index, { status: 'error', message: (fatalError ?? error).message });
-if (fatalError) break;
+const fatalError = findErrorInCause(error, UnexpectedCatalogPageError); // 감싸진 에러 안에서 접속 제한 에러 찾기
 ```
 
-**5. 실패 이유를 화면에 표시했습니다.**
+**4. 실패 이유를 화면에 표시했습니다.**
 
 "에러" 뱃지만으로는 원인을 알 수 없어서, 상품별 실패 이유는 상태 칸의 뱃지 아래에, 순회 시작 전 실패 이유(로그인 실패, 제품 정보 불러오기)는 Header 아래 배너로 표시했습니다.
 
