@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Header from './components/Header';
 import ProductTable from './components/ProductTable';
 import ProgressBar from './components/ProgressBar';
+import StartButton from './components/StartButton';
 import StartUpdateErrorBanner from './components/StartUpdateErrorBanner';
 import StyleProvider from './components/StyleProvider';
 import { parseToProductTableRow } from './domain/parseToProductTableRow';
@@ -34,7 +35,8 @@ const App = (): React.JSX.Element => {
   return (
     <StyleProvider>
       <AppContainer>
-        <Header onStartUpdate={startUpdate} isPreparing={isPreparing} />
+        <Header />
+        <StartButton onClick={startUpdate} isPreparing={isPreparing} />
         {startUpdateErrorMessage !== null && (
           <StartUpdateErrorBanner message={startUpdateErrorMessage} />
         )}

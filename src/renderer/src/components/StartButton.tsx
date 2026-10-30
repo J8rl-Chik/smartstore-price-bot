@@ -12,6 +12,7 @@ const StartButtonContainer = styled.button`
   justify-content: center;
   width: 100%;
   height: 52px;
+  margin-bottom: 24px;
   font-size: 17px;
   font-weight: 700;
   color: ${({ theme }) => theme.color.white};

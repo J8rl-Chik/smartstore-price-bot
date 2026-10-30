@@ -1,15 +1,6 @@
 import styled from 'styled-components';
-import StartButton from './StartButton';
-
-interface HeaderProps {
-  onStartUpdate: () => void;
-  isPreparing: boolean;
-}
 
 const HeaderContainer = styled.header`
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
   margin-bottom: 24px;
 `;
 
@@ -37,14 +28,13 @@ const Title = styled.h1`
   color: ${({ theme }) => theme.color.gray900};
 `;
 
-const Header = ({ onStartUpdate, isPreparing }: HeaderProps): React.JSX.Element => {
+const Header = (): React.JSX.Element => {
   return (
     <HeaderContainer>
       <Title>
         <Logo>S</Logo>
         스마트스토어 최저가 봇
       </Title>
-      <StartButton onClick={onStartUpdate} isPreparing={isPreparing} />
     </HeaderContainer>
   );
 };
