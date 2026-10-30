@@ -8,8 +8,8 @@ interface HeaderProps {
 
 const HeaderContainer = styled.header`
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 24px;
   margin-bottom: 24px;
 `;
 

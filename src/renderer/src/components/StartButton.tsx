@@ -7,16 +7,18 @@ interface Props {
 
 const StartButtonContainer = styled.button`
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
+  justify-content: center;
+  width: 100%;
+  height: 52px;
+  font-size: 17px;
+  font-weight: 700;
   color: ${({ theme }) => theme.color.white};
   cursor: pointer;
   background: ${({ theme }) => theme.color.blue500};
   border: none;
-  border-radius: 8px;
+  border-radius: 16px;
   transition: background 0.15s;
 
   &:hover {
@@ -32,7 +34,7 @@ const StartButtonContainer = styled.button`
 const StartButton = ({ onClick, isPreparing }: Props): React.JSX.Element => {
   return (
     <StartButtonContainer onClick={onClick} disabled={isPreparing}>
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+      <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
         <path d="M3 2l7 4-7 4V2z" fill="white" />
       </svg>
       자동 수정 시작
