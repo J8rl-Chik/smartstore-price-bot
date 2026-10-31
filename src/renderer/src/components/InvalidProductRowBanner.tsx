@@ -22,7 +22,7 @@ const Title = styled.h2`
   font-weight: 700;
 `;
 
-const ProductName = styled.span`
+const ProductName = styled.strong`
   font-weight: 500;
 `;
 
