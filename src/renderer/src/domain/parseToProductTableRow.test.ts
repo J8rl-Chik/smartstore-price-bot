@@ -80,7 +80,7 @@ describe('wait 상태이면', () => {
   it('실패 이유는 없다', () => {
     const result = parseToProductTableRow(createProduct({ update: { status: 'wait' } }));
 
-    expect(result.errorMessages).toBeNull();
+    expect(result.errorMessage).toBeNull();
   });
 });
 
@@ -115,7 +115,7 @@ describe('complete 상태이면', () => {
   it('실패 이유는 없다', () => {
     const result = parseToProductTableRow(createProduct({ update }));
 
-    expect(result.errorMessages).toBeNull();
+    expect(result.errorMessage).toBeNull();
   });
 });
 
@@ -136,9 +136,9 @@ describe('error 상태이면', () => {
     expect(result.updateTime).toBe('11:35:09');
   });
 
-  it('main이 보낸 메시지를 실패 이유 목록에 그대로 담는다', () => {
+  it('main이 보낸 메시지를 실패 이유로 그대로 담는다', () => {
     const result = parseToProductTableRow(createProduct({ update }));
 
-    expect(result.errorMessages).toEqual(['가격 수정 실패']);
+    expect(result.errorMessage).toBe('가격 수정 실패');
   });
 });

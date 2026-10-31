@@ -85,14 +85,9 @@ export interface TargetProductWithUpdate extends TargetProduct {
   update: TargetProductUpdate;
 }
 
-/**
- * 변환에 실패한 시트 행. 어떤 행을 왜 고쳐야 하는지 renderer에서 보여주는 데 필요한 값만 담는다.
- * 판매 상품에 이름이 있는 행만 만들므로, 수정 대상 상품과 같은 표에 보여주도록 스토어 값을 함께 담는다.
- */
+// 변환에 실패한 시트 행. 어떤 행을 왜 고쳐야 하는지 renderer에서 보여주는 데 필요한 값만 담는다.
 export interface InvalidProductRow {
   name: ProductRow['name'];
-  originProductNo: ProductChannel['originProductNo'];
-  store: Pick<ProductChannel, 'salePrice' | 'deliveryFee'>;
   errorMessages: string[];
 }
 

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import styled from 'styled-components';
 import Header from './components/Header';
 import ProductTable from './components/ProductTable';
@@ -5,7 +6,6 @@ import ProgressBar from './components/ProgressBar';
 import StartButton from './components/StartButton';
 import StartUpdateErrorBanner from './components/StartUpdateErrorBanner';
 import StyleProvider from './components/StyleProvider';
-import { parseInvalidToProductTableRow } from './domain/parseInvalidToProductTableRow';
 import { parseToProductTableRow } from './domain/parseToProductTableRow';
 import useTargetProductsUpdate from './hooks/useTargetProductsUpdate';
 
@@ -27,11 +27,10 @@ const App = (): React.JSX.Element => {
     startUpdate,
   } = useTargetProductsUpdate();
 
-  // 시트 값이 잘못되어 수정 대상에서 빠진 상품을 먼저 보여줘 시트를 고치도록 한다.
-  const productTableRows = [
-    ...invalidProductRows.map(parseInvalidToProductTableRow),
-    ...targetProducts.map(parseToProductTableRow),
-  ];
+  // TODO: 실패한 시트 행이 renderer까지 오는지 확인하는 임시 로그. 목록 컴포넌트를 연결하면 지운다.
+  useEffect(() => {
+    console.log('invalidProductRows', invalidProductRows);
+  }, [invalidProductRows]);
 
   return (
     <StyleProvider>
@@ -46,7 +45,7 @@ const App = (): React.JSX.Element => {
           currentOrder={currentOrder}
           productName={currentProduct?.name}
         />
-        <ProductTable products={productTableRows} />
+        <ProductTable products={targetProducts.map(parseToProductTableRow)} />
       </AppContainer>
     </StyleProvider>
   );

@@ -67,14 +67,8 @@ const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element =
   <ProductTableRowContainer>
     <NameCell>{product.name}</NameCell>
     <ConfiguredPriceCell>
-      {product.configuredPrice === null ? (
-        '—'
-      ) : (
-        <>
-          {formatTotalPrice(product.configuredPrice)}
-          <DeliveryFeeInfo {...product.configuredPrice} />
-        </>
-      )}
+      {formatTotalPrice(product.configuredPrice)}
+      <DeliveryFeeInfo {...product.configuredPrice} />
     </ConfiguredPriceCell>
     <CurrentPriceCell>
       {formatTotalPrice(product.currentPrice)}
@@ -92,9 +86,7 @@ const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element =
     </UpdatedPriceCell>
     <StatusCell>
       <StatusBadge status={product.status} />
-      {product.errorMessages?.map((message) => (
-        <ErrorMessage key={message}>{message}</ErrorMessage>
-      ))}
+      {product.errorMessage !== null && <ErrorMessage>{product.errorMessage}</ErrorMessage>}
     </StatusCell>
     <UpdateTimeCell>{product.updateTime}</UpdateTimeCell>
   </ProductTableRowContainer>

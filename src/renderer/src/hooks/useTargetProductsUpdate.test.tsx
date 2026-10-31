@@ -103,14 +103,7 @@ test('main이 보낸 상태의 상품 목록을 targetProducts에 반영한다',
 });
 
 test('main이 보낸 상태의 변환에 실패한 시트 행을 invalidProductRows에 반영한다', async () => {
-  const invalidProductRows = [
-    {
-      name: '무선 충전기',
-      originProductNo: 333,
-      store: { salePrice: 25000, deliveryFee: 3000 },
-      errorMessages: ['productPrice: 에러'],
-    },
-  ];
+  const invalidProductRows = [{ name: '무선 충전기', errorMessages: ['productPrice: 에러'] }];
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
   await act(() => {

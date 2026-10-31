@@ -10,7 +10,7 @@ const baseProduct: TProductTableRow = {
   currentPrice: { price: 31000, deliveryFee: 3000 },
   updatedPrice: { price: 30800, deliveryFee: 3000 },
   status: 'complete',
-  errorMessages: null,
+  errorMessage: null,
   updateTime: '13:34:48',
 };
 
@@ -35,13 +35,6 @@ test('수정가가 없으면 —로 보여준다', async () => {
   const screen = await renderRow({ ...baseProduct, updatedPrice: null });
 
   await expect.element(screen.getByText('—')).toBeVisible();
-});
-
-test('설정가가 없으면 —로 보여주고 설정가 아래에는 부가 정보를 보여주지 않는다', async () => {
-  const screen = await renderRow({ ...baseProduct, configuredPrice: null });
-
-  await expect.element(screen.getByText('—')).toBeVisible();
-  await expect.element(screen.getByText('제품 32,000 + 배송 3,000')).not.toBeInTheDocument();
 });
 
 test('설정가, 현재가, 수정가 아래에 제품가와 배송비를 보여준다', async () => {
@@ -119,7 +112,7 @@ test('실패 이유가 있으면 상태 칸에 상태 뱃지와 함께 보여준
     ...baseProduct,
     updatedPrice: null,
     status: 'error',
-    errorMessages: ['네이버 상품 가격을 수정하지 못했습니다.'],
+    errorMessage: '네이버 상품 가격을 수정하지 못했습니다.',
   });
 
   const statusCell = screen.getByRole('cell', { name: /에러/ });
@@ -128,21 +121,6 @@ test('실패 이유가 있으면 상태 칸에 상태 뱃지와 함께 보여준
   await expect
     .element(statusCell.getByText('네이버 상품 가격을 수정하지 못했습니다.'))
     .toBeVisible();
-});
-
-test('실패 이유가 여러 개이면 상태 칸에 모두 보여준다', async () => {
-  const screen = await renderRow({
-    ...baseProduct,
-    configuredPrice: null,
-    updatedPrice: null,
-    status: 'invalid',
-    errorMessages: ['productPrice: 숫자가 아닙니다.', 'baseFee: 숫자가 아닙니다.'],
-  });
-
-  const statusCell = screen.getByRole('cell', { name: /시트 오류/ });
-
-  await expect.element(statusCell.getByText('productPrice: 숫자가 아닙니다.')).toBeVisible();
-  await expect.element(statusCell.getByText('baseFee: 숫자가 아닙니다.')).toBeVisible();
 });
 
 test('실패 이유가 없으면 상태 뱃지만 보여준다', async () => {
