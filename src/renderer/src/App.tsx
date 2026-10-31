@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
 import styled from 'styled-components';
 import Header from './components/Header';
+import InvalidProductRowBanner from './components/InvalidProductRowBanner';
 import ProductTable from './components/ProductTable';
 import ProgressBar from './components/ProgressBar';
 import StartButton from './components/StartButton';
@@ -27,11 +27,6 @@ const App = (): React.JSX.Element => {
     startUpdate,
   } = useTargetProductsUpdate();
 
-  // TODO: 실패한 시트 행이 renderer까지 오는지 확인하는 임시 로그. 목록 컴포넌트를 연결하면 지운다.
-  useEffect(() => {
-    console.log('invalidProductRows', invalidProductRows);
-  }, [invalidProductRows]);
-
   return (
     <StyleProvider>
       <AppContainer>
@@ -40,6 +35,7 @@ const App = (): React.JSX.Element => {
         {startUpdateErrorMessage !== null && (
           <StartUpdateErrorBanner message={startUpdateErrorMessage} />
         )}
+        {invalidProductRows.length > 0 && <InvalidProductRowBanner rows={invalidProductRows} />}
         <ProgressBar
           totalCount={targetProducts.length}
           currentOrder={currentOrder}
