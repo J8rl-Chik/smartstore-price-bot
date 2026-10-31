@@ -1,6 +1,12 @@
 import getSaleProducts from '../integrations/smartStore/getSaleProducts';
 import getProductRows from '../integrations/googleSheets/getProductRows';
-import { excludeNewlyRegisteredProducts, getProductName } from '../domain/product/saleProduct';
+import {
+  excludeNewlyRegisteredProducts,
+  getDeliveryFee,
+  getOriginProductNo,
+  getProductName,
+  getSalePrice,
+} from '../domain/product/saleProduct';
 import { parseProductRow } from '../domain/product/parseProductRow';
 import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
@@ -22,12 +28,34 @@ const fetchTargetProducts = async (): Promise<{
     .filter((result) => result.status === 'ok')
     .map(({ productRow }) => productRow);
 
-  // 판매 중이 아닌 상품의 행은 고쳐도 가격 수정 대상이 되지 않으므로, 판매 상품에 이름이 있는 실패 행만 보낸다.
-  const saleProductNames = new Set(shuffledSaleProducts.map(getProductName));
+  /**
+   * 판매 중이 아닌 상품의 행은 고쳐도 가격 수정 대상이 되지 않으므로, 판매 상품에 이름이 있는 실패 행만 보낸다.
+   * 수정 대상 상품과 같은 표에 보여주도록 이름이 같은 판매 상품의 스토어 값을 함께 담는다.
+   */
+  const saleProductsByName = new Map(
+    shuffledSaleProducts.map((saleProduct) => [getProductName(saleProduct), saleProduct]),
+  );
   const invalidProductRows = productRowResults
     .filter((result) => result.status === 'error')
-    .filter(({ productRow }) => saleProductNames.has(productRow.name))
-    .map(({ productRow, errorMessages }) => ({ name: productRow.name, errorMessages }));
+    .flatMap(({ productRow, errorMessages }) => {
+      const saleProduct = saleProductsByName.get(productRow.name);
+
+      if (saleProduct === undefined) {
+        return [];
+      }
+
+      return [
+        {
+          name: productRow.name,
+          originProductNo: getOriginProductNo(saleProduct),
+          store: {
+            salePrice: getSalePrice(saleProduct),
+            deliveryFee: getDeliveryFee(saleProduct),
+          },
+          errorMessages,
+        },
+      ];
+    });
 
   const duplicateProductNames = findDuplicateProductNames(validProductRows);
   const targetProducts = createTargetProducts(shuffledSaleProducts, validProductRows);

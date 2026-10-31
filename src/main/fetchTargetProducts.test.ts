@@ -5,6 +5,9 @@ const mockGetSaleProducts = vi.fn();
 const mockGetProductRows = vi.fn();
 const mockExcludeNewlyRegisteredProducts = vi.fn();
 const mockGetProductName = vi.fn();
+const mockGetOriginProductNo = vi.fn();
+const mockGetSalePrice = vi.fn();
+const mockGetDeliveryFee = vi.fn();
 const mockParseProductRow = vi.fn();
 const mockFindDuplicateProductNames = vi.fn();
 const mockCreateTargetProducts = vi.fn();
@@ -22,6 +25,9 @@ vi.mock(import('../domain/product/saleProduct'), () => ({
   excludeNewlyRegisteredProducts: (...args: unknown[]) =>
     mockExcludeNewlyRegisteredProducts(...args),
   getProductName: (...args: unknown[]) => mockGetProductName(...args),
+  getOriginProductNo: (...args: unknown[]) => mockGetOriginProductNo(...args),
+  getSalePrice: (...args: unknown[]) => mockGetSalePrice(...args),
+  getDeliveryFee: (...args: unknown[]) => mockGetDeliveryFee(...args),
 }));
 
 vi.mock(import('../domain/product/parseProductRow'), () => ({
@@ -45,6 +51,9 @@ afterEach(() => {
   mockGetProductRows.mockReset();
   mockExcludeNewlyRegisteredProducts.mockReset();
   mockGetProductName.mockReset();
+  mockGetOriginProductNo.mockReset();
+  mockGetSalePrice.mockReset();
+  mockGetDeliveryFee.mockReset();
   mockParseProductRow.mockReset();
   mockFindDuplicateProductNames.mockReset();
   mockCreateTargetProducts.mockReset();
@@ -102,15 +111,27 @@ it('판매 상품과 시트 행을 동시에 요청한다', () => {
   expect(mockGetProductRows).toHaveBeenCalled();
 });
 
+interface FakeSaleProduct {
+  name: string;
+  originProductNo: number;
+  salePrice: number;
+  deliveryFee: number;
+}
+
 /**
- * 판매 상품을 이름만 가진 가짜 객체로 정하고, getProductName이 그 이름을 돌려주게 한다.
+ * 판매 상품을 이름과 스토어 값만 가진 가짜 객체로 정하고, 각 get 함수가 그 값을 돌려주게 한다.
  * 시트 행 하나(상품C)를 변환에 실패한 결과로 정한다.
  */
-const mockSaleProductNamesWithInvalidRow = (names: string[]): void => {
+const mockSaleProductsWithInvalidRow = (saleProducts: FakeSaleProduct[]): void => {
   mockGetSaleProducts.mockResolvedValue([]);
   mockExcludeNewlyRegisteredProducts.mockReturnValue([]);
-  mockShuffleArray.mockReturnValue(names.map((name) => ({ name })));
-  mockGetProductName.mockImplementation(({ name }: { name: string }) => name);
+  mockShuffleArray.mockReturnValue(saleProducts);
+  mockGetProductName.mockImplementation(({ name }: FakeSaleProduct) => name);
+  mockGetOriginProductNo.mockImplementation(
+    ({ originProductNo }: FakeSaleProduct) => originProductNo,
+  );
+  mockGetSalePrice.mockImplementation(({ salePrice }: FakeSaleProduct) => salePrice);
+  mockGetDeliveryFee.mockImplementation(({ deliveryFee }: FakeSaleProduct) => deliveryFee);
   mockGetProductRows.mockResolvedValue([['상품C']]);
   mockParseProductRow.mockReturnValue({
     status: 'error',
@@ -119,16 +140,28 @@ const mockSaleProductNamesWithInvalidRow = (names: string[]): void => {
   });
 };
 
-it('판매 상품에 이름이 있는 변환 실패 시트 행을 상품명과 에러 메시지만 담아 반환한다', async () => {
-  mockSaleProductNamesWithInvalidRow(['상품C']);
+it('판매 상품에 이름이 있는 변환 실패 시트 행을 이름이 같은 판매 상품의 스토어 값과 에러 메시지를 담아 반환한다', async () => {
+  mockSaleProductsWithInvalidRow([
+    { name: '상품A', originProductNo: 111, salePrice: 10000, deliveryFee: 3000 },
+    { name: '상품C', originProductNo: 333, salePrice: 30000, deliveryFee: 2500 },
+  ]);
 
   const { invalidProductRows } = await fetchTargetProducts();
 
-  expect(invalidProductRows).toEqual([{ name: '상품C', errorMessages: ['productPrice: 에러'] }]);
+  expect(invalidProductRows).toEqual([
+    {
+      name: '상품C',
+      originProductNo: 333,
+      store: { salePrice: 30000, deliveryFee: 2500 },
+      errorMessages: ['productPrice: 에러'],
+    },
+  ]);
 });
 
 it('판매 상품에 이름이 없는 변환 실패 시트 행은 반환하지 않는다', async () => {
-  mockSaleProductNamesWithInvalidRow(['상품A']);
+  mockSaleProductsWithInvalidRow([
+    { name: '상품A', originProductNo: 111, salePrice: 10000, deliveryFee: 3000 },
+  ]);
 
   const { invalidProductRows } = await fetchTargetProducts();
 
