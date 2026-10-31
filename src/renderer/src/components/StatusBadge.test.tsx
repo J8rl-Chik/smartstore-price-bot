@@ -19,3 +19,9 @@ test('error이면 에러로 보여준다', async () => {
 
   await expect.element(screen.getByText('에러')).toBeVisible();
 });
+
+test('invalid이면 시트 오류로 보여준다', async () => {
+  const screen = await customRender(<StatusBadge status="invalid" />);
+
+  await expect.element(screen.getByText('시트 오류')).toBeVisible();
+});

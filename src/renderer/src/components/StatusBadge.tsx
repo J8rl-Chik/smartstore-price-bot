@@ -32,6 +32,12 @@ const ErrorBadge = styled.span`
   background: ${({ theme }) => theme.color.red50};
 `;
 
+const InvalidBadge = styled.span`
+  ${baseBadge}
+  color: ${({ theme }) => theme.color.red600};
+  background: ${({ theme }) => theme.color.red100};
+`;
+
 const StatusBadge = ({ status }: StatusBadgeProps): React.JSX.Element => {
   switch (status) {
     case 'wait':
@@ -40,6 +46,8 @@ const StatusBadge = ({ status }: StatusBadgeProps): React.JSX.Element => {
       return <CompleteBadge>완료</CompleteBadge>;
     case 'error':
       return <ErrorBadge>에러</ErrorBadge>;
+    case 'invalid':
+      return <InvalidBadge>시트 오류</InvalidBadge>;
   }
 };
 

@@ -11,7 +11,7 @@ const products: TProductTableRow[] = [
     currentPrice: { price: 39900, deliveryFee: 3000 },
     updatedPrice: { price: 39900, deliveryFee: 3000 },
     status: 'complete',
-    errorMessage: null,
+    errorMessages: null,
     updateTime: '14:32:05',
   },
   {
@@ -21,7 +21,7 @@ const products: TProductTableRow[] = [
     currentPrice: { price: 35000, deliveryFee: 0 },
     updatedPrice: null,
     status: 'wait',
-    errorMessage: null,
+    errorMessages: null,
     updateTime: '—',
   },
   {
@@ -31,7 +31,7 @@ const products: TProductTableRow[] = [
     currentPrice: { price: 21500, deliveryFee: 3000 },
     updatedPrice: null,
     status: 'error',
-    errorMessage: '네이버 상품 가격을 수정하지 못했습니다.',
+    errorMessages: ['네이버 상품 가격을 수정하지 못했습니다.'],
     updateTime: '11:35:09',
   },
 ];
