@@ -32,6 +32,8 @@ export default defineConfig({
           browser: {
             provider: playwright(),
             enabled: true,
+            // Electron 창 크기(src/main/index.ts)에 맞춘다.
+            viewport: { width: 1440, height: 1024 },
             headless: true,
             // at least one instance is required
             instances: [{ browser: 'chromium' }],
