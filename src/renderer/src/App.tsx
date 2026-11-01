@@ -12,6 +12,7 @@ import useTargetProductsUpdate from './hooks/useTargetProductsUpdate';
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
+  padding: 24px;
   font-family: ${({ theme }) => theme.font.kr};
   background: ${({ theme }) => theme.color.gray100};
 `;
