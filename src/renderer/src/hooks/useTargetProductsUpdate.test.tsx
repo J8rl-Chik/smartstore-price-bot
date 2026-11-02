@@ -33,7 +33,7 @@ test('처음에는 상품과 진행 상태가 비어 있다', async () => {
   expect(result.current.isRunning).toBe(false);
   expect(result.current.currentProduct).toBeUndefined();
   expect(result.current.currentOrder).toBe(0);
-  expect(result.current.startUpdateErrorMessage).toBeNull();
+  expect(result.current.errorMessage).toBeNull();
 });
 
 test('렌더링하면 updateState 구독을 등록하고, 언마운트하면 해제한다', async () => {
@@ -97,6 +97,7 @@ test('main이 보낸 상태의 상품 목록을 targetProducts에 반영한다',
       currentIndex: null,
       isPreparing: false,
       isRunning: true,
+      errorMessage: null,
     });
   });
 
@@ -114,6 +115,7 @@ test('main이 보낸 상태의 변환에 실패한 시트 행을 invalidProductR
       currentIndex: null,
       isPreparing: false,
       isRunning: true,
+      errorMessage: null,
     });
   });
 
@@ -130,6 +132,7 @@ test('main이 보낸 상태의 currentIndex로 현재 상품과 순서를 알려
       currentIndex: 1,
       isPreparing: false,
       isRunning: true,
+      errorMessage: null,
     });
   });
 
@@ -147,6 +150,7 @@ test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순�
       currentIndex: 0,
       isPreparing: false,
       isRunning: true,
+      errorMessage: null,
     });
   });
 
@@ -157,6 +161,7 @@ test('main이 보낸 상태의 currentIndex가 null이면 현재 상품과 순�
       currentIndex: null,
       isPreparing: false,
       isRunning: false,
+      errorMessage: null,
     });
   });
 
@@ -174,6 +179,7 @@ test('main이 보낸 상태의 isPreparing을 그대로 알려준다', async () 
       currentIndex: null,
       isPreparing: true,
       isRunning: false,
+      errorMessage: null,
     });
   });
 
@@ -190,6 +196,7 @@ test('main이 보낸 상태의 isPreparing이 false로 바뀌면 isPreparing도 
       currentIndex: null,
       isPreparing: true,
       isRunning: false,
+      errorMessage: null,
     });
   });
 
@@ -200,6 +207,7 @@ test('main이 보낸 상태의 isPreparing이 false로 바뀌면 isPreparing도 
       currentIndex: null,
       isPreparing: false,
       isRunning: true,
+      errorMessage: null,
     });
   });
 
@@ -216,41 +224,36 @@ test('main이 보낸 상태의 isRunning을 그대로 알려준다', async () =>
       currentIndex: null,
       isPreparing: false,
       isRunning: true,
+      errorMessage: null,
     });
   });
 
   expect(result.current.isRunning).toBe(true);
 });
 
-test('window.api.startUpdate가 error 결과를 돌려주면 그 메시지를 startUpdateErrorMessage에 담는다', async () => {
+test('main이 보낸 상태의 errorMessage를 그대로 알려준다', async () => {
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => {
+    emitUpdateState({
+      targetProducts: [],
+      invalidProductRows: [],
+      currentIndex: null,
+      isPreparing: false,
+      isRunning: false,
+      errorMessage: '네이버 로그인에 실패했습니다.',
+    });
+  });
+
+  expect(result.current.errorMessage).toBe('네이버 로그인에 실패했습니다.');
+});
+
+test('window.api.startUpdate가 error 결과를 돌려줘도 상태로 받지 않은 메시지는 errorMessage에 담지 않는다', async () => {
   mockStartUpdate.mockResolvedValue({ status: 'error', message: '네이버 로그인에 실패했습니다.' });
 
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
   await act(() => result.current.startUpdate());
 
-  expect(result.current.startUpdateErrorMessage).toBe('네이버 로그인에 실패했습니다.');
-});
-
-test('window.api.startUpdate가 running 결과를 돌려주면 startUpdateErrorMessage는 null이다', async () => {
-  mockStartUpdate.mockResolvedValue({ status: 'running' });
-
-  const { result, act } = await renderHook(() => useTargetProductsUpdate());
-
-  await act(() => result.current.startUpdate());
-
-  expect(result.current.startUpdateErrorMessage).toBeNull();
-});
-
-test('실패한 뒤 다시 시작해 done 결과를 받으면 이전 실패 이유를 지운다', async () => {
-  mockStartUpdate
-    .mockResolvedValueOnce({ status: 'error', message: '네이버 로그인에 실패했습니다.' })
-    .mockResolvedValueOnce({ status: 'done' });
-
-  const { result, act } = await renderHook(() => useTargetProductsUpdate());
-
-  await act(() => result.current.startUpdate());
-  await act(() => result.current.startUpdate());
-
-  expect(result.current.startUpdateErrorMessage).toBeNull();
+  expect(result.current.errorMessage).toBeNull();
 });

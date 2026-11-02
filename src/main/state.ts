@@ -13,6 +13,7 @@ const initialState: UpdateState = {
   currentIndex: null,
   isPreparing: false,
   isRunning: false,
+  errorMessage: null,
 };
 
 /**

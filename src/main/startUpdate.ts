@@ -35,6 +35,12 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
     // 목록 조회·로그인은 오래 걸릴 수 있어, 시작하자마자 준비 중인 상태부터 보낸다.
     sendState({ isPreparing: true });
 
+    /**
+     * renderer가 요청하지 않은 순회(자동 재실행)의 실패도 화면에 띄울 수 있도록,
+     * 실패 이유는 응답과 별개로 finally에서 끝난 상태와 함께 보낸다.
+     */
+    let errorMessage: string | null = null;
+
     try {
       const myStoreName = validateEnv('SMART_STORE_NAME');
       const { targetProducts, invalidProductRows } = await fetchTargetProducts();
@@ -106,10 +112,9 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
     } catch (error) {
       console.error(error);
 
-      return {
-        status: 'error',
-        message: error instanceof Error ? error.message : ERROR_MESSAGE.UNKNOWN_ERROR,
-      };
+      errorMessage = error instanceof Error ? error.message : ERROR_MESSAGE.UNKNOWN_ERROR;
+
+      return { status: 'error', message: errorMessage };
     } finally {
       // 다음 순회가 닫히는 중인 브라우저를 받지 않도록, 브라우저를 닫은 뒤에 잠금을 푼다.
       const [closeError] = await tryCatch(closeBrowser());
@@ -120,7 +125,7 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
 
       // 끝난 상태를 보내다 창이 닫혀 실패해도 다음 순회가 막히지 않도록 상태보다 잠금부터 푼다.
       isUpdateRunning = false;
-      sendState({ currentIndex: null, isPreparing: false, isRunning: false });
+      sendState({ currentIndex: null, isPreparing: false, isRunning: false, errorMessage });
     }
   };
 };

@@ -114,6 +114,7 @@ it('수정할 상품이 없으면 로그인과 순회를 하지 않고 빈 목�
     currentIndex: null,
     isPreparing: false,
     isRunning: false,
+    errorMessage: null,
   });
 });
 
@@ -143,6 +144,7 @@ it('수정할 상품이 없어도 변환에 실패한 시트 행을 담아 끝�
     currentIndex: null,
     isPreparing: false,
     isRunning: false,
+    errorMessage: null,
   });
 });
 
@@ -226,6 +228,7 @@ it('다시 시작하면 이전 순회의 상품 목록을 이어받지 않고 �
     currentIndex: null,
     isPreparing: true,
     isRunning: false,
+    errorMessage: null,
   });
 });
 
@@ -309,6 +312,7 @@ it('준비를 마치면 상품 전체가 wait 상태이고 isRunning이 true인 
     currentIndex: null,
     isPreparing: false,
     isRunning: true,
+    errorMessage: null,
   });
 });
 
@@ -585,4 +589,66 @@ it('브라우저를 다 닫기 전에 다시 호출되면 running 결과를 돌�
   await vi.waitFor(() => expect(mockCloseBrowser).toHaveBeenCalled());
 
   await expect(startUpdate(fakeSender)).resolves.toEqual({ status: 'running' });
+});
+
+it('목록 조회에 실패하면 실패 이유를 담아 끝난 상태를 보낸다', async () => {
+  mockFetchTargetProducts.mockRejectedValue(new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED));
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await runStartUpdate();
+
+  expect(getLastSentState()).toMatchObject({
+    currentIndex: null,
+    isPreparing: false,
+    isRunning: false,
+    errorMessage: ERROR_MESSAGE.SHEET_FETCH_FAILED,
+  });
+});
+
+it('치명적 실패로 중단하면 원인 에러의 메시지를 담아 끝난 상태를 보낸다', async () => {
+  mockLoggedInWith([productA, productB]);
+  mockUpdateTargetProductPrice.mockRejectedValueOnce(
+    new Error(ERROR_MESSAGE.SELLERS_FETCH_FAILED, {
+      cause: new UnexpectedCatalogPageError(ERROR_MESSAGE.CATALOG_BLOCKED),
+    }),
+  );
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await runStartUpdate();
+
+  expect(getLastSentState()).toMatchObject({
+    currentIndex: null,
+    isPreparing: false,
+    isRunning: false,
+    errorMessage: ERROR_MESSAGE.CATALOG_BLOCKED,
+  });
+});
+
+it('순회를 끝내면 errorMessage가 null인 끝난 상태를 보낸다', async () => {
+  mockLoggedInWith([productA]);
+
+  await runStartUpdate();
+
+  expect(getLastSentState()).toMatchObject({
+    currentIndex: null,
+    isPreparing: false,
+    isRunning: false,
+    errorMessage: null,
+  });
+});
+
+it('실패한 뒤 다시 시작하면 이전 실패 이유를 지운 준비 중 상태부터 보낸다', async () => {
+  mockFetchedTargetProducts([productA]);
+  mockFetchTargetProducts.mockRejectedValueOnce(new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED));
+  mockGetLoggedInPage.mockResolvedValue(fakePage);
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  const startUpdate = createStartUpdate();
+  await startUpdate(fakeSender);
+  mockSend.mockClear();
+  await startUpdate(fakeSender);
+
+  const [preparingState] = getSentStates();
+
+  expect(preparingState).toMatchObject({ isPreparing: true, errorMessage: null });
 });

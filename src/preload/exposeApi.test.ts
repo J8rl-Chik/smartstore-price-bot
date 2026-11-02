@@ -94,6 +94,7 @@ it('updateState 채널로 상태가 오면 onUpdateState에 넘긴 callback에 �
     currentIndex: null,
     isPreparing: false,
     isRunning: true,
+    errorMessage: null,
   };
   const callback = vi.fn();
   const api = getExposedApi();

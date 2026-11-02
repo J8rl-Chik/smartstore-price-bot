@@ -43,6 +43,7 @@ const updateState: UpdateState = {
   currentIndex: null,
   isPreparing: false,
   isRunning: false,
+  errorMessage: null,
 };
 
 // 구독하자마자 main이 state를 보낸 것처럼 콜백을 바로 호출한다.
@@ -57,13 +58,12 @@ beforeEach(() => {
   vi.resetAllMocks();
 
   mockSentUpdateState(updateState);
-  mockStartUpdate.mockResolvedValue({ status: 'error', message: '스프레드시트 조회 실패' });
 });
 
-test('시작에 실패하면 에러 배너, 변환 실패 배너, 상품 목록을 함께 보여준다', async () => {
-  const screen = await render(<App />);
+test('main이 실패 이유를 보내면 에러 배너, 변환 실패 배너, 상품 목록을 함께 보여준다', async () => {
+  mockSentUpdateState({ ...updateState, errorMessage: '스프레드시트 조회 실패' });
 
-  await screen.getByRole('button', { name: '자동 수정 시작' }).click();
+  const screen = await render(<App />);
 
   await expect.element(screen.getByText('스프레드시트 조회 실패')).toBeVisible();
   await expect.element(screen.getByText('무선 충전기')).toBeVisible();

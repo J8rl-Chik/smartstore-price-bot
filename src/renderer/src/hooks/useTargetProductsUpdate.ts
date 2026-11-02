@@ -12,8 +12,7 @@ interface TargetProductsUpdate {
   isRunning: boolean;
   currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
-  // 목록 조회·로그인 실패나 치명적 실패처럼 순회를 끝내지 못한 이유. 실패하지 않았으면 null
-  startUpdateErrorMessage: string | null;
+  errorMessage: string | null;
   startUpdate: () => Promise<void>;
 }
 
@@ -23,6 +22,7 @@ const initialUpdateState: UpdateState = {
   currentIndex: null,
   isPreparing: false,
   isRunning: false,
+  errorMessage: null,
 };
 
 /**
@@ -31,23 +31,20 @@ const initialUpdateState: UpdateState = {
  */
 const useTargetProductsUpdate = (): TargetProductsUpdate => {
   const [updateState, setUpdateState] = useState<UpdateState>(initialUpdateState);
-  const [startUpdateErrorMessage, setStartUpdateErrorMessage] = useState<string | null>(null);
 
   // onUpdateState가 반환하는 구독 해제 함수를 그대로 cleanup으로 넘긴다.
   useEffect(() => window.api.onUpdateState(setUpdateState), []);
 
+  /**
+   * 실패 이유도 main이 상태(errorMessage)로 보내므로 응답은 쓰지 않는다.
+   * 다시 시작하면 main이 빈 초기 상태부터 보내 이전 실패 이유도 함께 지워진다.
+   */
   const startUpdate = async (): Promise<void> => {
-    // 다시 시작하면 이전 실패 이유를 지운다.
-    setStartUpdateErrorMessage(null);
-
-    const result = await window.api.startUpdate();
-
-    if (result.status === 'error') {
-      setStartUpdateErrorMessage(result.message);
-    }
+    await window.api.startUpdate();
   };
 
-  const { targetProducts, invalidProductRows, currentIndex, isPreparing, isRunning } = updateState;
+  const { targetProducts, invalidProductRows, currentIndex, isPreparing, isRunning, errorMessage } =
+    updateState;
 
   // 진행 상태는 별도 state로 두지 않고 targetProducts와 currentIndex에서 계산한다.
   const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
@@ -60,7 +57,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     isRunning,
     currentProduct,
     currentOrder,
-    startUpdateErrorMessage,
+    errorMessage,
     startUpdate,
   };
 };

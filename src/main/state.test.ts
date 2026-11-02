@@ -34,6 +34,7 @@ it('sendState를 처음 호출하면 빈 초기 상태에 넘긴 값만 덮어�
       currentIndex: null,
       isPreparing: true,
       isRunning: false,
+      errorMessage: null,
     },
   ]);
 });
@@ -65,6 +66,7 @@ it('sendState는 넘기지 않은 값을 이전에 보낸 상태의 값으로 �
     currentIndex: 0,
     isPreparing: false,
     isRunning: true,
+    errorMessage: null,
   });
 });
 
@@ -90,6 +92,7 @@ it('새로 만들면 이전에 만든 sender의 상태를 이어받지 않고 �
     currentIndex: null,
     isPreparing: true,
     isRunning: false,
+    errorMessage: null,
   });
 });
 
