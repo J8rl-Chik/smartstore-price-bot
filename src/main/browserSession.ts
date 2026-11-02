@@ -1,13 +1,13 @@
-import type { Page } from 'puppeteer';
+import type { Browser, Page } from 'puppeteer';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
 import tryCatch from '../utils/tryCatch';
 
 /**
  * startUpdate를 다시 호출해도 다시 로그인하지 않도록 로그인한 페이지를 보관한다.
- * TODO: browser를 닫을 수 있도록 browser와 page를 하나로 묶어 보관하고, 종료 시 browser.close()를 호출한다.
+ * 앱을 종료할 때 브라우저도 닫을 수 있도록 페이지를 연 브라우저도 함께 보관한다.
  */
-let page: Page | null = null;
+let session: { browser: Browser; page: Page } | null = null;
 
 /**
  * 사용자가 puppeteer 브라우저의 탭이나 창을 닫았는지 확인한다.
@@ -21,17 +21,29 @@ export const isPageClosed = (page: Page): boolean => page.isClosed() || !page.br
  * 로그인에 실패하면 다시 호출할 때마다 창이 쌓이지 않도록 연 브라우저를 닫고 에러를 그대로 던진다.
  */
 export const getLoggedInPage = async (): Promise<Page> => {
-  if (!page || isPageClosed(page)) {
-    const { browser, page: newPage } = await createPage();
-    const [error] = await tryCatch(loginNaver(newPage));
+  if (!session || isPageClosed(session.page)) {
+    const { browser, page } = await createPage();
+    const [error] = await tryCatch(loginNaver(page));
 
     if (error) {
       await browser.close();
       throw error;
     }
 
-    page = newPage;
+    session = { browser, page };
   }
 
-  return page;
+  return session.page;
+};
+
+/**
+ * 보관한 브라우저를 닫고, 다음 getLoggedInPage에서 새로 열어 로그인하도록 비운다.
+ * 사용자가 이미 창을 닫아 연결이 끊긴 브라우저는 close()가 실패할 수 있어 닫지 않는다.
+ */
+export const closeBrowser = async (): Promise<void> => {
+  if (session?.browser.connected) {
+    await session.browser.close();
+  }
+
+  session = null;
 };

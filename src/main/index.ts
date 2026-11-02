@@ -3,6 +3,8 @@ import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { registerIpcHandlers } from './registerIpcHandlers';
 import { installExtension, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
+import { closeBrowser } from './browserSession';
+import tryCatch from '../utils/tryCatch';
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -74,9 +76,18 @@ app.whenReady().then(async () => {
   });
 });
 
-// 윈도우 및 리눅스: 모든 창을 닫았을 때 프로그램을 완전히 종료한다.
-app.on('window-all-closed', () => {
+/**
+ * 윈도우 및 리눅스: 모든 창을 닫았을 때 puppeteer 브라우저를 닫고 프로그램을 완전히 종료한다.
+ * 브라우저를 닫지 못해도 앱은 꺼지도록, 실패는 로그로만 남기고 종료한다.
+ */
+app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
+    const [error] = await tryCatch(closeBrowser());
+
+    if (error) {
+      console.error(error);
+    }
+
     app.quit();
   }
 });

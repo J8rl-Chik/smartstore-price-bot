@@ -119,3 +119,51 @@ it('브라우저 연결이 끊겼으면 isPageClosed가 true를 반환한다', a
 
   expect(isPageClosed(createFakePage({ isConnected: false }))).toBe(true);
 });
+
+// close 호출을 확인할 수 있는 가짜 browser를 만든다.
+const createFakeBrowser = ({ isConnected = true } = {}) => ({
+  connected: isConnected,
+  close: vi.fn(),
+});
+
+it('로그인한 뒤 closeBrowser를 호출하면 보관한 브라우저를 닫는다', async () => {
+  const browser = createFakeBrowser();
+  mockCreatePage.mockResolvedValue({ browser, page: createFakePage() });
+  const { getLoggedInPage, closeBrowser } = await importBrowserSession();
+
+  await getLoggedInPage();
+  await closeBrowser();
+
+  expect(browser.close).toHaveBeenCalledTimes(1);
+});
+
+it('closeBrowser를 호출한 뒤 다시 호출되면 새 페이지를 열어 로그인한다', async () => {
+  const newPage = createFakePage();
+  mockCreatePage
+    .mockResolvedValueOnce({ browser: createFakeBrowser(), page: createFakePage() })
+    .mockResolvedValueOnce({ browser: createFakeBrowser(), page: newPage });
+  const { getLoggedInPage, closeBrowser } = await importBrowserSession();
+
+  await getLoggedInPage();
+  await closeBrowser();
+
+  await expect(getLoggedInPage()).resolves.toBe(newPage);
+  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage);
+});
+
+it('로그인한 적이 없으면 closeBrowser는 에러 없이 끝난다', async () => {
+  const { closeBrowser } = await importBrowserSession();
+
+  await expect(closeBrowser()).resolves.toBeUndefined();
+});
+
+it('사용자가 이미 브라우저 창을 닫았으면 closeBrowser는 브라우저를 닫지 않는다', async () => {
+  const browser = createFakeBrowser({ isConnected: false });
+  mockCreatePage.mockResolvedValue({ browser, page: createFakePage() });
+  const { getLoggedInPage, closeBrowser } = await importBrowserSession();
+
+  await getLoggedInPage();
+  await closeBrowser();
+
+  expect(browser.close).not.toHaveBeenCalled();
+});
