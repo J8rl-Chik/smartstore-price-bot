@@ -78,6 +78,30 @@ it('사용자가 브라우저 창을 닫았으면 새 페이지를 열어 로그
   expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage);
 });
 
+it('로그인에 실패하면 연 브라우저를 닫고 로그인 에러를 그대로 던진다', async () => {
+  const mockClose = vi.fn();
+  const loginError = new Error('네이버 로그인에 실패했습니다.');
+  mockCreatePage.mockResolvedValue({ browser: { close: mockClose }, page: createFakePage() });
+  mockLoginNaver.mockRejectedValue(loginError);
+  const { getLoggedInPage } = await importBrowserSession();
+
+  await expect(getLoggedInPage()).rejects.toBe(loginError);
+  expect(mockClose).toHaveBeenCalledTimes(1);
+});
+
+it('로그인에 실패한 뒤 다시 호출되면 새 페이지를 열어 다시 로그인한다', async () => {
+  const newPage = createFakePage();
+  mockCreatePage
+    .mockResolvedValueOnce({ browser: { close: vi.fn() }, page: createFakePage() })
+    .mockResolvedValueOnce({ browser: {}, page: newPage });
+  mockLoginNaver.mockRejectedValueOnce(new Error('네이버 로그인에 실패했습니다.'));
+  const { getLoggedInPage } = await importBrowserSession();
+
+  await expect(getLoggedInPage()).rejects.toThrow();
+  await expect(getLoggedInPage()).resolves.toBe(newPage);
+  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage);
+});
+
 it('탭과 창이 열려 있으면 isPageClosed가 false를 반환한다', async () => {
   const { isPageClosed } = await importBrowserSession();
 
