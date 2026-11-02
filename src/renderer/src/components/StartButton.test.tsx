@@ -4,21 +4,21 @@ import { customRender } from '../customRender';
 
 test('버튼을 클릭하면 onClick이 호출된다', async () => {
   const handleClick = vi.fn();
-  const screen = await customRender(<StartButton onClick={handleClick} isPreparing={false} />);
+  const screen = await customRender(<StartButton onClick={handleClick} isDisabled={false} />);
 
   await screen.getByRole('button', { name: '자동 수정 시작' }).click();
 
   expect(handleClick).toHaveBeenCalledOnce();
 });
 
-test('isPreparing이 true면 버튼이 비활성화된다', async () => {
-  const screen = await customRender(<StartButton onClick={vi.fn()} isPreparing={true} />);
+test('isDisabled가 true면 버튼이 비활성화된다', async () => {
+  const screen = await customRender(<StartButton onClick={vi.fn()} isDisabled={true} />);
 
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
 });
 
-test('isPreparing이 false면 버튼이 활성화되어 있다', async () => {
-  const screen = await customRender(<StartButton onClick={vi.fn()} isPreparing={false} />);
+test('isDisabled가 false면 버튼이 활성화되어 있다', async () => {
+  const screen = await customRender(<StartButton onClick={vi.fn()} isDisabled={false} />);
 
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).not.toBeDisabled();
 });

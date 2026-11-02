@@ -40,19 +40,23 @@ const updateState: UpdateState = {
     createTargetProduct({ name: '블루투스 스피커 미니', originProductNo: 2 }),
   ],
   invalidProductRows: [{ name: '무선 충전기', errorMessages: ['productPrice: 숫자가 아닙니다.'] }],
-  currentIndex: 0,
+  currentIndex: null,
   isPreparing: false,
-  isRunning: true,
+  isRunning: false,
+};
+
+// 구독하자마자 main이 state를 보낸 것처럼 콜백을 바로 호출한다.
+const mockSentUpdateState = (state: UpdateState): void => {
+  mockOnUpdateState.mockImplementation((callback) => {
+    callback(state);
+    return vi.fn();
+  });
 };
 
 beforeEach(() => {
   vi.resetAllMocks();
 
-  // 구독하자마자 main이 상태를 보낸 것처럼 콜백을 바로 호출한다.
-  mockOnUpdateState.mockImplementation((callback) => {
-    callback(updateState);
-    return vi.fn();
-  });
+  mockSentUpdateState(updateState);
   mockStartUpdate.mockResolvedValue({ status: 'error', message: '스프레드시트 조회 실패' });
 });
 
@@ -64,4 +68,20 @@ test('시작에 실패하면 에러 배너, 변환 실패 배너, 상품 목록�
   await expect.element(screen.getByText('스프레드시트 조회 실패')).toBeVisible();
   await expect.element(screen.getByText('무선 충전기')).toBeVisible();
   await expect.element(screen.getByText('블루투스 스피커 미니')).toBeVisible();
+});
+
+test('준비 중이면 시작 버튼이 비활성화된다', async () => {
+  mockSentUpdateState({ ...updateState, isPreparing: true });
+
+  const screen = await render(<App />);
+
+  await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
+});
+
+test('순회 중이면 시작 버튼이 비활성화된다', async () => {
+  mockSentUpdateState({ ...updateState, currentIndex: 0, isRunning: true });
+
+  const screen = await render(<App />);
+
+  await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
 });

@@ -22,6 +22,7 @@ const App = (): React.JSX.Element => {
     targetProducts,
     invalidProductRows,
     isPreparing,
+    isRunning,
     currentProduct,
     currentOrder,
     startUpdateErrorMessage,
@@ -32,7 +33,8 @@ const App = (): React.JSX.Element => {
     <StyleProvider>
       <AppContainer>
         <Header />
-        <StartButton onClick={startUpdate} isPreparing={isPreparing} />
+        {/* main은 준비부터 순회가 끝날 때까지 새 시작을 막으므로, 버튼도 같은 구간에 비활성화한다. */}
+        <StartButton onClick={startUpdate} isDisabled={isPreparing || isRunning} />
         {startUpdateErrorMessage !== null && (
           <StartUpdateErrorBanner message={startUpdateErrorMessage} />
         )}

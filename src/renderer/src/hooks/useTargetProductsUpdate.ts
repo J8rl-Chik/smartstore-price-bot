@@ -9,6 +9,7 @@ interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
   invalidProductRows: InvalidProductRow[];
   isPreparing: boolean;
+  isRunning: boolean;
   currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
   // 목록 조회·로그인 실패나 치명적 실패처럼 순회를 끝내지 못한 이유. 실패하지 않았으면 null
@@ -46,7 +47,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     }
   };
 
-  const { targetProducts, invalidProductRows, currentIndex, isPreparing } = updateState;
+  const { targetProducts, invalidProductRows, currentIndex, isPreparing, isRunning } = updateState;
 
   // 진행 상태는 별도 state로 두지 않고 targetProducts와 currentIndex에서 계산한다.
   const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
@@ -56,6 +57,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     targetProducts,
     invalidProductRows,
     isPreparing,
+    isRunning,
     currentProduct,
     currentOrder,
     startUpdateErrorMessage,
