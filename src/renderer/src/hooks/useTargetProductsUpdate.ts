@@ -11,7 +11,7 @@ interface TargetProductsUpdate {
   isPreparing: boolean;
   currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
-  // 목록 조회·로그인처럼 순회를 시작하기 전에 실패한 이유. 실패하지 않았으면 null
+  // 목록 조회·로그인 실패나 치명적 실패처럼 순회를 끝내지 못한 이유. 실패하지 않았으면 null
   startUpdateErrorMessage: string | null;
   startUpdate: () => Promise<void>;
 }

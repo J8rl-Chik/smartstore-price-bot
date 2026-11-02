@@ -13,7 +13,9 @@ import type { StartUpdateResult } from '../preload/_type';
 /**
  * 상품 목록 조회, 로그인, 가격 수정 순회까지 처리하는 startUpdate 핸들러를 만든다.
  * 진행 상태는 응답이 아니라 updateState 채널로 요청한 창에 보내고, 응답으로는 처리 결과만 돌려준다.
- * 목록 조회·로그인 실패는 throw하지 않고 error 결과로 돌려준다. throw하면 Electron이 메시지 앞에 접두어를 붙여 보내기 때문이다.
+ * 목록 조회·로그인 실패와 순회를 멈춘 치명적 실패는 throw하지 않고 error 결과로 돌려준다.
+ * throw하면 Electron이 메시지 앞에 접두어를 붙여 보내기 때문이다.
+ * 어떻게 끝나든 화면이 준비 중이나 순회 중 상태에 머물지 않도록 끝난 상태는 finally에서 한 번에 보낸다.
  * 핸들러를 여러 번 호출해도 isUpdateRunning을 공유하도록 이 함수의 클로저에 보관한다.
  */
 const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResult>) => {
@@ -36,15 +38,9 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
       const myStoreName = validateEnv('SMART_STORE_NAME');
       const { targetProducts, invalidProductRows } = await fetchTargetProducts();
 
-      // 수정할 상품이 없으면 로그인하지 않고, 빈 목록과 변환에 실패한 시트 행으로 끝난 상태만 보낸다.
+      // 수정할 상품이 없으면 로그인하지 않고, 변환에 실패한 시트 행만 보낸 뒤 끝낸다.
       if (targetProducts.length === 0) {
-        sendState({
-          targetProducts: [],
-          invalidProductRows,
-          currentIndex: null,
-          isPreparing: false,
-          isRunning: false,
-        });
+        sendState({ invalidProductRows });
 
         return { status: 'done' };
       }
@@ -65,7 +61,8 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
 
       /**
        * 상품 하나의 실패는 그 상품만 error로 반영하고 계속하며,
-       * 네이버 쇼핑 접속 제한(UnexpectedCatalogPageError)처럼 다음 상품도 실패할 치명적 실패는 error로 반영한 뒤 중단한다.
+       * 네이버 쇼핑 접속 제한(UnexpectedCatalogPageError)처럼 다음 상품도 실패할 치명적 실패는
+       * error로 반영한 뒤 던져서, 순회 전 실패처럼 catch에서 error 결과로 돌려준다.
        */
       for (const [index, targetProduct] of targetProducts.entries()) {
         sendState({ currentIndex: index });
@@ -92,28 +89,30 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
             : update,
         );
 
-        // 다음 상품도 실패할 치명적 실패거나, 사용자가 브라우저를 닫았으면 순회를 멈춘다.
-        if (fatalError || isPageClosed(page)) {
+        if (fatalError) {
+          throw fatalError;
+        }
+
+        // 사용자가 브라우저를 닫은 건 실패가 아니므로 순회만 멈추고 done으로 끝낸다.
+        if (isPageClosed(page)) {
           break;
         }
 
         await delaySeconds(5);
       }
 
-      sendState({ currentIndex: null, isRunning: false });
-
       return { status: 'done' };
     } catch (error) {
       console.error(error);
-      // 준비 중에 실패해도 화면이 준비 중 상태에 머물지 않도록 준비를 끝낸 상태를 보낸다.
-      sendState({ isPreparing: false });
 
       return {
         status: 'error',
         message: error instanceof Error ? error.message : ERROR_MESSAGE.UNKNOWN_ERROR,
       };
     } finally {
+      // 끝난 상태를 보내다 창이 닫혀 실패해도 다음 순회가 막히지 않도록 잠금부터 푼다.
       isUpdateRunning = false;
+      sendState({ currentIndex: null, isPreparing: false, isRunning: false });
     }
   };
 };

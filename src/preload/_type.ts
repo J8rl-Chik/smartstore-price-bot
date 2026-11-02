@@ -5,7 +5,8 @@ import type { UpdateState } from '../domain/product/_type';
  * startUpdate 요청에 대한 응답. 순회 진행 상태가 아니라 요청을 처리한 결과만 담는다.
  * done: 순회를 끝냈거나 수정할 상품이 없어 끝났다. 상품별 실패는 진행 상태의 update로 받는다.
  * running: 이미 순회가 도는 중이라 새로 시작하지 않았다.
- * error: 목록 조회·로그인처럼 순회를 시작하기 전에 실패했다. message는 가장 바깥 에러의 메시지다.
+ * error: 목록 조회·로그인처럼 순회를 시작하기 전에 실패했거나, 네이버 쇼핑 접속 제한처럼 치명적 실패로 순회를 멈췄다.
+ * message는 순회 전 실패면 가장 바깥 에러의 메시지, 치명적 실패면 원인 에러의 메시지다.
  */
 export type StartUpdateResult =
   { status: 'done' } | { status: 'running' } | { status: 'error'; message: string };

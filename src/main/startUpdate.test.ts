@@ -480,3 +480,39 @@ it('치명적 실패로 중단해도 currentIndex를 null로, isRunning을 false
 
   expect(getLastSentState()).toMatchObject({ currentIndex: null, isRunning: false });
 });
+
+it('치명적 실패로 중단하면 error 결과로 원인 에러의 메시지를 돌려준다', async () => {
+  mockLoggedInWith([productA, productB]);
+  mockUpdateTargetProductPrice.mockRejectedValueOnce(
+    new Error(ERROR_MESSAGE.SELLERS_FETCH_FAILED, {
+      cause: new UnexpectedCatalogPageError(ERROR_MESSAGE.CATALOG_BLOCKED),
+    }),
+  );
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await expect(runStartUpdate()).resolves.toEqual({
+    status: 'error',
+    message: ERROR_MESSAGE.CATALOG_BLOCKED,
+  });
+});
+
+it('사용자가 브라우저를 닫아 중단하면 done 결과를 돌려준다', async () => {
+  mockLoggedInWith([productA, productB]);
+  mockIsPageClosed.mockReturnValue(true);
+
+  await expect(runStartUpdate()).resolves.toEqual({ status: 'done' });
+});
+
+it('순회 중 예상하지 못한 에러가 나도 currentIndex를 null로, isRunning을 false로 바꾼 상태를 보낸다', async () => {
+  mockLoggedInWith([productA, productB]);
+  mockDelaySeconds.mockRejectedValueOnce(new Error('예상하지 못한 에러'));
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await runStartUpdate();
+
+  expect(getLastSentState()).toMatchObject({
+    currentIndex: null,
+    isPreparing: false,
+    isRunning: false,
+  });
+});
