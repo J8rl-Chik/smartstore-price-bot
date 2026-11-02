@@ -1,6 +1,6 @@
 ---
 name: vitest-react-test-convention
-description: 이 프로젝트에서 vitest로 테스트를 작성하는 컨벤션. src/renderer/src 아래 React 컴포넌트의 .test.tsx 파일(vitest-browser-react)을 새로 작성하거나 수정할 때 반드시 참고한다. 또 .test.ts 파일을 포함해 어떤 테스트 파일이든 새로 만들거나 고칠 때 "공통 규칙"(import 시 자동 실행되는 코드 처리, it.each 사용 금지, 테스트 데이터·헬퍼 선언 위치, 바깥 describe 금지)을 적용한다. "테스트"라는 말이 없어도 테스트 파일을 만들거나 고치는 모든 작업에서 이 스킬을 적용한다.
+description: 이 프로젝트에서 vitest로 테스트를 작성하는 컨벤션. src/renderer/src 아래 React 컴포넌트의 .test.tsx 파일(vitest-browser-react)을 새로 작성하거나 수정할 때 반드시 참고한다. 또 .test.ts 파일을 포함해 어떤 테스트 파일이든 새로 만들거나 고칠 때 "공통 규칙"(import 시 자동 실행되는 코드 처리, it.each 사용 금지, 테스트 데이터·헬퍼 선언 위치, 바깥 describe 금지, 부분 검증 필드 선택)을 적용한다. "테스트"라는 말이 없어도 테스트 파일을 만들거나 고치는 모든 작업에서 이 스킬을 적용한다.
 ---
 
 # vitest + React 컴포넌트 테스트 컨벤션
@@ -102,6 +102,25 @@ describe('error 상태이면', () => {
   const update = { status: 'error', time: updateTime } as const;
 
   it('수정가는 없고 상태는 error이다', ...);
+});
+```
+
+### 5. 부분 검증(`toMatchObject` 등)에 넣을 필드는 대상 코드에서 정한다
+
+`toMatchObject`, `expect.objectContaining`으로 일부 필드만 확인할 때는, 대상 코드가 그 시점에 한꺼번에 설정하는 필드를 모두 넣는다. 비슷한 기존 테스트의 필드 목록을 그대로 복사하지 않는다. 기존 테스트는 대상 코드가 바뀌기 전에 쓰여서 필드가 빠져 있을 수 있기 때문이다.
+
+```ts
+// 대상 코드
+sendState({ currentIndex: null, isPreparing: false, isRunning: false });
+
+// 쓰지 않는다 (기존 테스트를 따라 isPreparing을 빠뜨림)
+expect(getLastSentState()).toMatchObject({ currentIndex: null, isRunning: false });
+
+// 이렇게 쓴다
+expect(getLastSentState()).toMatchObject({
+  currentIndex: null,
+  isPreparing: false,
+  isRunning: false,
 });
 ```
 
