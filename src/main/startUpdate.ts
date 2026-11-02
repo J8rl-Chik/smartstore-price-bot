@@ -7,7 +7,7 @@ import findErrorInCause from '../utils/findErrorInCause';
 import fetchTargetProducts from './fetchTargetProducts';
 import updateTargetProductPrice from './updateTargetProductPrice';
 import { createStateSender } from './state';
-import { getLoggedInPage, isPageClosed } from './browserSession';
+import { closeBrowser, getLoggedInPage, isPageClosed } from './browserSession';
 import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import type { StartUpdateResult } from '../preload/_type';
 /**
@@ -16,6 +16,7 @@ import type { StartUpdateResult } from '../preload/_type';
  * 목록 조회·로그인 실패와 순회를 멈춘 치명적 실패는 throw하지 않고 error 결과로 돌려준다.
  * throw하면 Electron이 메시지 앞에 접두어를 붙여 보내기 때문이다.
  * 어떻게 끝나든 화면이 준비 중이나 순회 중 상태에 머물지 않도록 끝난 상태는 finally에서 한 번에 보낸다.
+ * 브라우저도 finally에서 닫는다. 로그인 쿠키는 userDataDir에 남아 다음 순회에서 로그인 폼을 다시 입력하지 않는다.
  * 핸들러를 여러 번 호출해도 isUpdateRunning을 공유하도록 이 함수의 클로저에 보관한다.
  */
 const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResult>) => {
@@ -110,7 +111,14 @@ const createStartUpdate = (): ((sender: WebContents) => Promise<StartUpdateResul
         message: error instanceof Error ? error.message : ERROR_MESSAGE.UNKNOWN_ERROR,
       };
     } finally {
-      // 끝난 상태를 보내다 창이 닫혀 실패해도 다음 순회가 막히지 않도록 잠금부터 푼다.
+      // 다음 순회가 닫히는 중인 브라우저를 받지 않도록, 브라우저를 닫은 뒤에 잠금을 푼다.
+      const [closeError] = await tryCatch(closeBrowser());
+
+      if (closeError) {
+        console.error(closeError);
+      }
+
+      // 끝난 상태를 보내다 창이 닫혀 실패해도 다음 순회가 막히지 않도록 상태보다 잠금부터 푼다.
       isUpdateRunning = false;
       sendState({ currentIndex: null, isPreparing: false, isRunning: false });
     }

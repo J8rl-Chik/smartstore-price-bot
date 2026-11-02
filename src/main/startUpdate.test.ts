@@ -8,6 +8,7 @@ import type { StartUpdateResult } from '../preload/_type';
 
 const mockGetLoggedInPage = vi.fn();
 const mockIsPageClosed = vi.fn();
+const mockCloseBrowser = vi.fn();
 const mockFetchTargetProducts = vi.fn();
 const mockValidateEnv = vi.fn();
 const mockUpdateTargetProductPrice = vi.fn();
@@ -17,6 +18,7 @@ const mockSend = vi.fn();
 vi.mock(import('./browserSession'), () => ({
   getLoggedInPage: (...args: unknown[]) => mockGetLoggedInPage(...args),
   isPageClosed: (...args: unknown[]) => mockIsPageClosed(...args),
+  closeBrowser: (...args: unknown[]) => mockCloseBrowser(...args),
 }));
 
 vi.mock(import('./fetchTargetProducts'), () => ({
@@ -39,6 +41,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   mockGetLoggedInPage.mockReset();
   mockIsPageClosed.mockReset();
+  mockCloseBrowser.mockReset();
   mockFetchTargetProducts.mockReset();
   mockValidateEnv.mockReset();
   mockUpdateTargetProductPrice.mockReset();
@@ -515,4 +518,71 @@ it('순회 중 예상하지 못한 에러가 나도 currentIndex를 null로, isR
     isPreparing: false,
     isRunning: false,
   });
+});
+
+it('순회가 끝나면 브라우저를 닫는다', async () => {
+  mockLoggedInWith([productA]);
+
+  await runStartUpdate();
+
+  expect(mockCloseBrowser).toHaveBeenCalledOnce();
+});
+
+it('목록 조회에 실패해도 브라우저를 닫는다', async () => {
+  mockFetchTargetProducts.mockRejectedValue(new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED));
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await runStartUpdate();
+
+  expect(mockCloseBrowser).toHaveBeenCalledOnce();
+});
+
+it('치명적 실패로 중단해도 브라우저를 닫는다', async () => {
+  mockLoggedInWith([productA, productB]);
+  mockUpdateTargetProductPrice.mockRejectedValueOnce(
+    new UnexpectedCatalogPageError(ERROR_MESSAGE.CATALOG_BLOCKED),
+  );
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await runStartUpdate();
+
+  expect(mockCloseBrowser).toHaveBeenCalledOnce();
+});
+
+it('브라우저를 닫지 못하면 콘솔에 로깅하고, 결과와 끝난 상태는 그대로 보낸다', async () => {
+  const closeError = new Error('브라우저 닫기 실패');
+  mockLoggedInWith([productA]);
+  mockCloseBrowser.mockRejectedValue(closeError);
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  await expect(runStartUpdate()).resolves.toEqual({ status: 'done' });
+  expect(consoleErrorSpy).toHaveBeenCalledWith(closeError);
+  expect(getLastSentState()).toMatchObject({
+    currentIndex: null,
+    isPreparing: false,
+    isRunning: false,
+  });
+});
+
+it('브라우저를 닫지 못해도 다시 호출했을 때 새 순회를 시작한다', async () => {
+  mockLoggedInWith([productA]);
+  mockCloseBrowser.mockRejectedValueOnce(new Error('브라우저 닫기 실패'));
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  const startUpdate = createStartUpdate();
+  await startUpdate(fakeSender);
+  await startUpdate(fakeSender);
+
+  expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(2);
+});
+
+it('브라우저를 다 닫기 전에 다시 호출되면 running 결과를 돌려준다', async () => {
+  mockLoggedInWith([productA]);
+  mockCloseBrowser.mockReturnValue(new Promise(() => {}));
+
+  const startUpdate = createStartUpdate();
+  void startUpdate(fakeSender);
+  await vi.waitFor(() => expect(mockCloseBrowser).toHaveBeenCalled());
+
+  await expect(startUpdate(fakeSender)).resolves.toEqual({ status: 'running' });
 });

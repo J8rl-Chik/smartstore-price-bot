@@ -4,8 +4,8 @@ import loginNaver from '../integrations/puppeteer/loginNaver';
 import tryCatch from '../utils/tryCatch';
 
 /**
- * startUpdate를 다시 호출해도 다시 로그인하지 않도록 로그인한 페이지를 보관한다.
- * 앱을 종료할 때 브라우저도 닫을 수 있도록 페이지를 연 브라우저도 함께 보관한다.
+ * 지금 열린 브라우저와 로그인한 페이지를 보관한다.
+ * startUpdate는 순회가 끝날 때마다 브라우저를 닫지만, 순회 도중 앱을 종료해도 closeBrowser로 닫을 수 있도록 보관한다.
  */
 let session: { browser: Browser; page: Page } | null = null;
 
