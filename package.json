@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:browser": "vitest --config=vitest.browser.config.ts"
+    "test:browser": "vitest --project browser --browser.headless=false"
   },
   "keywords": [],
   "author": "",
