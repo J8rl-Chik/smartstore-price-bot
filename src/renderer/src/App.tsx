@@ -3,6 +3,7 @@ import Header from './components/Header';
 import InvalidProductRowBanner from './components/InvalidProductRowBanner';
 import ProductTable from './components/ProductTable';
 import ProgressBar from './components/ProgressBar';
+import RestartCountdown from './components/RestartCountdown';
 import StartButton from './components/StartButton';
 import StartUpdateErrorBanner from './components/StartUpdateErrorBanner';
 import StyleProvider from './components/StyleProvider';
@@ -26,6 +27,7 @@ const App = (): React.JSX.Element => {
     currentProduct,
     currentOrder,
     errorMessage,
+    nextRunAt,
     startUpdate,
   } = useTargetProductsUpdate();
 
@@ -33,8 +35,13 @@ const App = (): React.JSX.Element => {
     <StyleProvider>
       <AppContainer>
         <Header />
-        {/* main은 준비부터 순회가 끝날 때까지 새 시작을 막으므로, 버튼도 같은 구간에 비활성화한다. */}
-        <StartButton onClick={startUpdate} isDisabled={isPreparing || isRunning} />
+        {/* main은 준비부터 순회가 끝날 때까지, 그리고 재실행을 기다리는 동안 새 시작을 막으므로 버튼도 같은 구간에 비활성화한다. */}
+        <StartButton
+          onClick={startUpdate}
+          isDisabled={isPreparing || isRunning || nextRunAt !== null}
+        />
+        {/* 재실행 시각이 바뀌면 남은 시간을 새로 계산하도록 key로 다시 마운트한다. */}
+        {nextRunAt !== null && <RestartCountdown key={nextRunAt} nextRunAt={nextRunAt} />}
         {errorMessage !== null && <StartUpdateErrorBanner message={errorMessage} />}
         {invalidProductRows.length > 0 && <InvalidProductRowBanner rows={invalidProductRows} />}
         <ProgressBar

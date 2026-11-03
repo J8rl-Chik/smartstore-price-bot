@@ -13,6 +13,8 @@ interface TargetProductsUpdate {
   currentProduct: TargetProductWithUpdate | undefined;
   currentOrder: number;
   errorMessage: string | null;
+  // 재실행을 예약한 시각(Date.now() 기준 ms). 예약이 없으면 null
+  nextRunAt: number | null;
   startUpdate: () => Promise<void>;
 }
 
@@ -45,8 +47,15 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     await window.api.startUpdate(null);
   };
 
-  const { targetProducts, invalidProductRows, currentIndex, isPreparing, isRunning, errorMessage } =
-    updateState;
+  const {
+    targetProducts,
+    invalidProductRows,
+    currentIndex,
+    isPreparing,
+    isRunning,
+    errorMessage,
+    nextRunAt,
+  } = updateState;
 
   // 진행 상태는 별도 state로 두지 않고 targetProducts와 currentIndex에서 계산한다.
   const currentProduct = currentIndex === null ? undefined : targetProducts.at(currentIndex);
@@ -60,6 +69,7 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
     currentProduct,
     currentOrder,
     errorMessage,
+    nextRunAt,
     startUpdate,
   };
 };

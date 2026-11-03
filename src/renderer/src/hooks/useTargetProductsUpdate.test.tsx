@@ -35,6 +35,7 @@ test('처음에는 상품과 진행 상태가 비어 있다', async () => {
   expect(result.current.currentProduct).toBeUndefined();
   expect(result.current.currentOrder).toBe(0);
   expect(result.current.errorMessage).toBeNull();
+  expect(result.current.nextRunAt).toBeNull();
 });
 
 test('렌더링하면 updateState 구독을 등록하고, 언마운트하면 해제한다', async () => {
@@ -258,4 +259,22 @@ test('main이 보낸 상태의 errorMessage를 그대로 알려준다', async ()
   });
 
   expect(result.current.errorMessage).toBe('네이버 로그인에 실패했습니다.');
+});
+
+test('main이 보낸 상태의 nextRunAt을 그대로 알려준다', async () => {
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => {
+    emitUpdateState({
+      targetProducts: [],
+      invalidProductRows: [],
+      currentIndex: null,
+      isPreparing: false,
+      isRunning: false,
+      errorMessage: null,
+      nextRunAt: 1700000000000,
+    });
+  });
+
+  expect(result.current.nextRunAt).toBe(1700000000000);
 });

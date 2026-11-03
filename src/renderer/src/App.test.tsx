@@ -88,3 +88,18 @@ test('순회 중이면 시작 버튼이 비활성화된다', async () => {
 
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
 });
+
+test('재실행을 기다리는 중이면 남은 시간을 보여주고 시작 버튼이 비활성화된다', async () => {
+  mockSentUpdateState({ ...updateState, nextRunAt: Date.now() + 30 * 60 * 1000 });
+
+  const screen = await render(<App />);
+
+  await expect.element(screen.getByRole('status')).toHaveTextContent('다음 자동 수정까지 30:00');
+  await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
+});
+
+test('예약한 재실행이 없으면 남은 시간을 보여주지 않는다', async () => {
+  const screen = await render(<App />);
+
+  await expect.element(screen.getByRole('status')).not.toBeInTheDocument();
+});
