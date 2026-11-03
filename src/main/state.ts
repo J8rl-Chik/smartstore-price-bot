@@ -14,6 +14,7 @@ const initialState: UpdateState = {
   isPreparing: false,
   isRunning: false,
   errorMessage: null,
+  nextRunAt: null,
 };
 
 /**

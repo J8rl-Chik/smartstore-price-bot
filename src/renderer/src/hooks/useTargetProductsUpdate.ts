@@ -23,6 +23,7 @@ const initialUpdateState: UpdateState = {
   isPreparing: false,
   isRunning: false,
   errorMessage: null,
+  nextRunAt: null,
 };
 
 /**
@@ -36,11 +37,12 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
   useEffect(() => window.api.onUpdateState(setUpdateState), []);
 
   /**
-   * 실패 이유도 main이 상태(errorMessage)로 보내므로 응답은 쓰지 않는다.
+   * 실패 이유도 main이 상태(errorMessage)로 보낸다.
    * 다시 시작하면 main이 빈 초기 상태부터 보내 이전 실패 이유도 함께 지워진다.
    */
   const startUpdate = async (): Promise<void> => {
-    await window.api.startUpdate();
+    // TODO: 재실행 간격 입력 UI를 추가하면 null 대신 입력한 값을 넘긴다. 지금은 자동 재실행 없이 한 번만 순회한다.
+    await window.api.startUpdate(null);
   };
 
   const { targetProducts, invalidProductRows, currentIndex, isPreparing, isRunning, errorMessage } =

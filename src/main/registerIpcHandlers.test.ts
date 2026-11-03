@@ -2,21 +2,35 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { registerIpcHandlers } from './registerIpcHandlers';
 
 const mockHandle = vi.fn();
+const mockCreateUpdateScheduler = vi.fn();
 const mockCreateStartUpdate = vi.fn();
+const mockCreateStopUpdate = vi.fn();
 const mockStartUpdate = vi.fn();
+const mockStopUpdate = vi.fn();
 
 vi.mock('electron', () => ({
   ipcMain: { handle: (...args: unknown[]) => mockHandle(...args) },
+}));
+
+vi.mock(import('./updateScheduler'), () => ({
+  default: (...args: unknown[]) => mockCreateUpdateScheduler(...args),
 }));
 
 vi.mock(import('./startUpdate'), () => ({
   default: (...args: unknown[]) => mockCreateStartUpdate(...args),
 }));
 
+vi.mock(import('./stopUpdate'), () => ({
+  default: (...args: unknown[]) => mockCreateStopUpdate(...args),
+}));
+
 afterEach(() => {
   mockHandle.mockReset();
+  mockCreateUpdateScheduler.mockReset();
   mockCreateStartUpdate.mockReset();
+  mockCreateStopUpdate.mockReset();
   mockStartUpdate.mockReset();
+  mockStopUpdate.mockReset();
 });
 
 // ipcMain.handle에 등록된 콜백 중 해당 채널의 콜백을 찾는다.
@@ -30,33 +44,33 @@ const findRegisteredCallback = (channel: string): ((...args: unknown[]) => unkno
   return call[1];
 };
 
-it('startUpdate 채널에 createStartUpdate로 만든 핸들러를 한 번만 만들어 등록한다', () => {
-  mockCreateStartUpdate.mockReturnValue(mockStartUpdate);
+const fakeScheduler = {};
+
+it('scheduler를 한 번만 만들어 startUpdate, stopUpdate 핸들러에 함께 넘긴다', () => {
+  mockCreateUpdateScheduler.mockReturnValue(fakeScheduler);
 
   registerIpcHandlers();
 
-  expect(mockCreateStartUpdate).toHaveBeenCalledTimes(1);
-  expect(mockHandle).toHaveBeenCalledWith('startUpdate', expect.any(Function));
+  expect(mockCreateUpdateScheduler).toHaveBeenCalledOnce();
+  expect(mockCreateStartUpdate).toHaveBeenCalledWith(fakeScheduler);
+  expect(mockCreateStopUpdate).toHaveBeenCalledWith(fakeScheduler);
 });
 
-it('startUpdate 채널이 호출되면 요청한 창(sender)을 핸들러에 전달한다', async () => {
+it('startUpdate 채널이 호출되면 재실행 간격과 요청한 창(sender)을 핸들러에 전달한다', async () => {
   const sender = { send: vi.fn() };
   mockCreateStartUpdate.mockReturnValue(mockStartUpdate);
 
   registerIpcHandlers();
-  await findRegisteredCallback('startUpdate')({ sender });
+  await findRegisteredCallback('startUpdate')({ sender }, 30);
 
-  expect(mockStartUpdate).toHaveBeenCalledWith(sender);
+  expect(mockStartUpdate).toHaveBeenCalledWith(30, sender);
 });
 
-it('startUpdate 핸들러가 돌려준 결과를 응답으로 돌려준다', async () => {
-  mockStartUpdate.mockResolvedValue({ status: 'error', message: '네이버 로그인에 실패했습니다.' });
-  mockCreateStartUpdate.mockReturnValue(mockStartUpdate);
+it('stopUpdate 채널이 호출되면 stopUpdate 핸들러를 호출한다', async () => {
+  mockCreateStopUpdate.mockReturnValue(mockStopUpdate);
 
   registerIpcHandlers();
+  await findRegisteredCallback('stopUpdate')({ sender: {} });
 
-  await expect(findRegisteredCallback('startUpdate')({ sender: {} })).resolves.toEqual({
-    status: 'error',
-    message: '네이버 로그인에 실패했습니다.',
-  });
+  expect(mockStopUpdate).toHaveBeenCalledOnce();
 });

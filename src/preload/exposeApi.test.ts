@@ -60,24 +60,18 @@ const getExposedApi = (): Api => {
   return api;
 };
 
-it('startUpdate를 호출하면 startUpdate 채널로 invoke를 호출한다', async () => {
-  mockInvoke.mockResolvedValue({ status: 'done' });
-
+it('startUpdate를 호출하면 재실행 간격을 담아 startUpdate 채널로 invoke를 호출한다', async () => {
   const api = getExposedApi();
-  await api.startUpdate();
+  await api.startUpdate(30);
 
-  expect(mockInvoke).toHaveBeenCalledWith('startUpdate');
+  expect(mockInvoke).toHaveBeenCalledWith('startUpdate', 30);
 });
 
-it('startUpdate는 main이 돌려준 결과를 그대로 반환한다', async () => {
-  mockInvoke.mockResolvedValue({ status: 'error', message: '네이버 로그인에 실패했습니다.' });
-
+it('stopUpdate를 호출하면 stopUpdate 채널로 invoke를 호출한다', async () => {
   const api = getExposedApi();
+  await api.stopUpdate();
 
-  await expect(api.startUpdate()).resolves.toEqual({
-    status: 'error',
-    message: '네이버 로그인에 실패했습니다.',
-  });
+  expect(mockInvoke).toHaveBeenCalledWith('stopUpdate');
 });
 
 it('onUpdateState를 호출하면 updateState 채널에 listener를 등록한다', () => {
@@ -95,6 +89,7 @@ it('updateState 채널로 상태가 오면 onUpdateState에 넘긴 callback에 �
     isPreparing: false,
     isRunning: true,
     errorMessage: null,
+    nextRunAt: null,
   };
   const callback = vi.fn();
   const api = getExposedApi();

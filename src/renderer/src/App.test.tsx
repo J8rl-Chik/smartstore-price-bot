@@ -5,10 +5,12 @@ import type { TargetProductWithUpdate, UpdateState } from '../../domain/product/
 import type { IpcInvoke, IpcListener } from '../../preload/_type';
 
 const mockStartUpdate = vi.fn<IpcInvoke['startUpdate']>();
+const mockStopUpdate = vi.fn<IpcInvoke['stopUpdate']>();
 const mockOnUpdateState = vi.fn<IpcListener['onUpdateState']>();
 
 window.api = {
   startUpdate: mockStartUpdate,
+  stopUpdate: mockStopUpdate,
   onUpdateState: mockOnUpdateState,
 };
 
@@ -44,6 +46,7 @@ const updateState: UpdateState = {
   isPreparing: false,
   isRunning: false,
   errorMessage: null,
+  nextRunAt: null,
 };
 
 // 구독하자마자 main이 state를 보낸 것처럼 콜백을 바로 호출한다.

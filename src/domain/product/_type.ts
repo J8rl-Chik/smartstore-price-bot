@@ -98,6 +98,7 @@ export interface InvalidProductRow {
  * isPreparing: 상품 목록 조회·로그인처럼 순회를 시작하기 전 준비 중인지 여부.
  * errorMessage: 목록 조회·로그인 실패나 치명적 실패처럼 순회를 끝내지 못한 이유. 실패하지 않았으면 null.
  * 자동 재실행처럼 renderer가 요청하지 않은 순회의 실패도 화면에 보이도록 응답이 아니라 상태로 보낸다.
+ * nextRunAt: 자동 재실행을 예약한 시각(Date.now() 기준 밀리초). 예약하지 않았거나 멈췄으면 null.
  */
 export interface UpdateState {
   targetProducts: TargetProductWithUpdate[];
@@ -106,4 +107,5 @@ export interface UpdateState {
   isPreparing: boolean;
   isRunning: boolean;
   errorMessage: string | null;
+  nextRunAt: number | null;
 }

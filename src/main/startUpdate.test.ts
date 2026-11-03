@@ -1,10 +1,10 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WebContents } from 'electron';
 import createStartUpdate from './startUpdate';
+import createUpdateScheduler from './updateScheduler';
 import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
 import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import type { UpdateState } from '../domain/product/_type';
-import type { StartUpdateResult } from '../preload/_type';
 
 const mockGetLoggedInPage = vi.fn();
 const mockIsPageClosed = vi.fn();
@@ -14,6 +14,7 @@ const mockValidateEnv = vi.fn();
 const mockUpdateTargetProductPrice = vi.fn();
 const mockDelaySeconds = vi.fn();
 const mockSend = vi.fn();
+const mockIsDestroyed = vi.fn();
 
 vi.mock(import('./browserSession'), () => ({
   getLoggedInPage: (...args: unknown[]) => mockGetLoggedInPage(...args),
@@ -47,16 +48,18 @@ afterEach(() => {
   mockUpdateTargetProductPrice.mockReset();
   mockDelaySeconds.mockReset();
   mockSend.mockReset();
+  mockIsDestroyed.mockReset();
 });
 
-// 상태를 보내는 send만 가진 가짜 sender
-const fakeSender = { send: mockSend } as unknown as WebContents;
+// 상태를 보내는 send와 창이 닫혔는지 확인하는 isDestroyed만 가진 가짜 sender
+const fakeSender = { send: mockSend, isDestroyed: mockIsDestroyed } as unknown as WebContents;
 
 /**
- * 새 핸들러를 만들어 한 번 호출한다. 핸들러마다 isUpdateRunning이 새로 생기므로 테스트끼리 섞이지 않는다.
+ * 새 scheduler로 핸들러를 만들어 자동 재실행 없이 한 번 호출한다. scheduler마다 순회 중 여부가 새로 생기므로 테스트끼리 섞이지 않는다.
  * 순회 중 재호출처럼 호출 간 공유 상태를 검증할 때는 createStartUpdate()로 만든 핸들러를 여러 번 호출한다.
  */
-const runStartUpdate = (): Promise<StartUpdateResult> => createStartUpdate()(fakeSender);
+const runStartUpdate = (): Promise<void> =>
+  createStartUpdate(createUpdateScheduler())(null, fakeSender);
 
 // 조회할 가격 수정 대상 목록과 변환에 실패한 시트 행을 정한다.
 const mockFetchedTargetProducts = (
@@ -88,19 +91,6 @@ it('상품마다 로그인한 페이지, 상품, 내 스토어 이름으로 가�
   expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(2, fakePage, productB, '내 스토어');
 });
 
-it('순회를 끝내면 done 결과를 돌려준다', async () => {
-  mockFetchedTargetProducts([productA]);
-  mockGetLoggedInPage.mockResolvedValue(fakePage);
-
-  await expect(runStartUpdate()).resolves.toEqual({ status: 'done' });
-});
-
-it('수정할 상품이 없어 끝나도 done 결과를 돌려준다', async () => {
-  mockFetchedTargetProducts([]);
-
-  await expect(runStartUpdate()).resolves.toEqual({ status: 'done' });
-});
-
 it('수정할 상품이 없으면 로그인과 순회를 하지 않고 빈 목록으로 끝난 상태를 보낸다', async () => {
   mockFetchedTargetProducts([]);
 
@@ -115,6 +105,7 @@ it('수정할 상품이 없으면 로그인과 순회를 하지 않고 빈 목�
     isPreparing: false,
     isRunning: false,
     errorMessage: null,
+    nextRunAt: null,
   });
 });
 
@@ -145,6 +136,7 @@ it('수정할 상품이 없어도 변환에 실패한 시트 행을 담아 끝�
     isPreparing: false,
     isRunning: false,
     errorMessage: null,
+    nextRunAt: null,
   });
 });
 
@@ -166,24 +158,12 @@ it('순회가 도는 중에 다시 호출되면 새 순회를 시작하지 않�
   mockGetLoggedInPage.mockResolvedValue(fakePage);
   mockUpdateTargetProductPrice.mockReturnValue(new Promise(() => {}));
 
-  const startUpdate = createStartUpdate();
-  void startUpdate(fakeSender);
+  const startUpdate = createStartUpdate(createUpdateScheduler());
+  void startUpdate(null, fakeSender);
   await vi.waitFor(() => expect(mockUpdateTargetProductPrice).toHaveBeenCalled());
-  await startUpdate(fakeSender);
+  await startUpdate(null, fakeSender);
 
   expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
-});
-
-it('순회가 도는 중에 다시 호출되면 running 결과를 돌려준다', async () => {
-  mockFetchedTargetProducts([productA]);
-  mockGetLoggedInPage.mockResolvedValue(fakePage);
-  mockUpdateTargetProductPrice.mockReturnValue(new Promise(() => {}));
-
-  const startUpdate = createStartUpdate();
-  void startUpdate(fakeSender);
-  await vi.waitFor(() => expect(mockUpdateTargetProductPrice).toHaveBeenCalled());
-
-  await expect(startUpdate(fakeSender)).resolves.toEqual({ status: 'running' });
 });
 
 it('순회가 도는 중에 다시 호출되면 상태를 보내지 않는다', async () => {
@@ -191,11 +171,11 @@ it('순회가 도는 중에 다시 호출되면 상태를 보내지 않는다', 
   mockGetLoggedInPage.mockResolvedValue(fakePage);
   mockUpdateTargetProductPrice.mockReturnValue(new Promise(() => {}));
 
-  const startUpdate = createStartUpdate();
-  void startUpdate(fakeSender);
+  const startUpdate = createStartUpdate(createUpdateScheduler());
+  void startUpdate(null, fakeSender);
   await vi.waitFor(() => expect(mockUpdateTargetProductPrice).toHaveBeenCalled());
   const sentCount = mockSend.mock.calls.length;
-  await startUpdate(fakeSender);
+  await startUpdate(null, fakeSender);
 
   expect(mockSend).toHaveBeenCalledTimes(sentCount);
 });
@@ -204,9 +184,9 @@ it('순회가 끝나면 다시 호출했을 때 새 순회를 시작한다', asy
   mockFetchedTargetProducts([productA]);
   mockGetLoggedInPage.mockResolvedValue(fakePage);
 
-  const startUpdate = createStartUpdate();
-  await startUpdate(fakeSender);
-  await startUpdate(fakeSender);
+  const startUpdate = createStartUpdate(createUpdateScheduler());
+  await startUpdate(null, fakeSender);
+  await startUpdate(null, fakeSender);
 
   expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(2);
 });
@@ -215,10 +195,10 @@ it('다시 시작하면 이전 순회의 상품 목록을 이어받지 않고 �
   mockFetchedTargetProducts([productA]);
   mockGetLoggedInPage.mockResolvedValue(fakePage);
 
-  const startUpdate = createStartUpdate();
-  await startUpdate(fakeSender);
+  const startUpdate = createStartUpdate(createUpdateScheduler());
+  await startUpdate(null, fakeSender);
   mockSend.mockClear();
-  await startUpdate(fakeSender);
+  await startUpdate(null, fakeSender);
 
   const [preparingState] = getSentStates();
 
@@ -229,6 +209,7 @@ it('다시 시작하면 이전 순회의 상품 목록을 이어받지 않고 �
     isPreparing: true,
     isRunning: false,
     errorMessage: null,
+    nextRunAt: null,
   });
 });
 
@@ -240,24 +221,12 @@ it('처리 중 예외가 발생하면 콘솔에 로깅하고, 다시 호출했�
 
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-  const startUpdate = createStartUpdate();
-  await startUpdate(fakeSender);
-  await startUpdate(fakeSender);
+  const startUpdate = createStartUpdate(createUpdateScheduler());
+  await startUpdate(null, fakeSender);
+  await startUpdate(null, fakeSender);
 
   expect(consoleErrorSpy).toHaveBeenCalledWith(error);
   expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(1);
-});
-
-it('목록 조회에 실패하면 throw하지 않고 error 결과로 가장 바깥 에러의 메시지를 돌려준다', async () => {
-  mockFetchTargetProducts.mockRejectedValue(
-    new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED, { cause: new Error('원인 에러') }),
-  );
-  vi.spyOn(console, 'error').mockImplementation(() => {});
-
-  await expect(runStartUpdate()).resolves.toEqual({
-    status: 'error',
-    message: ERROR_MESSAGE.SHEET_FETCH_FAILED,
-  });
 });
 
 it('목록 조회에 실패하면 isPreparing을 false로 바꾼 상태를 보낸다', async () => {
@@ -269,26 +238,34 @@ it('목록 조회에 실패하면 isPreparing을 false로 바꾼 상태를 보�
   expect(getLastSentState()).toMatchObject({ isPreparing: false });
 });
 
-it('로그인에 실패하면 순회 상태를 보내지 않고 error 결과로 메시지를 돌려준다', async () => {
+it('로그인에 실패하면 순회 상태를 보내지 않고 실패 이유를 담아 끝난 상태를 보낸다', async () => {
   mockFetchedTargetProducts([productA]);
   mockGetLoggedInPage.mockRejectedValue(new Error(ERROR_MESSAGE.NAVER_LOGIN_FAILED));
   vi.spyOn(console, 'error').mockImplementation(() => {});
 
-  await expect(runStartUpdate()).resolves.toEqual({
-    status: 'error',
-    message: ERROR_MESSAGE.NAVER_LOGIN_FAILED,
-  });
+  await runStartUpdate();
+
   // 준비 시작과 준비 끝 상태만 보내고, 순회 상태는 보내지 않는다.
   expect(getSentStates().map(({ isPreparing }) => isPreparing)).toEqual([true, false]);
+  expect(getLastSentState()).toMatchObject({
+    currentIndex: null,
+    isPreparing: false,
+    isRunning: false,
+    errorMessage: ERROR_MESSAGE.NAVER_LOGIN_FAILED,
+  });
 });
 
-it('순회를 시작하기 전에 Error가 아닌 값이 던져지면 알 수 없는 에러 메시지를 돌려준다', async () => {
+it('순회를 시작하기 전에 Error가 아닌 값이 던져지면 알 수 없는 에러 메시지를 담아 끝난 상태를 보낸다', async () => {
   mockFetchTargetProducts.mockRejectedValue('문자열 에러');
   vi.spyOn(console, 'error').mockImplementation(() => {});
 
-  await expect(runStartUpdate()).resolves.toEqual({
-    status: 'error',
-    message: ERROR_MESSAGE.UNKNOWN_ERROR,
+  await runStartUpdate();
+
+  expect(getLastSentState()).toMatchObject({
+    currentIndex: null,
+    isPreparing: false,
+    isRunning: false,
+    errorMessage: ERROR_MESSAGE.UNKNOWN_ERROR,
   });
 });
 
@@ -313,6 +290,7 @@ it('준비를 마치면 상품 전체가 wait 상태이고 isRunning이 true인 
     isPreparing: false,
     isRunning: true,
     errorMessage: null,
+    nextRunAt: null,
   });
 });
 
@@ -488,28 +466,6 @@ it('치명적 실패로 중단해도 currentIndex를 null로, isRunning을 false
   expect(getLastSentState()).toMatchObject({ currentIndex: null, isRunning: false });
 });
 
-it('치명적 실패로 중단하면 error 결과로 원인 에러의 메시지를 돌려준다', async () => {
-  mockLoggedInWith([productA, productB]);
-  mockUpdateTargetProductPrice.mockRejectedValueOnce(
-    new Error(ERROR_MESSAGE.SELLERS_FETCH_FAILED, {
-      cause: new UnexpectedCatalogPageError(ERROR_MESSAGE.CATALOG_BLOCKED),
-    }),
-  );
-  vi.spyOn(console, 'error').mockImplementation(() => {});
-
-  await expect(runStartUpdate()).resolves.toEqual({
-    status: 'error',
-    message: ERROR_MESSAGE.CATALOG_BLOCKED,
-  });
-});
-
-it('사용자가 브라우저를 닫아 중단하면 done 결과를 돌려준다', async () => {
-  mockLoggedInWith([productA, productB]);
-  mockIsPageClosed.mockReturnValue(true);
-
-  await expect(runStartUpdate()).resolves.toEqual({ status: 'done' });
-});
-
 it('순회 중 예상하지 못한 에러가 나도 currentIndex를 null로, isRunning을 false로 바꾼 상태를 보낸다', async () => {
   mockLoggedInWith([productA, productB]);
   mockDelaySeconds.mockRejectedValueOnce(new Error('예상하지 못한 에러'));
@@ -553,13 +509,14 @@ it('치명적 실패로 중단해도 브라우저를 닫는다', async () => {
   expect(mockCloseBrowser).toHaveBeenCalledOnce();
 });
 
-it('브라우저를 닫지 못하면 콘솔에 로깅하고, 결과와 끝난 상태는 그대로 보낸다', async () => {
+it('브라우저를 닫지 못하면 콘솔에 로깅하고, 끝난 상태는 그대로 보낸다', async () => {
   const closeError = new Error('브라우저 닫기 실패');
   mockLoggedInWith([productA]);
   mockCloseBrowser.mockRejectedValue(closeError);
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-  await expect(runStartUpdate()).resolves.toEqual({ status: 'done' });
+  await runStartUpdate();
+
   expect(consoleErrorSpy).toHaveBeenCalledWith(closeError);
   expect(getLastSentState()).toMatchObject({
     currentIndex: null,
@@ -573,26 +530,29 @@ it('브라우저를 닫지 못해도 다시 호출했을 때 새 순회를 시�
   mockCloseBrowser.mockRejectedValueOnce(new Error('브라우저 닫기 실패'));
   vi.spyOn(console, 'error').mockImplementation(() => {});
 
-  const startUpdate = createStartUpdate();
-  await startUpdate(fakeSender);
-  await startUpdate(fakeSender);
+  const startUpdate = createStartUpdate(createUpdateScheduler());
+  await startUpdate(null, fakeSender);
+  await startUpdate(null, fakeSender);
 
   expect(mockUpdateTargetProductPrice).toHaveBeenCalledTimes(2);
 });
 
-it('브라우저를 다 닫기 전에 다시 호출되면 running 결과를 돌려준다', async () => {
+it('브라우저를 다 닫기 전에 다시 호출되면 새 순회를 시작하지 않는다', async () => {
   mockLoggedInWith([productA]);
   mockCloseBrowser.mockReturnValue(new Promise(() => {}));
 
-  const startUpdate = createStartUpdate();
-  void startUpdate(fakeSender);
+  const startUpdate = createStartUpdate(createUpdateScheduler());
+  void startUpdate(null, fakeSender);
   await vi.waitFor(() => expect(mockCloseBrowser).toHaveBeenCalled());
+  await startUpdate(null, fakeSender);
 
-  await expect(startUpdate(fakeSender)).resolves.toEqual({ status: 'running' });
+  expect(mockFetchTargetProducts).toHaveBeenCalledTimes(1);
 });
 
-it('목록 조회에 실패하면 실패 이유를 담아 끝난 상태를 보낸다', async () => {
-  mockFetchTargetProducts.mockRejectedValue(new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED));
+it('목록 조회에 실패하면 throw하지 않고 가장 바깥 에러의 메시지를 담아 끝난 상태를 보낸다', async () => {
+  mockFetchTargetProducts.mockRejectedValue(
+    new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED, { cause: new Error('원인 에러') }),
+  );
   vi.spyOn(console, 'error').mockImplementation(() => {});
 
   await runStartUpdate();
@@ -643,12 +603,144 @@ it('실패한 뒤 다시 시작하면 이전 실패 이유를 지운 준비 중 
   mockGetLoggedInPage.mockResolvedValue(fakePage);
   vi.spyOn(console, 'error').mockImplementation(() => {});
 
-  const startUpdate = createStartUpdate();
-  await startUpdate(fakeSender);
+  const startUpdate = createStartUpdate(createUpdateScheduler());
+  await startUpdate(null, fakeSender);
   mockSend.mockClear();
-  await startUpdate(fakeSender);
+  await startUpdate(null, fakeSender);
 
   const [preparingState] = getSentStates();
 
   expect(preparingState).toMatchObject({ isPreparing: true, errorMessage: null });
+});
+
+describe('재실행 간격을 넘겨 시작하면', () => {
+  const restartDelayMinutes = 30;
+  const restartDelayMilliseconds = restartDelayMinutes * 60 * 1000;
+  const startTime = 1700000000000;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(startTime);
+    mockLoggedInWith([productA]);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('순회가 끝나면 끝난 상태 뒤에 재실행 시각을 담은 상태를 보낸다', async () => {
+    const startUpdate = createStartUpdate(createUpdateScheduler());
+
+    await startUpdate(restartDelayMinutes, fakeSender);
+
+    const [endState, scheduledState] = getSentStates().slice(-2);
+
+    expect(endState).toMatchObject({
+      currentIndex: null,
+      isPreparing: false,
+      isRunning: false,
+      errorMessage: null,
+      nextRunAt: null,
+    });
+    expect(scheduledState).toMatchObject({ nextRunAt: startTime + restartDelayMilliseconds });
+  });
+
+  it('재실행 간격이 지나면 같은 창으로 빈 초기 상태부터 다시 순회한다', async () => {
+    const startUpdate = createStartUpdate(createUpdateScheduler());
+
+    await startUpdate(restartDelayMinutes, fakeSender);
+    mockSend.mockClear();
+    await vi.advanceTimersByTimeAsync(restartDelayMilliseconds);
+    expect(mockFetchTargetProducts).toHaveBeenCalledTimes(2);
+
+    const [preparingState] = getSentStates();
+
+    expect(preparingState).toEqual({
+      targetProducts: [],
+      invalidProductRows: [],
+      currentIndex: null,
+      isPreparing: true,
+      isRunning: false,
+      errorMessage: null,
+      nextRunAt: null,
+    });
+  });
+
+  it('다시 순회한 뒤에도 실패 없이 끝나면 재실행을 다시 예약한다', async () => {
+    const startUpdate = createStartUpdate(createUpdateScheduler());
+
+    await startUpdate(restartDelayMinutes, fakeSender);
+    await vi.advanceTimersByTimeAsync(restartDelayMilliseconds);
+
+    expect(getLastSentState()).toMatchObject({
+      nextRunAt: startTime + restartDelayMilliseconds * 2,
+    });
+  });
+
+  it('실패로 끝나면 재실행을 예약하지 않는다', async () => {
+    mockFetchTargetProducts.mockRejectedValue(new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const startUpdate = createStartUpdate(createUpdateScheduler());
+    await startUpdate(restartDelayMinutes, fakeSender);
+    await vi.advanceTimersByTimeAsync(restartDelayMilliseconds);
+
+    expect(getLastSentState()).toMatchObject({
+      errorMessage: ERROR_MESSAGE.SHEET_FETCH_FAILED,
+      nextRunAt: null,
+    });
+    expect(mockFetchTargetProducts).toHaveBeenCalledTimes(1);
+  });
+
+  it('사용자가 브라우저를 닫아 멈춰도 실패가 아니므로 재실행을 예약한다', async () => {
+    mockIsPageClosed.mockReturnValue(true);
+
+    const startUpdate = createStartUpdate(createUpdateScheduler());
+    await startUpdate(restartDelayMinutes, fakeSender);
+
+    expect(getLastSentState()).toMatchObject({ nextRunAt: startTime + restartDelayMilliseconds });
+  });
+
+  it('재실행 간격이 null이면 재실행을 예약하지 않는다', async () => {
+    const startUpdate = createStartUpdate(createUpdateScheduler());
+
+    await startUpdate(null, fakeSender);
+    await vi.advanceTimersByTimeAsync(restartDelayMilliseconds);
+
+    expect(getLastSentState()).toMatchObject({ nextRunAt: null });
+    expect(mockFetchTargetProducts).toHaveBeenCalledTimes(1);
+  });
+
+  it('재실행을 기다리는 중에 다시 호출되면 새 순회를 시작하지 않고 상태도 보내지 않는다', async () => {
+    const startUpdate = createStartUpdate(createUpdateScheduler());
+
+    await startUpdate(restartDelayMinutes, fakeSender);
+    const sentCount = mockSend.mock.calls.length;
+    await startUpdate(restartDelayMinutes, fakeSender);
+
+    expect(mockFetchTargetProducts).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledTimes(sentCount);
+  });
+
+  it('기다리는 동안 창이 닫히면 다시 순회하지 않는다', async () => {
+    const startUpdate = createStartUpdate(createUpdateScheduler());
+
+    await startUpdate(restartDelayMinutes, fakeSender);
+    mockIsDestroyed.mockReturnValue(true);
+    await vi.advanceTimersByTimeAsync(restartDelayMilliseconds);
+
+    expect(mockFetchTargetProducts).toHaveBeenCalledTimes(1);
+  });
+
+  it('예약을 취소하면 재실행 시각을 지운 상태를 보내고 다시 순회하지 않는다', async () => {
+    const scheduler = createUpdateScheduler();
+    const startUpdate = createStartUpdate(scheduler);
+
+    await startUpdate(restartDelayMinutes, fakeSender);
+    scheduler.cancelRestart();
+    await vi.advanceTimersByTimeAsync(restartDelayMilliseconds);
+
+    expect(getLastSentState()).toMatchObject({ nextRunAt: null });
+    expect(mockFetchTargetProducts).toHaveBeenCalledTimes(1);
+  });
 });

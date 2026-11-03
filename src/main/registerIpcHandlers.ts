@@ -1,7 +1,9 @@
 import { ipcMain, type WebContents } from 'electron';
 import { IpcInvoke } from '../preload/_type';
-import { START_UPDATE_CHANNEL } from '../preload/ipcChannel';
+import { START_UPDATE_CHANNEL, STOP_UPDATE_CHANNEL } from '../preload/ipcChannel';
+import createUpdateScheduler from './updateScheduler';
 import createStartUpdate from './startUpdate';
+import createStopUpdate from './stopUpdate';
 
 /**
  * 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼.
@@ -18,5 +20,9 @@ const handleIpc = <E extends keyof IpcInvoke>(
 };
 
 export const registerIpcHandlers = (): void => {
-  handleIpc(START_UPDATE_CHANNEL, createStartUpdate());
+  // stopUpdate가 startUpdate의 예약을 취소할 수 있도록 scheduler를 한 번만 만들어 함께 넘긴다.
+  const scheduler = createUpdateScheduler();
+
+  handleIpc(START_UPDATE_CHANNEL, createStartUpdate(scheduler));
+  handleIpc(STOP_UPDATE_CHANNEL, createStopUpdate(scheduler));
 };
