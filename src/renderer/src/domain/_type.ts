@@ -1,5 +1,12 @@
 export type ProductUpdateStatus = 'wait' | 'complete' | 'error';
 
+/**
+ * parseRestartDelay가 재실행 간격 입력을 검사한 결과.
+ * 입력이 비어 있으면 자동 재실행 없이 한 번만 순회하도록 restartDelayMinutes가 null이다.
+ */
+export type ParsedRestartDelay =
+  { isValid: true; restartDelayMinutes: number | null } | { isValid: false; errorMessage: string };
+
 // formatTime이 만드는 시:분:초 문자열
 export type FormattedTime = `${string}:${string}:${string}`;
 

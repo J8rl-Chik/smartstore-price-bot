@@ -34,4 +34,8 @@ export const ERROR_MESSAGE = {
   CATALOG_BLOCKED: '네이버 쇼핑 접속이 일시적으로 제한되었습니다.',
   SELLERS_FETCH_FAILED: '네이버 판매처 목록을 가져오지 못했습니다.',
   SELLERS_EMPTY: '가격 목록이 없습니다.',
+
+  // 재실행 간격 입력 (renderer/domain/parseRestartDelay). 최솟값은 MIN_RESTART_DELAY_MINUTES와 맞춘다.
+  RESTART_DELAY_NOT_INTEGER: '재실행 간격은 분 단위 정수로 입력해주세요.',
+  RESTART_DELAY_TOO_SHORT: '재실행 간격은 10분 이상으로 입력해주세요.',
 } as const;

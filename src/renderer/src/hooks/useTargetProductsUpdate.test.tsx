@@ -49,13 +49,21 @@ test('렌더링하면 updateState 구독을 등록하고, 언마운트하면 해
   expect(mockUnsubscribe).toHaveBeenCalledOnce();
 });
 
-test('startUpdate를 호출하면 자동 재실행 없이 window.api.startUpdate를 호출한다', async () => {
+test('startUpdate를 호출하면 재실행 간격을 담아 window.api.startUpdate를 호출한다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-  await act(() => result.current.startUpdate());
+  await act(() => result.current.startUpdate(30));
 
   expect(mockStartUpdate).toHaveBeenCalledOnce();
-  expect(mockStartUpdate).toHaveBeenCalledWith(null);
+  expect(mockStartUpdate).toHaveBeenCalledWith(30);
+});
+
+test('stopUpdate를 호출하면 window.api.stopUpdate를 호출한다', async () => {
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+
+  await act(() => result.current.stopUpdate());
+
+  expect(mockStopUpdate).toHaveBeenCalledOnce();
 });
 
 const createTargetProduct = (
