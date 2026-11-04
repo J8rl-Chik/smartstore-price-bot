@@ -79,3 +79,9 @@ test('테스트 모드는 꺼져 있고, 켜면 실제 가격을 수정하지 �
   await expect.element(screen.getByRole('switch', { name: /테스트 모드/ })).not.toBeChecked();
   await expect.element(screen.getByText('켜면 실제 가격을 수정하지 않아요.')).toBeVisible();
 });
+
+test('저장 버튼을 보여준다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByRole('button', { name: '저장' })).toBeVisible();
+});

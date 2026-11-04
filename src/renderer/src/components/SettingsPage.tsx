@@ -26,6 +26,25 @@ const TestModeHint = styled.p`
   color: ${({ theme }) => theme.color.gray500};
 `;
 
+const SaveButton = styled.button`
+  display: block;
+  width: 100px;
+  height: 48px;
+  margin: 24px 0 0 auto;
+  font-size: 16px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.color.white};
+  cursor: pointer;
+  background: ${({ theme }) => theme.color.blue500};
+  border: none;
+  border-radius: 14px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: ${({ theme }) => theme.color.blue600};
+  }
+`;
+
 const SettingsPage = (): React.JSX.Element => {
   return (
     <section>
@@ -82,6 +101,8 @@ const SettingsPage = (): React.JSX.Element => {
           <TestModeHint>켜면 실제 가격을 수정하지 않아요.</TestModeHint>
         </SettingsSection>
       </SectionGrid>
+      {/* TODO: 설정 상태를 연결할 때 저장 동작을 추가한다. */}
+      <SaveButton type="button">저장</SaveButton>
     </section>
   );
 };
