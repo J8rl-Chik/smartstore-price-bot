@@ -57,3 +57,25 @@ test('구글 시트 입력칸을 보여주고, 서비스 계정 키는 JSON 파�
   await expect.element(serviceAccountKeyInput).toHaveAttribute('type', 'file');
   await expect.element(serviceAccountKeyInput).toHaveAttribute('accept', '.json');
 });
+
+test('순회 간격은 비어 있고, 비우면 한 번만 순회한다고 안내한다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  const restartDelayInput = screen.getByLabelText('순회 간격');
+
+  await expect.element(restartDelayInput).toHaveValue(null);
+  await expect.element(restartDelayInput).toHaveAttribute('placeholder', '비우면 한 번만');
+});
+
+test('상품 간 대기 시간은 기본값 5초를 보여준다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByLabelText('상품 간 대기 시간')).toHaveValue(5);
+});
+
+test('테스트 모드는 꺼져 있고, 켜면 실제 가격을 수정하지 않는다고 안내한다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByRole('switch', { name: /테스트 모드/ })).not.toBeChecked();
+  await expect.element(screen.getByText('켜면 실제 가격을 수정하지 않아요.')).toBeVisible();
+});

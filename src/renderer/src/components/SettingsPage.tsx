@@ -1,6 +1,9 @@
 import styled from 'styled-components';
 import SettingsField, { SettingsInput } from './SettingsField';
+import SettingsNumberInput from './SettingsNumberInput';
 import SettingsSection from './SettingsSection';
+import SettingsToggle from './SettingsToggle';
+import { MIN_RESTART_DELAY_MINUTES } from '../domain/parseRestartDelay';
 
 const Title = styled.h2`
   margin: 0 0 24px;
@@ -14,6 +17,13 @@ const SectionGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+`;
+
+// SettingsField의 라벨 너비와 간격만큼 들여 입력 요소와 왼쪽을 맞춘다.
+const TestModeHint = styled.p`
+  margin: 8px 0 0 144px;
+  font-size: 12px;
+  color: ${({ theme }) => theme.color.gray500};
 `;
 
 const SettingsPage = (): React.JSX.Element => {
@@ -54,7 +64,23 @@ const SettingsPage = (): React.JSX.Element => {
             <SettingsInput type="file" accept=".json" />
           </SettingsField>
         </SettingsSection>
-        <SettingsSection title="실행" description="봇이 상품을 확인하는 방식을 정해요." />
+        <SettingsSection title="실행" description="봇이 상품을 확인하는 방식을 정해요.">
+          <SettingsField label="순회 간격">
+            <SettingsNumberInput
+              unit="분"
+              min={MIN_RESTART_DELAY_MINUTES}
+              step={1}
+              placeholder="비우면 한 번만"
+            />
+          </SettingsField>
+          <SettingsField label="상품 간 대기 시간">
+            <SettingsNumberInput unit="초" step={1} defaultValue={5} />
+          </SettingsField>
+          <SettingsField label="테스트 모드">
+            <SettingsToggle isChecked={false} />
+          </SettingsField>
+          <TestModeHint>켜면 실제 가격을 수정하지 않아요.</TestModeHint>
+        </SettingsSection>
       </SectionGrid>
     </section>
   );
