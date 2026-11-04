@@ -9,7 +9,12 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 import type { UpdateState } from '../domain/product/_type';
 import type { IpcInvoke, IpcListener } from './_type';
-import { START_UPDATE_CHANNEL, STOP_UPDATE_CHANNEL, UPDATE_STATE_CHANNEL } from './ipcChannel';
+import {
+  ENCRYPT_SECRET_CHANNEL,
+  START_UPDATE_CHANNEL,
+  STOP_UPDATE_CHANNEL,
+  UPDATE_STATE_CHANNEL,
+} from './ipcChannel';
 
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
 const api: IpcInvoke & IpcListener = {
@@ -18,6 +23,8 @@ const api: IpcInvoke & IpcListener = {
     ipcRenderer.invoke(START_UPDATE_CHANNEL, restartDelayMinutes),
   // renderer -> main으로 'stopUpdate' 요청을 보내 예약한 자동 재실행을 취소한다.
   stopUpdate: () => ipcRenderer.invoke(STOP_UPDATE_CHANNEL),
+  // renderer -> main으로 'encryptSecret' 요청을 보내 비밀값을 암호화한다.
+  encryptSecret: (secret) => ipcRenderer.invoke(ENCRYPT_SECRET_CHANNEL, secret),
   // main -> renderer로 오는 'updateState' 채널을 구독한다. 반환한 함수를 호출하면 구독을 해제한다.
   onUpdateState: (callback) => {
     const listener = (_event: unknown, state: UpdateState): void => callback(state);

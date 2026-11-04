@@ -12,6 +12,7 @@ const mockOnUpdateState = vi.fn<IpcListener['onUpdateState']>();
 window.api = {
   startUpdate: mockStartUpdate,
   stopUpdate: mockStopUpdate,
+  encryptSecret: vi.fn<IpcInvoke['encryptSecret']>(),
   onUpdateState: mockOnUpdateState,
 };
 

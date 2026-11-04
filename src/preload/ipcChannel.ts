@@ -12,5 +12,8 @@ export const START_UPDATE_CHANNEL = 'startUpdate' satisfies keyof IpcInvoke;
 // preload가 자동 재실행 취소를 요청하고 main이 처리하는 채널 이름
 export const STOP_UPDATE_CHANNEL = 'stopUpdate' satisfies keyof IpcInvoke;
 
+// preload가 비밀값 암호화를 요청하고 main이 처리하는 채널 이름
+export const ENCRYPT_SECRET_CHANNEL = 'encryptSecret' satisfies keyof IpcInvoke;
+
 // main이 순회 상태를 보내고 preload가 구독하는 채널 이름
 export const UPDATE_STATE_CHANNEL = 'updateState';

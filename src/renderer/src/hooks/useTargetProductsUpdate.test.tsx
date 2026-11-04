@@ -16,6 +16,7 @@ const mockUnsubscribe = vi.fn();
 window.api = {
   startUpdate: mockStartUpdate,
   stopUpdate: mockStopUpdate,
+  encryptSecret: vi.fn<IpcInvoke['encryptSecret']>(),
   onUpdateState: mockOnUpdateState,
 };
 

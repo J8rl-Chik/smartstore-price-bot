@@ -1,6 +1,11 @@
 import { ipcMain, type WebContents } from 'electron';
 import { IpcInvoke } from '../preload/_type';
-import { START_UPDATE_CHANNEL, STOP_UPDATE_CHANNEL } from '../preload/ipcChannel';
+import {
+  ENCRYPT_SECRET_CHANNEL,
+  START_UPDATE_CHANNEL,
+  STOP_UPDATE_CHANNEL,
+} from '../preload/ipcChannel';
+import encryptSecret from './encryptSecret';
 import createUpdateScheduler from './updateScheduler';
 import createStartUpdate from './startUpdate';
 import createStopUpdate from './stopUpdate';
@@ -25,4 +30,5 @@ export const registerIpcHandlers = (): void => {
 
   handleIpc(START_UPDATE_CHANNEL, createStartUpdate(scheduler));
   handleIpc(STOP_UPDATE_CHANNEL, createStopUpdate(scheduler));
+  handleIpc(ENCRYPT_SECRET_CHANNEL, encryptSecret);
 };

@@ -14,6 +14,8 @@ export interface IpcInvoke {
   startUpdate: (restartDelayMinutes: number | null) => Promise<void>;
   // 예약한 자동 재실행을 취소한다. 순회 중에는 예약한 재실행이 없어 아무것도 하지 않는다.
   stopUpdate: () => Promise<void>;
+  // 비밀값을 암호화해 base64 암호문으로 돌려준다. 평문 대신 이 암호문을 저장한다.
+  encryptSecret: (secret: string) => Promise<string>;
 }
 
 /**

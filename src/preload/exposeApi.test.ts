@@ -74,6 +74,13 @@ it('stopUpdate를 호출하면 stopUpdate 채널로 invoke를 호출한다', asy
   expect(mockInvoke).toHaveBeenCalledWith('stopUpdate');
 });
 
+it('encryptSecret을 호출하면 비밀값을 담아 encryptSecret 채널로 invoke를 호출한다', async () => {
+  const api = getExposedApi();
+  await api.encryptSecret('secret');
+
+  expect(mockInvoke).toHaveBeenCalledWith('encryptSecret', 'secret');
+});
+
 it('onUpdateState를 호출하면 updateState 채널에 listener를 등록한다', () => {
   const api = getExposedApi();
   api.onUpdateState(vi.fn());

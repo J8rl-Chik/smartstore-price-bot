@@ -7,6 +7,7 @@ const mockCreateStartUpdate = vi.fn();
 const mockCreateStopUpdate = vi.fn();
 const mockStartUpdate = vi.fn();
 const mockStopUpdate = vi.fn();
+const mockEncryptSecret = vi.fn();
 
 vi.mock('electron', () => ({
   ipcMain: { handle: (...args: unknown[]) => mockHandle(...args) },
@@ -24,6 +25,10 @@ vi.mock(import('./stopUpdate'), () => ({
   default: (...args: unknown[]) => mockCreateStopUpdate(...args),
 }));
 
+vi.mock(import('./encryptSecret'), () => ({
+  default: (...args: unknown[]) => mockEncryptSecret(...args),
+}));
+
 afterEach(() => {
   mockHandle.mockReset();
   mockCreateUpdateScheduler.mockReset();
@@ -31,6 +36,7 @@ afterEach(() => {
   mockCreateStopUpdate.mockReset();
   mockStartUpdate.mockReset();
   mockStopUpdate.mockReset();
+  mockEncryptSecret.mockReset();
 });
 
 // ipcMain.handle에 등록된 콜백 중 해당 채널의 콜백을 찾는다.
@@ -73,4 +79,15 @@ it('stopUpdate 채널이 호출되면 stopUpdate 핸들러를 호출한다', asy
   await findRegisteredCallback('stopUpdate')({ sender: {} });
 
   expect(mockStopUpdate).toHaveBeenCalledOnce();
+});
+
+it('encryptSecret 채널이 호출되면 비밀값을 핸들러에 전달하고 암호문을 응답한다', async () => {
+  const sender = { send: vi.fn() };
+  mockEncryptSecret.mockResolvedValue('encrypted');
+
+  registerIpcHandlers();
+  const response = await findRegisteredCallback('encryptSecret')({ sender }, 'secret');
+
+  expect(mockEncryptSecret).toHaveBeenCalledWith('secret', sender);
+  expect(response).toBe('encrypted');
 });
