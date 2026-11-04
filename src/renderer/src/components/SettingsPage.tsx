@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import SettingsField, { SettingsInput } from './SettingsField';
 import SettingsSection from './SettingsSection';
 
 const Title = styled.h2`
@@ -20,11 +21,28 @@ const SettingsPage = (): React.JSX.Element => {
     <section>
       <Title>사용자 설정</Title>
       <SectionGrid>
-        <SettingsSection title="네이버 계정" description="네이버에 로그인할 때 사용해요." />
+        <SettingsSection title="네이버 계정" description="네이버에 로그인할 때 사용해요.">
+          <SettingsField label="네이버 아이디">
+            <SettingsInput type="text" placeholder="아이디 입력" />
+          </SettingsField>
+          <SettingsField label="네이버 비밀번호">
+            <SettingsInput type="password" placeholder="비밀번호 입력" />
+          </SettingsField>
+        </SettingsSection>
         <SettingsSection
           title="스토어 · 커머스 API"
           description="내 스토어와 커머스 API 연동 정보예요."
-        />
+        >
+          <SettingsField label="내 스토어 이름">
+            <SettingsInput type="text" placeholder="스토어 이름 입력" />
+          </SettingsField>
+          <SettingsField label="Client ID">
+            <SettingsInput type="text" placeholder="커머스 API Client ID 입력" />
+          </SettingsField>
+          <SettingsField label="Client Secret">
+            <SettingsInput type="password" placeholder="커머스 API Client Secret 입력" />
+          </SettingsField>
+        </SettingsSection>
         <SettingsSection title="구글 시트" description="상품 목록을 읽어올 시트예요." />
         <SettingsSection title="실행" description="봇이 상품을 확인하는 방식을 정해요." />
       </SectionGrid>
