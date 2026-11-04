@@ -5,7 +5,7 @@ import type {
   UpdateState,
 } from '../../../domain/product/_type';
 
-interface TargetProductsUpdate {
+export interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
   invalidProductRows: InvalidProductRow[];
   isPreparing: boolean;
