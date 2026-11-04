@@ -1,7 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import { render } from 'vitest-browser-react';
 import App from './App';
-import { ERROR_MESSAGE } from '../../domain/error/errorMessage';
 import type { TargetProductWithUpdate, UpdateState } from '../../domain/product/_type';
 import type { IpcInvoke, IpcListener } from '../../preload/_type';
 
@@ -90,14 +89,13 @@ test('순회 중이면 시작 버튼이 비활성화된다', async () => {
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
 });
 
-test('재실행을 기다리는 중이면 남은 시간과 중지 버튼을 보여주고, 입력창과 시작 버튼이 비활성화된다', async () => {
+test('재실행을 기다리는 중이면 남은 시간과 중지 버튼을 보여주고, 시작 버튼이 비활성화된다', async () => {
   mockSentUpdateState({ ...updateState, nextRunAt: Date.now() + 30 * 60 * 1000 });
 
   const screen = await render(<App />);
 
   await expect.element(screen.getByRole('status')).toHaveTextContent('다음 자동 수정까지 30:00');
   await expect.element(screen.getByRole('button', { name: '자동 재실행 중지' })).toBeVisible();
-  await expect.element(screen.getByLabelText('재실행 간격(분)')).toBeDisabled();
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
 });
 
@@ -119,28 +117,10 @@ test('중지 버튼을 클릭하면 window.api.stopUpdate를 호출한다', asyn
   expect(mockStopUpdate).toHaveBeenCalledOnce();
 });
 
-test('재실행 간격을 비워 두고 시작하면 자동 재실행 없이 시작한다', async () => {
+test('시작 버튼을 클릭하면 자동 재실행 없이 시작한다', async () => {
   const screen = await render(<App />);
 
   await screen.getByRole('button', { name: '자동 수정 시작' }).click();
 
   expect(mockStartUpdate).toHaveBeenCalledWith(null);
-});
-
-test('재실행 간격을 입력하고 시작하면 입력한 간격으로 시작한다', async () => {
-  const screen = await render(<App />);
-
-  await screen.getByLabelText('재실행 간격(분)').fill('30');
-  await screen.getByRole('button', { name: '자동 수정 시작' }).click();
-
-  expect(mockStartUpdate).toHaveBeenCalledWith(30);
-});
-
-test('재실행 간격이 최솟값보다 작으면 실패 이유를 보여주고 시작 버튼이 비활성화된다', async () => {
-  const screen = await render(<App />);
-
-  await screen.getByLabelText('재실행 간격(분)').fill('5');
-
-  await expect.element(screen.getByText(ERROR_MESSAGE.RESTART_DELAY_TOO_SHORT)).toBeVisible();
-  await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
 });

@@ -1,15 +1,12 @@
-import { useState } from 'react';
 import styled from 'styled-components';
 import Header from './components/Header';
 import InvalidProductRowBanner from './components/InvalidProductRowBanner';
 import ProductTable from './components/ProductTable';
 import ProgressBar from './components/ProgressBar';
 import RestartCountdown from './components/RestartCountdown';
-import RestartDelayInput from './components/RestartDelayInput';
 import StartButton from './components/StartButton';
 import StartUpdateErrorBanner from './components/StartUpdateErrorBanner';
 import StyleProvider from './components/StyleProvider';
-import parseRestartDelay from './domain/parseRestartDelay';
 import { parseToProductTableRow } from './domain/parseToProductTableRow';
 import useTargetProductsUpdate from './hooks/useTargetProductsUpdate';
 
@@ -34,31 +31,16 @@ const App = (): React.JSX.Element => {
     startUpdate,
     stopUpdate,
   } = useTargetProductsUpdate();
-  const [restartDelayInput, setRestartDelayInput] = useState('');
 
-  const parsedRestartDelay = parseRestartDelay(restartDelayInput);
-  // main은 준비부터 순회가 끝날 때까지, 그리고 재실행을 기다리는 동안 새 시작을 막으므로 같은 구간에 입력과 시작을 막는다.
+  // main은 준비부터 순회가 끝날 때까지, 그리고 재실행을 기다리는 동안 새 시작을 막으므로 같은 구간에 시작을 막는다.
   const isUpdateBlocked = isPreparing || isRunning || nextRunAt !== null;
 
   return (
     <StyleProvider>
       <AppContainer>
         <Header />
-        <RestartDelayInput
-          value={restartDelayInput}
-          onChange={setRestartDelayInput}
-          errorMessage={parsedRestartDelay.isValid ? null : parsedRestartDelay.errorMessage}
-          isDisabled={isUpdateBlocked}
-        />
-        {/* 재실행 간격이 잘못됐으면 시작하지 않도록 버튼도 비활성화한다. */}
-        <StartButton
-          onClick={() => {
-            if (parsedRestartDelay.isValid) {
-              void startUpdate(parsedRestartDelay.restartDelayMinutes);
-            }
-          }}
-          isDisabled={isUpdateBlocked || !parsedRestartDelay.isValid}
-        />
+        {/* TODO: 사용자 설정 페이지의 순회 간격을 연결한다. 그 전까지는 자동 재실행 없이 한 번만 순회한다. */}
+        <StartButton onClick={() => void startUpdate(null)} isDisabled={isUpdateBlocked} />
         {/* 재실행 시각이 바뀌면 남은 시간을 새로 계산하도록 key로 다시 마운트한다. */}
         {nextRunAt !== null && (
           <RestartCountdown key={nextRunAt} nextRunAt={nextRunAt} onStopUpdate={stopUpdate} />
