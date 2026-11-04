@@ -45,3 +45,15 @@ test('스토어·커머스 API 입력칸을 보여주고, Client Secret은 가�
   await expect.element(screen.getByLabelText('Client ID')).toHaveAttribute('type', 'text');
   await expect.element(screen.getByLabelText('Client Secret')).toHaveAttribute('type', 'password');
 });
+
+test('구글 시트 입력칸을 보여주고, 서비스 계정 키는 JSON 파일로 입력받는다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByLabelText('구글 시트 ID')).toHaveAttribute('type', 'text');
+  await expect.element(screen.getByLabelText('시트 이름')).toHaveAttribute('type', 'text');
+
+  const serviceAccountKeyInput = screen.getByLabelText('서비스 계정 키');
+
+  await expect.element(serviceAccountKeyInput).toHaveAttribute('type', 'file');
+  await expect.element(serviceAccountKeyInput).toHaveAttribute('accept', '.json');
+});

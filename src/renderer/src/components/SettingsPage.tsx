@@ -43,7 +43,17 @@ const SettingsPage = (): React.JSX.Element => {
             <SettingsInput type="password" placeholder="커머스 API Client Secret 입력" />
           </SettingsField>
         </SettingsSection>
-        <SettingsSection title="구글 시트" description="상품 목록을 읽어올 시트예요." />
+        <SettingsSection title="구글 시트" description="상품 목록을 읽어올 시트예요.">
+          <SettingsField label="구글 시트 ID">
+            <SettingsInput type="text" placeholder="시트 ID 입력" />
+          </SettingsField>
+          <SettingsField label="시트 이름">
+            <SettingsInput type="text" placeholder="시트 이름 입력" />
+          </SettingsField>
+          <SettingsField label="서비스 계정 키">
+            <SettingsInput type="file" accept=".json" />
+          </SettingsField>
+        </SettingsSection>
         <SettingsSection title="실행" description="봇이 상품을 확인하는 방식을 정해요." />
       </SectionGrid>
     </section>

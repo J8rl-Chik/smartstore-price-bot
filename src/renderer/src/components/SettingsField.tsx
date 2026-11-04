@@ -32,6 +32,10 @@ export const SettingsInput = styled.input`
   &::placeholder {
     color: ${({ theme }) => theme.color.gray400};
   }
+
+  &[type='file'] {
+    padding: 8px 14px;
+  }
 `;
 
 // label로 children을 감싸 입력 요소와 이름을 연결한다.
