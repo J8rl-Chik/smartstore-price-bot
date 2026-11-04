@@ -3,6 +3,7 @@ import SettingsField, { SettingsInput } from './SettingsField';
 import SettingsNumberInput from './SettingsNumberInput';
 import SettingsSection from './SettingsSection';
 import SettingsToggle from './SettingsToggle';
+import { MIN_PRODUCT_DELAY_SECONDS } from '../domain/parseProductDelay';
 import { MIN_RESTART_DELAY_MINUTES } from '../domain/parseRestartDelay';
 
 const Title = styled.h2`
@@ -93,7 +94,12 @@ const SettingsPage = (): React.JSX.Element => {
             />
           </SettingsField>
           <SettingsField label="상품 간 대기 시간">
-            <SettingsNumberInput unit="초" step={1} defaultValue={5} />
+            <SettingsNumberInput
+              unit="초"
+              min={MIN_PRODUCT_DELAY_SECONDS}
+              step={1}
+              defaultValue={MIN_PRODUCT_DELAY_SECONDS}
+            />
           </SettingsField>
           <SettingsField label="테스트 모드">
             <SettingsToggle isChecked={false} />

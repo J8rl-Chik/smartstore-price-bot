@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import SettingsPage from './SettingsPage';
 import { customRender } from '../customRender';
+import { MIN_PRODUCT_DELAY_SECONDS } from '../domain/parseProductDelay';
 
 test('사용자 설정 제목을 보여준다', async () => {
   const screen = await customRender(<SettingsPage />);
@@ -67,10 +68,12 @@ test('순회 간격은 비어 있고, 비우면 한 번만 순회한다고 안�
   await expect.element(restartDelayInput).toHaveAttribute('placeholder', '비우면 한 번만');
 });
 
-test('상품 간 대기 시간은 기본값 5초를 보여준다', async () => {
+test('상품 간 대기 시간은 최솟값을 기본값으로 보여준다', async () => {
   const screen = await customRender(<SettingsPage />);
 
-  await expect.element(screen.getByLabelText('상품 간 대기 시간')).toHaveValue(5);
+  await expect
+    .element(screen.getByLabelText('상품 간 대기 시간'))
+    .toHaveValue(MIN_PRODUCT_DELAY_SECONDS);
 });
 
 test('테스트 모드는 꺼져 있고, 켜면 실제 가격을 수정하지 않는다고 안내한다', async () => {

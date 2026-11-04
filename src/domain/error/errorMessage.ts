@@ -38,4 +38,8 @@ export const ERROR_MESSAGE = {
   // 재실행 간격 입력 (renderer/domain/parseRestartDelay). 최솟값은 MIN_RESTART_DELAY_MINUTES와 맞춘다.
   RESTART_DELAY_NOT_INTEGER: '재실행 간격은 분 단위 정수로 입력해주세요.',
   RESTART_DELAY_TOO_SHORT: '재실행 간격은 10분 이상으로 입력해주세요.',
+
+  // 상품 간 대기 시간 입력 (renderer/domain/parseProductDelay). 최솟값은 MIN_PRODUCT_DELAY_SECONDS와 맞춘다.
+  PRODUCT_DELAY_NOT_INTEGER: '상품 간 대기 시간은 초 단위 정수로 입력해주세요.',
+  PRODUCT_DELAY_TOO_SHORT: '상품 간 대기 시간은 10초 이상으로 입력해주세요.',
 } as const;

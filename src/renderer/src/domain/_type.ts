@@ -10,6 +10,10 @@ export type Page = 'home' | 'settings';
 export type ParsedRestartDelay =
   { isValid: true; restartDelayMinutes: number | null } | { isValid: false; errorMessage: string };
 
+// parseProductDelay가 상품 간 대기 시간 입력을 검사한 결과
+export type ParsedProductDelay =
+  { isValid: true; productDelaySeconds: number } | { isValid: false; errorMessage: string };
+
 // formatTime이 만드는 시:분:초 문자열
 export type FormattedTime = `${string}:${string}:${string}`;
 
