@@ -1,5 +1,8 @@
 export type ProductUpdateStatus = 'wait' | 'complete' | 'error';
 
+// Header 버튼으로 이동하는 화면
+export type Page = 'home' | 'settings';
+
 /**
  * parseRestartDelay가 재실행 간격 입력을 검사한 결과.
  * 입력이 비어 있으면 자동 재실행 없이 한 번만 순회하도록 restartDelayMinutes가 null이다.

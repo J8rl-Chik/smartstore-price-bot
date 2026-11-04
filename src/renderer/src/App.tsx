@@ -18,7 +18,8 @@ const App = (): React.JSX.Element => {
   return (
     <StyleProvider>
       <AppContainer>
-        <Header />
+        {/* TODO: currentPage 상태를 추가해 페이지를 전환한다. */}
+        <Header currentPage="home" onChangePage={() => undefined} />
         {/* TODO: 사용자 설정 페이지의 순회 간격을 연결한다. 그 전까지는 자동 재실행 없이 한 번만 순회한다. */}
         <HomePage
           {...updateState}
