@@ -1,7 +1,9 @@
+import type { ChangeEventHandler } from 'react';
 import styled from 'styled-components';
 
 interface SettingsToggleProps {
   isChecked: boolean;
+  onChange: ChangeEventHandler<HTMLInputElement>;
 }
 
 const SettingsToggleContainer = styled.span`
@@ -45,10 +47,9 @@ const ToggleTrack = styled.span`
   }
 `;
 
-// TODO: 설정 상태를 연결할 때 onChange를 받아 켜고 끌 수 있게 한다.
-const SettingsToggle = ({ isChecked }: SettingsToggleProps): React.JSX.Element => (
+const SettingsToggle = ({ isChecked, onChange }: SettingsToggleProps): React.JSX.Element => (
   <SettingsToggleContainer>
-    <ToggleInput type="checkbox" role="switch" checked={isChecked} readOnly />
+    <ToggleInput type="checkbox" role="switch" checked={isChecked} onChange={onChange} />
     <ToggleTrack />
     {isChecked ? '켜짐' : '꺼짐'}
   </SettingsToggleContainer>

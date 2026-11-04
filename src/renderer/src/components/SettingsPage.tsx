@@ -5,6 +5,7 @@ import SettingsSection from './SettingsSection';
 import SettingsToggle from './SettingsToggle';
 import { MIN_PRODUCT_DELAY_SECONDS } from '../domain/parseProductDelay';
 import { MIN_RESTART_DELAY_MINUTES } from '../domain/parseRestartDelay';
+import useSettingsForm from '../hooks/useSettingsForm';
 
 const Title = styled.h2`
   margin: 0 0 24px;
@@ -47,13 +48,20 @@ const SaveButton = styled.button`
 `;
 
 const SettingsPage = (): React.JSX.Element => {
+  const { form, errorMessages, changeSettingsForm, saveSettingsForm } = useSettingsForm();
+
   return (
     <section>
       <Title>사용자 설정</Title>
       <SectionGrid>
         <SettingsSection title="네이버 계정" description="네이버에 로그인할 때 사용해요.">
           <SettingsField label="네이버 아이디">
-            <SettingsInput type="text" placeholder="아이디 입력" />
+            <SettingsInput
+              type="text"
+              placeholder="아이디 입력"
+              value={form.naverId}
+              onChange={(event) => changeSettingsForm('naverId', event.target.value)}
+            />
           </SettingsField>
           <SettingsField label="네이버 비밀번호">
             <SettingsInput type="password" placeholder="비밀번호 입력" />
@@ -64,10 +72,20 @@ const SettingsPage = (): React.JSX.Element => {
           description="내 스토어와 커머스 API 연동 정보예요."
         >
           <SettingsField label="내 스토어 이름">
-            <SettingsInput type="text" placeholder="스토어 이름 입력" />
+            <SettingsInput
+              type="text"
+              placeholder="스토어 이름 입력"
+              value={form.storeName}
+              onChange={(event) => changeSettingsForm('storeName', event.target.value)}
+            />
           </SettingsField>
           <SettingsField label="Client ID">
-            <SettingsInput type="text" placeholder="커머스 API Client ID 입력" />
+            <SettingsInput
+              type="text"
+              placeholder="커머스 API Client ID 입력"
+              value={form.clientId}
+              onChange={(event) => changeSettingsForm('clientId', event.target.value)}
+            />
           </SettingsField>
           <SettingsField label="Client Secret">
             <SettingsInput type="password" placeholder="커머스 API Client Secret 입력" />
@@ -75,40 +93,57 @@ const SettingsPage = (): React.JSX.Element => {
         </SettingsSection>
         <SettingsSection title="구글 시트" description="상품 목록을 읽어올 시트예요.">
           <SettingsField label="구글 시트 ID">
-            <SettingsInput type="text" placeholder="시트 ID 입력" />
+            <SettingsInput
+              type="text"
+              placeholder="시트 ID 입력"
+              value={form.sheetId}
+              onChange={(event) => changeSettingsForm('sheetId', event.target.value)}
+            />
           </SettingsField>
           <SettingsField label="시트 이름">
-            <SettingsInput type="text" placeholder="시트 이름 입력" />
+            <SettingsInput
+              type="text"
+              placeholder="시트 이름 입력"
+              value={form.sheetName}
+              onChange={(event) => changeSettingsForm('sheetName', event.target.value)}
+            />
           </SettingsField>
           <SettingsField label="서비스 계정 키">
             <SettingsInput type="file" accept=".json" />
           </SettingsField>
         </SettingsSection>
         <SettingsSection title="실행" description="봇이 상품을 확인하는 방식을 정해요.">
-          <SettingsField label="순회 간격">
+          <SettingsField label="순회 간격" errorMessage={errorMessages.restartDelayMinutes}>
             <SettingsNumberInput
               unit="분"
               min={MIN_RESTART_DELAY_MINUTES}
               step={1}
               placeholder="비우면 한 번만"
+              value={form.restartDelayMinutes}
+              onChange={(event) => changeSettingsForm('restartDelayMinutes', event.target.value)}
             />
           </SettingsField>
-          <SettingsField label="상품 간 대기 시간">
+          <SettingsField label="상품 간 대기 시간" errorMessage={errorMessages.productDelaySeconds}>
             <SettingsNumberInput
               unit="초"
               min={MIN_PRODUCT_DELAY_SECONDS}
               step={1}
-              defaultValue={MIN_PRODUCT_DELAY_SECONDS}
+              value={form.productDelaySeconds}
+              onChange={(event) => changeSettingsForm('productDelaySeconds', event.target.value)}
             />
           </SettingsField>
           <SettingsField label="테스트 모드">
-            <SettingsToggle isChecked={false} />
+            <SettingsToggle
+              isChecked={form.isDryRun}
+              onChange={(event) => changeSettingsForm('isDryRun', event.target.checked)}
+            />
           </SettingsField>
           <TestModeHint>켜면 실제 가격을 수정하지 않아요.</TestModeHint>
         </SettingsSection>
       </SectionGrid>
-      {/* TODO: 설정 상태를 연결할 때 저장 동작을 추가한다. */}
-      <SaveButton type="button">저장</SaveButton>
+      <SaveButton type="button" onClick={saveSettingsForm}>
+        저장
+      </SaveButton>
     </section>
   );
 };
