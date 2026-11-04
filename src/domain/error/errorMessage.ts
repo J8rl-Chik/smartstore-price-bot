@@ -42,4 +42,7 @@ export const ERROR_MESSAGE = {
   // 상품 간 대기 시간 입력 (renderer/domain/parseProductDelay). 최솟값은 MIN_PRODUCT_DELAY_SECONDS와 맞춘다.
   PRODUCT_DELAY_NOT_INTEGER: '상품 간 대기 시간은 초 단위 정수로 입력해주세요.',
   PRODUCT_DELAY_TOO_SHORT: '상품 간 대기 시간은 10초 이상으로 입력해주세요.',
+
+  // 비밀값 암호화 (main/encryptSecret)
+  ENCRYPTION_UNAVAILABLE: '이 환경에서는 비밀값을 암호화할 수 없어 저장하지 못했습니다.',
 } as const;
