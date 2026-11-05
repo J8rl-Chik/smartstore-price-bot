@@ -1,11 +1,9 @@
-// TODO: 사용자 설정을 연결해 .env를 읽지 않게 되면 지운다.
-import 'dotenv/config';
 import type { WebContents } from 'electron';
 import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
-import validateEnv from '../utils/validateEnv';
 import delaySeconds from '../utils/delaySeconds';
 import tryCatch from '../utils/tryCatch';
 import findErrorInCause from '../utils/findErrorInCause';
+import createUpdateConfig from './createUpdateConfig';
 import fetchTargetProducts from './fetchTargetProducts';
 import updateTargetProductPrice from './updateTargetProductPrice';
 import { createStateSender } from './state';
@@ -27,9 +25,10 @@ type StartUpdateHandler = (
  * 어떻게 끝나든 화면이 준비 중이나 순회 중 상태에 머물지 않도록 끝난 상태는 finally에서 한 번에 보낸다.
  * 브라우저도 finally에서 닫는다. 로그인 쿠키는 userDataDir에 남아 다음 순회에서 로그인 폼을 다시 입력하지 않는다.
  * 순회 중 여부와 예약한 재실행은 stopUpdate와 공유하는 scheduler에 맡긴다.
+ * 자동 재실행은 처음 받은 설정을 그대로 쓰므로, 기다리는 동안 저장한 설정은 중지 후 다시 시작해야 적용된다.
  */
 const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
-  const startUpdate: StartUpdateHandler = async (restartDelayMinutes, sender) => {
+  const startUpdate: StartUpdateHandler = async (settings, sender) => {
     // 순회 중이거나 재실행을 기다리는 중이면 새로 시작하지 않는다.
     if (scheduler.isUpdateBlocked()) {
       return;
@@ -49,17 +48,8 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
     let errorMessage: string | null = null;
 
     try {
-      const myStoreName = validateEnv('SMART_STORE_NAME');
-      // TODO: 사용자 설정을 연결하면 .env 대신 설정값을 넘긴다.
-      const commerceApiCredentials = {
-        clientId: validateEnv('CLIENT_ID'),
-        clientSecret: validateEnv('CLIENT_SECRET'),
-      };
-      const googleSheetConfig = {
-        sheetId: validateEnv('SHEET_ID'),
-        sheetName: validateEnv('SHEET_NAME'),
-        auth: { keyFile: 'config/googleSheetKey.json' },
-      };
+      const { naverAccount, commerceApiCredentials, googleSheetConfig } =
+        await createUpdateConfig(settings);
       const { targetProducts, invalidProductRows } = await fetchTargetProducts(
         commerceApiCredentials,
         googleSheetConfig,
@@ -72,11 +62,7 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
         return;
       }
 
-      // TODO: 사용자 설정을 연결하면 .env 대신 설정값을 넘긴다.
-      const page = await getLoggedInPage({
-        naverId: validateEnv('NAVER_ID'),
-        naverPassword: validateEnv('NAVER_PASSWORD'),
-      });
+      const page = await getLoggedInPage(naverAccount);
 
       // 상품 전체를 wait로 두고, 아직 처리 중인 상품은 없는 순회 시작 상태를 보낸다.
       sendState({
@@ -99,7 +85,13 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
         sendState({ currentIndex: index });
 
         const [error, update] = await tryCatch(
-          updateTargetProductPrice(page, targetProduct, myStoreName, commerceApiCredentials),
+          updateTargetProductPrice(
+            page,
+            targetProduct,
+            settings.storeName,
+            commerceApiCredentials,
+            settings.isDryRun,
+          ),
         );
 
         if (error) {
@@ -129,7 +121,7 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
           break;
         }
 
-        await delaySeconds(5);
+        await delaySeconds(settings.productDelaySeconds);
       }
     } catch (error) {
       console.error(error);
@@ -151,8 +143,8 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
        * errorMessage가 null이면 순회를 끝냈거나, 수정할 상품이 없었거나, 사용자가 브라우저를 닫아 멈춘 것이다.
        * 실패로 끝나면 같은 실패가 반복될 수 있어 재실행하지 않는다.
        */
-      if (errorMessage === null && restartDelayMinutes !== null) {
-        const delayMilliseconds = restartDelayMinutes * 60 * 1000;
+      if (errorMessage === null && settings.restartDelayMinutes !== null) {
+        const delayMilliseconds = settings.restartDelayMinutes * 60 * 1000;
 
         scheduler.scheduleRestart(
           delayMilliseconds,
@@ -163,7 +155,7 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
             }
 
             // 요청한 renderer가 없어 실패를 돌려받을 곳이 없으므로 로그로 남긴다.
-            startUpdate(restartDelayMinutes, sender).catch((error) => console.error(error));
+            startUpdate(settings, sender).catch((error) => console.error(error));
           },
           // 취소하면 예약을 건 순회의 상태에서 nextRunAt만 지워 보낸다.
           () => sendState({ nextRunAt: null }),

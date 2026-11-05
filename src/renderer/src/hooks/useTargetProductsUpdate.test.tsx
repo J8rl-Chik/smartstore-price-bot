@@ -7,6 +7,7 @@ import type {
   UpdateState,
 } from '../../../domain/product/_type';
 import type { IpcInvoke, IpcListener } from '../../../preload/_type';
+import type { Settings } from '../../../domain/settings/_type';
 
 const mockStartUpdate = vi.fn<IpcInvoke['startUpdate']>();
 const mockStopUpdate = vi.fn<IpcInvoke['stopUpdate']>();
@@ -50,13 +51,27 @@ test('렌더링하면 updateState 구독을 등록하고, 언마운트하면 해
   expect(mockUnsubscribe).toHaveBeenCalledOnce();
 });
 
-test('startUpdate를 호출하면 재실행 간격을 담아 window.api.startUpdate를 호출한다', async () => {
+const settings: Settings = {
+  naverId: 'naver-id',
+  storeName: '내 스토어',
+  clientId: 'client-id',
+  sheetId: 'sheet-id',
+  sheetName: '상품 목록',
+  restartDelayMinutes: 30,
+  productDelaySeconds: 20,
+  isDryRun: true,
+  encryptedNaverPassword: 'encrypted-password',
+  encryptedClientSecret: 'encrypted-client-secret',
+  encryptedServiceAccountKey: 'encrypted-key',
+};
+
+test('startUpdate를 호출하면 설정을 담아 window.api.startUpdate를 호출한다', async () => {
   const { result, act } = await renderHook(() => useTargetProductsUpdate());
 
-  await act(() => result.current.startUpdate(30));
+  await act(() => result.current.startUpdate(settings));
 
   expect(mockStartUpdate).toHaveBeenCalledOnce();
-  expect(mockStartUpdate).toHaveBeenCalledWith(30);
+  expect(mockStartUpdate).toHaveBeenCalledWith(settings);
 });
 
 test('stopUpdate를 호출하면 window.api.stopUpdate를 호출한다', async () => {

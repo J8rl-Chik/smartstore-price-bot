@@ -4,6 +4,7 @@ import type {
   TargetProductWithUpdate,
   UpdateState,
 } from '../../../domain/product/_type';
+import type { Settings } from '../../../domain/settings/_type';
 
 export interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
@@ -15,7 +16,7 @@ export interface TargetProductsUpdate {
   errorMessage: string | null;
   // 재실행을 예약한 시각(Date.now() 기준 ms). 예약이 없으면 null
   nextRunAt: number | null;
-  startUpdate: (restartDelayMinutes: number | null) => Promise<void>;
+  startUpdate: (settings: Settings) => Promise<void>;
   stopUpdate: () => Promise<void>;
 }
 
@@ -42,10 +43,9 @@ const useTargetProductsUpdate = (): TargetProductsUpdate => {
   /**
    * 실패 이유도 main이 상태(errorMessage)로 보낸다.
    * 다시 시작하면 main이 빈 초기 상태부터 보내 이전 실패 이유도 함께 지워진다.
-   * restartDelayMinutes가 null이면 자동 재실행 없이 한 번만 순회한다.
    */
-  const startUpdate = async (restartDelayMinutes: number | null): Promise<void> => {
-    await window.api.startUpdate(restartDelayMinutes);
+  const startUpdate = async (settings: Settings): Promise<void> => {
+    await window.api.startUpdate(settings);
   };
 
   // 취소하면 main이 nextRunAt을 지운 상태를 보낸다.

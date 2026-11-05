@@ -62,14 +62,15 @@ it('scheduler를 한 번만 만들어 startUpdate, stopUpdate 핸들러에 함�
   expect(mockCreateStopUpdate).toHaveBeenCalledWith(fakeScheduler);
 });
 
-it('startUpdate 채널이 호출되면 재실행 간격과 요청한 창(sender)을 핸들러에 전달한다', async () => {
+it('startUpdate 채널이 호출되면 설정과 요청한 창(sender)을 핸들러에 전달한다', async () => {
   const sender = { send: vi.fn() };
+  const settings = { naverId: 'naver-id' };
   mockCreateStartUpdate.mockReturnValue(mockStartUpdate);
 
   registerIpcHandlers();
-  await findRegisteredCallback('startUpdate')({ sender }, 30);
+  await findRegisteredCallback('startUpdate')({ sender }, settings);
 
-  expect(mockStartUpdate).toHaveBeenCalledWith(30, sender);
+  expect(mockStartUpdate).toHaveBeenCalledWith(settings, sender);
 });
 
 it('stopUpdate 채널이 호출되면 stopUpdate 핸들러를 호출한다', async () => {

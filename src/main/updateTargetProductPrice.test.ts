@@ -59,7 +59,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  vi.unstubAllEnvs();
   mockGetSellersInPuppeteer.mockReset();
   mockUpdatePrice.mockReset();
   mockFilterExcludedSellers.mockReset();
@@ -87,8 +86,8 @@ const targetProduct: TargetProduct = {
 
 const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test-client-secret' };
 
-const run = (): Promise<TargetProductUpdate> =>
-  updateTargetProductPrice(page, targetProduct, myStoreName, commerceApiCredentials);
+const run = (isDryRun = false): Promise<TargetProductUpdate> =>
+  updateTargetProductPrice(page, targetProduct, myStoreName, commerceApiCredentials, isDryRun);
 
 it('상품의 카탈로그 URL과 상품명으로 판매처를 조회한다', async () => {
   await run();
@@ -163,10 +162,8 @@ it('가격 수정 요청이 실패하면 에러를 그대로 던진다', async (
   await expect(run()).rejects.toBe(error);
 });
 
-it('DRY_RUN이 true이면 가격 수정을 요청하지 않고 계산한 판매가와 기본 배송비로 complete 상태를 반환한다', async () => {
-  vi.stubEnv('DRY_RUN', 'true');
-
-  expect(await run()).toEqual({
+it('테스트 모드이면 가격 수정을 요청하지 않고 계산한 판매가와 기본 배송비로 complete 상태를 반환한다', async () => {
+  expect(await run(true)).toEqual({
     status: 'complete',
     price: 39990,
     baseFee: 3000,
@@ -175,14 +172,13 @@ it('DRY_RUN이 true이면 가격 수정을 요청하지 않고 계산한 판매�
   expect(mockUpdatePrice).not.toHaveBeenCalled();
 });
 
-it('DRY_RUN이 true이고 배송비가 무료이면 기본 배송비를 0으로 반환한다', async () => {
-  vi.stubEnv('DRY_RUN', 'true');
+it('테스트 모드이고 배송비가 무료이면 기본 배송비를 0으로 반환한다', async () => {
   mockBuildPriceWithDeliveryFee.mockReturnValue({
     deliveryFee: { deliveryFeeType: 'FREE' },
     salePrice: 42990,
   });
 
-  expect(await run()).toEqual({
+  expect(await run(true)).toEqual({
     status: 'complete',
     price: 42990,
     baseFee: 0,

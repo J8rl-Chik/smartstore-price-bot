@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { exposeApi } from './exposeApi';
 import type { UpdateState } from '../domain/product/_type';
+import type { Settings } from '../domain/settings/_type';
 import type { IpcInvoke, IpcListener } from './_type';
 
 // preload가 renderer에 노출하는 api의 형태. IpcInvoke와 IpcListener를 합친 모양이다.
@@ -60,11 +61,25 @@ const getExposedApi = (): Api => {
   return api;
 };
 
-it('startUpdate를 호출하면 재실행 간격을 담아 startUpdate 채널로 invoke를 호출한다', async () => {
-  const api = getExposedApi();
-  await api.startUpdate(30);
+const settings: Settings = {
+  naverId: 'naver-id',
+  storeName: '내 스토어',
+  clientId: 'client-id',
+  sheetId: 'sheet-id',
+  sheetName: '상품 목록',
+  restartDelayMinutes: 30,
+  productDelaySeconds: 20,
+  isDryRun: true,
+  encryptedNaverPassword: 'encrypted-password',
+  encryptedClientSecret: 'encrypted-client-secret',
+  encryptedServiceAccountKey: 'encrypted-key',
+};
 
-  expect(mockInvoke).toHaveBeenCalledWith('startUpdate', 30);
+it('startUpdate를 호출하면 설정을 담아 startUpdate 채널로 invoke를 호출한다', async () => {
+  const api = getExposedApi();
+  await api.startUpdate(settings);
+
+  expect(mockInvoke).toHaveBeenCalledWith('startUpdate', settings);
 });
 
 it('stopUpdate를 호출하면 stopUpdate 채널로 invoke를 호출한다', async () => {

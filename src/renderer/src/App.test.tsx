@@ -2,8 +2,10 @@ import { act } from 'react';
 import { beforeEach, expect, test, vi } from 'vitest';
 import { render } from 'vitest-browser-react';
 import App from './App';
+import { saveSettings } from './domain/settingsStorage';
 import type { UpdateState } from '../../domain/product/_type';
 import type { IpcInvoke, IpcListener } from '../../preload/_type';
+import type { Settings } from '../../domain/settings/_type';
 
 const mockStartUpdate = vi.fn<IpcInvoke['startUpdate']>();
 const mockStopUpdate = vi.fn<IpcInvoke['stopUpdate']>();
@@ -36,6 +38,7 @@ const mockSentUpdateState = (state: UpdateState): void => {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  localStorage.clear();
 
   mockSentUpdateState(updateState);
 });
@@ -48,12 +51,28 @@ test('main이 보낸 상태를 홈 화면에 보여준다', async () => {
   await expect.element(screen.getByText('스프레드시트 조회 실패')).toBeVisible();
 });
 
-test('시작 버튼을 클릭하면 자동 재실행 없이 시작한다', async () => {
+const settings: Settings = {
+  naverId: 'naver-id',
+  storeName: '내 스토어',
+  clientId: 'client-id',
+  sheetId: 'sheet-id',
+  sheetName: '상품 목록',
+  restartDelayMinutes: 30,
+  productDelaySeconds: 20,
+  isDryRun: true,
+  encryptedNaverPassword: 'encrypted-password',
+  encryptedClientSecret: 'encrypted-client-secret',
+  encryptedServiceAccountKey: 'encrypted-key',
+};
+
+test('시작 버튼을 클릭하면 저장한 설정으로 시작한다', async () => {
+  saveSettings(settings);
+
   const screen = await render(<App />);
 
   await screen.getByRole('button', { name: '자동 수정 시작' }).click();
 
-  expect(mockStartUpdate).toHaveBeenCalledWith(null);
+  expect(mockStartUpdate).toHaveBeenCalledWith(settings);
 });
 
 test('중지 버튼을 클릭하면 window.api.stopUpdate를 호출한다', async () => {

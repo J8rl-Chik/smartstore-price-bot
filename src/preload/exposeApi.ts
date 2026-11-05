@@ -19,8 +19,7 @@ import {
 // 이 프로젝트에서 renderer에 직접 노출할 커스텀 API.
 const api: IpcInvoke & IpcListener = {
   // renderer -> main으로 'startUpdate' 요청을 보내 상품 목록 조회, 로그인, 가격 수정 순회를 시작한다.
-  startUpdate: (restartDelayMinutes) =>
-    ipcRenderer.invoke(START_UPDATE_CHANNEL, restartDelayMinutes),
+  startUpdate: (settings) => ipcRenderer.invoke(START_UPDATE_CHANNEL, settings),
   // renderer -> main으로 'stopUpdate' 요청을 보내 예약한 자동 재실행을 취소한다.
   stopUpdate: () => ipcRenderer.invoke(STOP_UPDATE_CHANNEL),
   // renderer -> main으로 'encryptSecret' 요청을 보내 비밀값을 암호화한다.
