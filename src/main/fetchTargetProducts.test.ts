@@ -52,6 +52,11 @@ afterEach(() => {
 });
 
 const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test-client-secret' };
+const googleSheetConfig = {
+  sheetId: 'sheet-id',
+  sheetName: '상품 목록',
+  auth: { keyFile: 'key.json' },
+};
 
 it('판매 상품과 시트 행을 가공해 합친 목록과 중복된 상품명을 반환한다', async () => {
   const rawSaleProducts = [{ id: 'raw' }];
@@ -73,7 +78,7 @@ it('판매 상품과 시트 행을 가공해 합친 목록과 중복된 상품�
   mockFindDuplicateProductNames.mockReturnValue(['상품A']);
   mockCreateTargetProducts.mockReturnValue([targetProduct]);
 
-  const result = await fetchTargetProducts(commerceApiCredentials);
+  const result = await fetchTargetProducts(commerceApiCredentials, googleSheetConfig);
 
   expect(mockExcludeNewlyRegisteredProducts).toHaveBeenCalledWith(rawSaleProducts);
   expect(mockShuffleArray).toHaveBeenCalledWith(filteredSaleProducts);
@@ -98,10 +103,10 @@ it('판매 상품과 시트 행을 동시에 요청한다', () => {
   mockGetSaleProducts.mockReturnValue(new Promise(() => {}));
   mockGetProductRows.mockReturnValue(new Promise(() => {}));
 
-  void fetchTargetProducts(commerceApiCredentials);
+  void fetchTargetProducts(commerceApiCredentials, googleSheetConfig);
 
   expect(mockGetSaleProducts).toHaveBeenCalledWith(commerceApiCredentials);
-  expect(mockGetProductRows).toHaveBeenCalled();
+  expect(mockGetProductRows).toHaveBeenCalledWith(googleSheetConfig);
 });
 
 /**
@@ -124,7 +129,10 @@ const mockSaleProductNamesWithInvalidRow = (names: string[]): void => {
 it('판매 상품에 이름이 있는 변환 실패 시트 행을 상품명과 에러 메시지만 담아 반환한다', async () => {
   mockSaleProductNamesWithInvalidRow(['상품C']);
 
-  const { invalidProductRows } = await fetchTargetProducts(commerceApiCredentials);
+  const { invalidProductRows } = await fetchTargetProducts(
+    commerceApiCredentials,
+    googleSheetConfig,
+  );
 
   expect(invalidProductRows).toEqual([{ name: '상품C', errorMessages: ['productPrice: 에러'] }]);
 });
@@ -132,7 +140,10 @@ it('판매 상품에 이름이 있는 변환 실패 시트 행을 상품명과 �
 it('판매 상품에 이름이 없는 변환 실패 시트 행은 반환하지 않는다', async () => {
   mockSaleProductNamesWithInvalidRow(['상품A']);
 
-  const { invalidProductRows } = await fetchTargetProducts(commerceApiCredentials);
+  const { invalidProductRows } = await fetchTargetProducts(
+    commerceApiCredentials,
+    googleSheetConfig,
+  );
 
   expect(invalidProductRows).toEqual([]);
 });

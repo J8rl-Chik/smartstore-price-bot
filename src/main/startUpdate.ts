@@ -1,3 +1,5 @@
+// TODO: 사용자 설정을 연결해 .env를 읽지 않게 되면 지운다.
+import 'dotenv/config';
 import type { WebContents } from 'electron';
 import { UnexpectedCatalogPageError } from '../integrations/puppeteer/validateCatalogPage';
 import validateEnv from '../utils/validateEnv';
@@ -53,8 +55,15 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
         clientId: validateEnv('CLIENT_ID'),
         clientSecret: validateEnv('CLIENT_SECRET'),
       };
-      const { targetProducts, invalidProductRows } =
-        await fetchTargetProducts(commerceApiCredentials);
+      const googleSheetConfig = {
+        sheetId: validateEnv('SHEET_ID'),
+        sheetName: validateEnv('SHEET_NAME'),
+        auth: { keyFile: 'config/googleSheetKey.json' },
+      };
+      const { targetProducts, invalidProductRows } = await fetchTargetProducts(
+        commerceApiCredentials,
+        googleSheetConfig,
+      );
 
       // 수정할 상품이 없으면 로그인하지 않고, 변환에 실패한 시트 행만 보낸 뒤 끝낸다.
       if (targetProducts.length === 0) {

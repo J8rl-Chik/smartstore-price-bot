@@ -29,3 +29,13 @@ export interface CommerceApiCredentials {
   clientId: string;
   clientSecret: string;
 }
+
+/**
+ * 구글 시트 조회에 쓰는 설정.
+ * auth는 서비스 계정 키 파일 경로(keyFile)나 키 JSON의 내용(credentials) 중 하나다.
+ */
+export interface GoogleSheetConfig {
+  sheetId: string;
+  sheetName: string;
+  auth: { keyFile: string } | { credentials: { client_email: string; private_key: string } };
+}

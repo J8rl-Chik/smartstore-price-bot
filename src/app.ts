@@ -43,6 +43,11 @@ const start = async (): Promise<void> => {
     clientId: validateEnv('CLIENT_ID'),
     clientSecret: validateEnv('CLIENT_SECRET'),
   };
+  const googleSheetConfig = {
+    sheetId: validateEnv('SHEET_ID'),
+    sheetName: validateEnv('SHEET_NAME'),
+    auth: { keyFile: 'config/googleSheetKey.json' },
+  };
 
   while (true) {
     console.time('실행 시간');
@@ -51,7 +56,7 @@ const start = async (): Promise<void> => {
       excludeNewlyRegisteredProducts(await getSaleProducts(commerceApiCredentials)),
     );
     // 변환에 성공한 행만 쓴다.
-    const productRows = (await getProductRows())
+    const productRows = (await getProductRows(googleSheetConfig))
       .map(parseProductRow)
       .flatMap((result) => (result.status === 'ok' ? [result.productRow] : []));
     const { browser, page } = await createLoggedInPage();

@@ -88,7 +88,11 @@ it('상품마다 로그인한 페이지, 상품, 내 스토어 이름, 인증 �
 
   await runStartUpdate();
 
-  expect(mockFetchTargetProducts).toHaveBeenCalledWith(commerceApiCredentials);
+  expect(mockFetchTargetProducts).toHaveBeenCalledWith(commerceApiCredentials, {
+    sheetId: 'env:SHEET_ID',
+    sheetName: 'env:SHEET_NAME',
+    auth: { keyFile: 'config/googleSheetKey.json' },
+  });
   expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(
     1,
     fakePage,

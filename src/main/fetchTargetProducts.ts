@@ -6,11 +6,12 @@ import { createTargetProducts } from '../domain/product/createTargetProducts';
 import { findDuplicateProductNames } from '../domain/product/findDuplicateProductNames';
 import shuffleArray from '../utils/shuffleArray';
 import type { InvalidProductRow, TargetProduct } from '../domain/product/_type';
-import type { CommerceApiCredentials } from '../domain/settings/_type';
+import type { CommerceApiCredentials, GoogleSheetConfig } from '../domain/settings/_type';
 
 // 네이버 판매 상품과 구글 시트 행을 합쳐 가격 수정 대상 목록, 중복된 상품명, 변환에 실패한 시트 행을 만든다.
 const fetchTargetProducts = async (
   commerceApiCredentials: CommerceApiCredentials,
+  googleSheetConfig: GoogleSheetConfig,
 ): Promise<{
   targetProducts: TargetProduct[];
   duplicateProductNames: string[];
@@ -18,7 +19,7 @@ const fetchTargetProducts = async (
 }> => {
   const [saleProducts, rawProductRows] = await Promise.all([
     getSaleProducts(commerceApiCredentials),
-    getProductRows(),
+    getProductRows(googleSheetConfig),
   ]);
   const shuffledSaleProducts = shuffleArray(excludeNewlyRegisteredProducts(saleProducts));
   const productRowResults = rawProductRows.map(parseProductRow);

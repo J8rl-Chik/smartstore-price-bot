@@ -1,12 +1,14 @@
-import 'dotenv/config';
 import { google, type sheets_v4 } from 'googleapis';
 import { COLUMN } from '../../domain/product/_constant.js';
 import type { RowValues } from '../../domain/product/_type.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
+import type { GoogleSheetConfig } from '../../domain/settings/_type.js';
 
-const getSheetsResource = (): sheets_v4.Resource$Spreadsheets => {
+const getSheetsResource = (
+  sheetAuth: GoogleSheetConfig['auth'],
+): sheets_v4.Resource$Spreadsheets => {
   const auth = new google.auth.GoogleAuth({
-    keyFile: 'config/googleSheetKey.json',
+    ...sheetAuth,
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
 
@@ -42,18 +44,17 @@ const fillEmptyCell = (row: string[]): RowValues => {
  */
 const isActiveRow = (row: string[]): boolean => row[COLUMN.activate] === 'TRUE';
 
-async function getProductRows(): Promise<RowValues[]> {
+async function getProductRows({
+  sheetId,
+  sheetName,
+  auth,
+}: GoogleSheetConfig): Promise<RowValues[]> {
   // 첫 번째 칼럼 행(제목, URL 등등) 제외
   const range = '!A2:L';
-  const { SHEET_ID, SHEET_NAME } = process.env;
 
   try {
-    const sheetsResource = getSheetsResource();
-    const { data } = await getSheetValues(
-      sheetsResource,
-      SHEET_ID as string,
-      `${SHEET_NAME}${range}`,
-    );
+    const sheetsResource = getSheetsResource(auth);
+    const { data } = await getSheetValues(sheetsResource, sheetId, `${sheetName}${range}`);
 
     if (!data.values) {
       throw new Error('시트에서 데이터를 가져오지 못했습니다.');
