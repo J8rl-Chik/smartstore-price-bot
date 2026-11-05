@@ -5,6 +5,7 @@ import HomePage from './components/HomePage';
 import SettingsPage from './components/SettingsPage';
 import StyleProvider from './components/StyleProvider';
 import type { Page } from './domain/_type';
+import hasRequiredSettings from './domain/hasRequiredSettings';
 import { readSettings } from './domain/settingsStorage';
 import useTargetProductsUpdate from './hooks/useTargetProductsUpdate';
 
@@ -19,6 +20,8 @@ const AppContainer = styled.div`
 const App = (): React.JSX.Element => {
   const { startUpdate, stopUpdate, ...updateState } = useTargetProductsUpdate();
   const [currentPage, setCurrentPage] = useState<Page>('home');
+  // 설정 화면에서 저장한 값이 홈으로 돌아올 때 반영되도록 렌더링할 때마다 읽는다.
+  const settings = readSettings();
 
   return (
     <StyleProvider>
@@ -27,7 +30,8 @@ const App = (): React.JSX.Element => {
         {currentPage === 'home' ? (
           <HomePage
             {...updateState}
-            onStartUpdate={() => void startUpdate(readSettings())}
+            hasSettings={hasRequiredSettings(settings)}
+            onStartUpdate={() => void startUpdate(settings)}
             onStopUpdate={() => void stopUpdate()}
           />
         ) : (

@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react';
 import { beforeEach, expect, test, vi } from 'vitest';
 import HomePage from './HomePage';
+import { ERROR_MESSAGE } from '../../../domain/error/errorMessage';
 import { customRender } from '../customRender';
 import type { TargetProductWithUpdate } from '../../../domain/product/_type';
 
@@ -41,6 +42,7 @@ const homePageProps: ComponentProps<typeof HomePage> = {
   currentOrder: 0,
   errorMessage: null,
   nextRunAt: null,
+  hasSettings: true,
   onStartUpdate: mockOnStartUpdate,
   onStopUpdate: mockOnStopUpdate,
 };
@@ -106,4 +108,18 @@ test('중지 버튼을 클릭하면 onStopUpdate를 호출한다', async () => {
   await screen.getByRole('button', { name: '자동 재실행 중지' }).click();
 
   expect(mockOnStopUpdate).toHaveBeenCalledOnce();
+});
+
+test('필수 설정이 없으면 시작을 막고 안내를 보여준다', async () => {
+  const screen = await customRender(<HomePage {...homePageProps} hasSettings={false} />);
+
+  await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
+  await expect.element(screen.getByText(ERROR_MESSAGE.SETTINGS_REQUIRED)).toBeVisible();
+});
+
+test('필수 설정이 있으면 안내를 보여주지 않는다', async () => {
+  const screen = await customRender(<HomePage {...homePageProps} />);
+
+  await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeEnabled();
+  await expect.element(screen.getByText(ERROR_MESSAGE.SETTINGS_REQUIRED)).not.toBeInTheDocument();
 });

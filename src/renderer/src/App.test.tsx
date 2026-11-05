@@ -2,6 +2,7 @@ import { act } from 'react';
 import { beforeEach, expect, test, vi } from 'vitest';
 import { render } from 'vitest-browser-react';
 import App from './App';
+import { ERROR_MESSAGE } from '../../domain/error/errorMessage';
 import { saveSettings } from './domain/settingsStorage';
 import type { UpdateState } from '../../domain/product/_type';
 import type { IpcInvoke, IpcListener } from '../../preload/_type';
@@ -73,6 +74,13 @@ test('시작 버튼을 클릭하면 저장한 설정으로 시작한다', async 
   await screen.getByRole('button', { name: '자동 수정 시작' }).click();
 
   expect(mockStartUpdate).toHaveBeenCalledWith(settings);
+});
+
+test('필수 설정을 저장하지 않았으면 시작을 막고 안내를 보여준다', async () => {
+  const screen = await render(<App />);
+
+  await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
+  await expect.element(screen.getByText(ERROR_MESSAGE.SETTINGS_REQUIRED)).toBeVisible();
 });
 
 test('중지 버튼을 클릭하면 window.api.stopUpdate를 호출한다', async () => {

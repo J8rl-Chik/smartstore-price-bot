@@ -4,10 +4,13 @@ import ProgressBar from './ProgressBar';
 import RestartCountdown from './RestartCountdown';
 import StartButton from './StartButton';
 import StartUpdateErrorBanner from './StartUpdateErrorBanner';
+import { ERROR_MESSAGE } from '../../../domain/error/errorMessage';
 import { parseToProductTableRow } from '../domain/parseToProductTableRow';
 import type { TargetProductsUpdate } from '../hooks/useTargetProductsUpdate';
 
 interface HomePageProps extends Omit<TargetProductsUpdate, 'startUpdate' | 'stopUpdate'> {
+  // 사용자 설정의 필수 값이 모두 있는지. 없으면 시작을 막고 안내한다.
+  hasSettings: boolean;
   onStartUpdate: () => void;
   onStopUpdate: () => void;
 }
@@ -21,6 +24,7 @@ const HomePage = ({
   currentOrder,
   errorMessage,
   nextRunAt,
+  hasSettings,
   onStartUpdate,
   onStopUpdate,
 }: HomePageProps): React.JSX.Element => {
@@ -29,7 +33,8 @@ const HomePage = ({
 
   return (
     <>
-      <StartButton onClick={onStartUpdate} isDisabled={isUpdateBlocked} />
+      <StartButton onClick={onStartUpdate} isDisabled={isUpdateBlocked || !hasSettings} />
+      {!hasSettings && <StartUpdateErrorBanner message={ERROR_MESSAGE.SETTINGS_REQUIRED} />}
       {/* 재실행 시각이 바뀌면 남은 시간을 새로 계산하도록 key로 다시 마운트한다. */}
       {nextRunAt !== null && (
         <RestartCountdown key={nextRunAt} nextRunAt={nextRunAt} onStopUpdate={onStopUpdate} />
