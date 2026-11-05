@@ -47,8 +47,29 @@ const SaveButton = styled.button`
   }
 `;
 
+const SaveErrorMessage = styled.p`
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: ${({ theme }) => theme.color.red600};
+  text-align: right;
+`;
+
+const savedSecretPlaceholder = '저장됨 (바꾸려면 새로 입력)';
+
+// 저장한 비밀값은 화면으로 돌려받지 않으므로, 입력칸을 비워 두고 저장 여부만 안내한다.
+const createSecretPlaceholder = (encryptedSecret: string, placeholder: string): string =>
+  encryptedSecret === '' ? placeholder : savedSecretPlaceholder;
+
 const SettingsPage = (): React.JSX.Element => {
-  const { form, errorMessages, changeSettingsForm, saveSettingsForm } = useSettingsForm();
+  const {
+    form,
+    secretInputs,
+    errorMessages,
+    saveErrorMessage,
+    changeSettingsForm,
+    changeSecretInput,
+    saveSettingsForm,
+  } = useSettingsForm();
 
   return (
     <section>
@@ -64,7 +85,12 @@ const SettingsPage = (): React.JSX.Element => {
             />
           </SettingsField>
           <SettingsField label="네이버 비밀번호">
-            <SettingsInput type="password" placeholder="비밀번호 입력" />
+            <SettingsInput
+              type="password"
+              placeholder={createSecretPlaceholder(form.encryptedNaverPassword, '비밀번호 입력')}
+              value={secretInputs.naverPassword}
+              onChange={(event) => changeSecretInput('naverPassword', event.target.value)}
+            />
           </SettingsField>
         </SettingsSection>
         <SettingsSection
@@ -88,7 +114,15 @@ const SettingsPage = (): React.JSX.Element => {
             />
           </SettingsField>
           <SettingsField label="Client Secret">
-            <SettingsInput type="password" placeholder="커머스 API Client Secret 입력" />
+            <SettingsInput
+              type="password"
+              placeholder={createSecretPlaceholder(
+                form.encryptedClientSecret,
+                '커머스 API Client Secret 입력',
+              )}
+              value={secretInputs.clientSecret}
+              onChange={(event) => changeSecretInput('clientSecret', event.target.value)}
+            />
           </SettingsField>
         </SettingsSection>
         <SettingsSection title="구글 시트" description="상품 목록을 읽어올 시트예요.">
@@ -141,6 +175,7 @@ const SettingsPage = (): React.JSX.Element => {
           <TestModeHint>켜면 실제 가격을 수정하지 않아요.</TestModeHint>
         </SettingsSection>
       </SectionGrid>
+      {saveErrorMessage && <SaveErrorMessage>{saveErrorMessage}</SaveErrorMessage>}
       <SaveButton type="button" onClick={() => void saveSettingsForm()}>
         저장
       </SaveButton>

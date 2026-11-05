@@ -1,13 +1,24 @@
-import { beforeEach, expect, test } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 import SettingsPage from './SettingsPage';
 import { ERROR_MESSAGE } from '../../../domain/error/errorMessage';
 import { customRender } from '../customRender';
 import { MIN_PRODUCT_DELAY_SECONDS } from '../domain/parseProductDelay';
 import { DEFAULT_SETTINGS, readSettings, saveSettings } from '../domain/settingsStorage';
+import type { IpcInvoke, IpcListener } from '../../../preload/_type';
 import type { Settings } from '../../../domain/settings/_type';
+
+const mockEncryptSecret = vi.fn<IpcInvoke['encryptSecret']>();
+
+window.api = {
+  startUpdate: vi.fn<IpcInvoke['startUpdate']>(),
+  stopUpdate: vi.fn<IpcInvoke['stopUpdate']>(),
+  encryptSecret: mockEncryptSecret,
+  onUpdateState: vi.fn<IpcListener['onUpdateState']>(),
+};
 
 beforeEach(() => {
   localStorage.clear();
+  mockEncryptSecret.mockReset();
 });
 
 test('사용자 설정 제목을 보여준다', async () => {
@@ -167,5 +178,58 @@ test('상품 간 대기 시간이 잘못되면 실패 이유를 보여주고 저
   await screen.getByRole('button', { name: '저장' }).click();
 
   await expect.element(screen.getByText(ERROR_MESSAGE.PRODUCT_DELAY_TOO_SHORT)).toBeVisible();
+  expect(readSettings()).toEqual(DEFAULT_SETTINGS);
+});
+
+const savedSecretPlaceholder = '저장됨 (바꾸려면 새로 입력)';
+
+test('저장한 비밀값은 입력칸을 비워 두고 저장됨으로 안내한다', async () => {
+  saveSettings({
+    ...settings,
+    encryptedNaverPassword: 'encrypted-password',
+    encryptedClientSecret: 'encrypted-client-secret',
+  });
+
+  const screen = await customRender(<SettingsPage />);
+
+  const naverPasswordInput = screen.getByLabelText('네이버 비밀번호');
+  const clientSecretInput = screen.getByLabelText('Client Secret');
+
+  await expect.element(naverPasswordInput).toHaveValue('');
+  await expect.element(naverPasswordInput).toHaveAttribute('placeholder', savedSecretPlaceholder);
+  await expect.element(clientSecretInput).toHaveValue('');
+  await expect.element(clientSecretInput).toHaveAttribute('placeholder', savedSecretPlaceholder);
+});
+
+test('비밀값을 입력하고 저장하면 암호문을 저장하고 입력칸을 비운다', async () => {
+  mockEncryptSecret.mockImplementation(async (secret) => `encrypted:${secret}`);
+
+  const screen = await customRender(<SettingsPage />);
+
+  const naverPasswordInput = screen.getByLabelText('네이버 비밀번호');
+  const clientSecretInput = screen.getByLabelText('Client Secret');
+
+  await naverPasswordInput.fill('plain-password');
+  await clientSecretInput.fill('plain-client-secret');
+  await screen.getByRole('button', { name: '저장' }).click();
+
+  await expect.element(naverPasswordInput).toHaveAttribute('placeholder', savedSecretPlaceholder);
+  await expect.element(naverPasswordInput).toHaveValue('');
+  await expect.element(clientSecretInput).toHaveValue('');
+  expect(readSettings()).toMatchObject({
+    encryptedNaverPassword: 'encrypted:plain-password',
+    encryptedClientSecret: 'encrypted:plain-client-secret',
+  });
+});
+
+test('암호화에 실패하면 실패 이유를 보여주고 저장하지 않는다', async () => {
+  mockEncryptSecret.mockRejectedValue(new Error('암호화 실패'));
+
+  const screen = await customRender(<SettingsPage />);
+
+  await screen.getByLabelText('네이버 비밀번호').fill('plain-password');
+  await screen.getByRole('button', { name: '저장' }).click();
+
+  await expect.element(screen.getByText(ERROR_MESSAGE.ENCRYPTION_UNAVAILABLE)).toBeVisible();
   expect(readSettings()).toEqual(DEFAULT_SETTINGS);
 });
