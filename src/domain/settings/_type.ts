@@ -17,3 +17,9 @@ export interface Settings {
   encryptedClientSecret: string;
   encryptedServiceAccountKey: string;
 }
+
+// 네이버 로그인에 쓰는 계정 정보
+export interface NaverAccount {
+  naverId: string;
+  naverPassword: string;
+}

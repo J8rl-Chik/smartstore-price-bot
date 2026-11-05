@@ -28,7 +28,10 @@ import { UnexpectedCatalogPageError } from './integrations/puppeteer/validateCat
 const createLoggedInPage = async (): ReturnType<typeof createPage> => {
   const { browser, page } = await createPage();
 
-  await loginNaver(page);
+  await loginNaver(page, {
+    naverId: validateEnv('NAVER_ID'),
+    naverPassword: validateEnv('NAVER_PASSWORD'),
+  });
   await delaySeconds(1);
 
   return { browser, page };

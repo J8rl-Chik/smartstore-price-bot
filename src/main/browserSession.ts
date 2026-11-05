@@ -2,6 +2,7 @@ import type { Browser, Page } from 'puppeteer';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
 import tryCatch from '../utils/tryCatch';
+import type { NaverAccount } from '../domain/settings/_type';
 
 /**
  * 지금 열린 브라우저와 로그인한 페이지를 보관한다.
@@ -20,10 +21,10 @@ export const isPageClosed = (page: Page): boolean => page.isClosed() || !page.br
  * 로그인에 성공한 뒤에만 보관한다. 실패한 페이지를 보관하면 다음 호출에서 로그인을 건너뛰기 때문이다.
  * 로그인에 실패하면 다시 호출할 때마다 창이 쌓이지 않도록 연 브라우저를 닫고 에러를 그대로 던진다.
  */
-export const getLoggedInPage = async (): Promise<Page> => {
+export const getLoggedInPage = async (naverAccount: NaverAccount): Promise<Page> => {
   if (!session || isPageClosed(session.page)) {
     const { browser, page } = await createPage();
-    const [error] = await tryCatch(loginNaver(page));
+    const [error] = await tryCatch(loginNaver(page, naverAccount));
 
     if (error) {
       await browser.close();

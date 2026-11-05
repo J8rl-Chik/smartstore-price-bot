@@ -57,7 +57,11 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
         return;
       }
 
-      const page = await getLoggedInPage();
+      // TODO: 사용자 설정을 연결하면 .env 대신 설정값을 넘긴다.
+      const page = await getLoggedInPage({
+        naverId: validateEnv('NAVER_ID'),
+        naverPassword: validateEnv('NAVER_PASSWORD'),
+      });
 
       // 상품 전체를 wait로 두고, 아직 처리 중인 상품은 없는 순회 시작 상태를 보낸다.
       sendState({

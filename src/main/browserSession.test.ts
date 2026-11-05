@@ -31,13 +31,15 @@ const createFakePage = ({ isClosed = false, isConnected = true } = {}): Page =>
     browser: () => ({ connected: isConnected }),
   }) as unknown as Page;
 
+const naverAccount = { naverId: 'test-id', naverPassword: 'test-password' };
+
 it('열린 페이지가 없으면 새 페이지를 열어 로그인한 뒤 반환한다', async () => {
   const page = createFakePage();
   mockCreatePage.mockResolvedValue({ browser: {}, page });
   const { getLoggedInPage } = await importBrowserSession();
 
-  await expect(getLoggedInPage()).resolves.toBe(page);
-  expect(mockLoginNaver).toHaveBeenCalledWith(page);
+  await expect(getLoggedInPage(naverAccount)).resolves.toBe(page);
+  expect(mockLoginNaver).toHaveBeenCalledWith(page, naverAccount);
 });
 
 it('다시 호출되면 다시 로그인하지 않고 이전에 로그인한 페이지를 반환한다', async () => {
@@ -45,9 +47,9 @@ it('다시 호출되면 다시 로그인하지 않고 이전에 로그인한 페
   mockCreatePage.mockResolvedValue({ browser: {}, page });
   const { getLoggedInPage } = await importBrowserSession();
 
-  await getLoggedInPage();
+  await getLoggedInPage(naverAccount);
 
-  await expect(getLoggedInPage()).resolves.toBe(page);
+  await expect(getLoggedInPage(naverAccount)).resolves.toBe(page);
   expect(mockCreatePage).toHaveBeenCalledTimes(1);
   expect(mockLoginNaver).toHaveBeenCalledTimes(1);
 });
@@ -59,10 +61,10 @@ it('사용자가 브라우저 탭을 닫았으면 새 페이지를 열어 로그
     .mockResolvedValueOnce({ browser: {}, page: newPage });
   const { getLoggedInPage } = await importBrowserSession();
 
-  await getLoggedInPage();
+  await getLoggedInPage(naverAccount);
 
-  await expect(getLoggedInPage()).resolves.toBe(newPage);
-  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage);
+  await expect(getLoggedInPage(naverAccount)).resolves.toBe(newPage);
+  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage, naverAccount);
 });
 
 it('사용자가 브라우저 창을 닫았으면 새 페이지를 열어 로그인한다', async () => {
@@ -72,10 +74,10 @@ it('사용자가 브라우저 창을 닫았으면 새 페이지를 열어 로그
     .mockResolvedValueOnce({ browser: {}, page: newPage });
   const { getLoggedInPage } = await importBrowserSession();
 
-  await getLoggedInPage();
+  await getLoggedInPage(naverAccount);
 
-  await expect(getLoggedInPage()).resolves.toBe(newPage);
-  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage);
+  await expect(getLoggedInPage(naverAccount)).resolves.toBe(newPage);
+  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage, naverAccount);
 });
 
 it('로그인에 실패하면 연 브라우저를 닫고 로그인 에러를 그대로 던진다', async () => {
@@ -85,7 +87,7 @@ it('로그인에 실패하면 연 브라우저를 닫고 로그인 에러를 그
   mockLoginNaver.mockRejectedValue(loginError);
   const { getLoggedInPage } = await importBrowserSession();
 
-  await expect(getLoggedInPage()).rejects.toBe(loginError);
+  await expect(getLoggedInPage(naverAccount)).rejects.toBe(loginError);
   expect(mockClose).toHaveBeenCalledTimes(1);
 });
 
@@ -97,9 +99,9 @@ it('로그인에 실패한 뒤 다시 호출되면 새 페이지를 열어 다�
   mockLoginNaver.mockRejectedValueOnce(new Error('네이버 로그인에 실패했습니다.'));
   const { getLoggedInPage } = await importBrowserSession();
 
-  await expect(getLoggedInPage()).rejects.toThrow();
-  await expect(getLoggedInPage()).resolves.toBe(newPage);
-  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage);
+  await expect(getLoggedInPage(naverAccount)).rejects.toThrow();
+  await expect(getLoggedInPage(naverAccount)).resolves.toBe(newPage);
+  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage, naverAccount);
 });
 
 it('탭과 창이 열려 있으면 isPageClosed가 false를 반환한다', async () => {
@@ -131,7 +133,7 @@ it('로그인한 뒤 closeBrowser를 호출하면 보관한 브라우저를 닫�
   mockCreatePage.mockResolvedValue({ browser, page: createFakePage() });
   const { getLoggedInPage, closeBrowser } = await importBrowserSession();
 
-  await getLoggedInPage();
+  await getLoggedInPage(naverAccount);
   await closeBrowser();
 
   expect(browser.close).toHaveBeenCalledTimes(1);
@@ -144,11 +146,11 @@ it('closeBrowser를 호출한 뒤 다시 호출되면 새 페이지를 열어 �
     .mockResolvedValueOnce({ browser: createFakeBrowser(), page: newPage });
   const { getLoggedInPage, closeBrowser } = await importBrowserSession();
 
-  await getLoggedInPage();
+  await getLoggedInPage(naverAccount);
   await closeBrowser();
 
-  await expect(getLoggedInPage()).resolves.toBe(newPage);
-  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage);
+  await expect(getLoggedInPage(naverAccount)).resolves.toBe(newPage);
+  expect(mockLoginNaver).toHaveBeenNthCalledWith(2, newPage, naverAccount);
 });
 
 it('로그인한 적이 없으면 closeBrowser는 에러 없이 끝난다', async () => {
@@ -162,7 +164,7 @@ it('사용자가 이미 브라우저 창을 닫았으면 closeBrowser는 브라�
   mockCreatePage.mockResolvedValue({ browser, page: createFakePage() });
   const { getLoggedInPage, closeBrowser } = await importBrowserSession();
 
-  await getLoggedInPage();
+  await getLoggedInPage(naverAccount);
   await closeBrowser();
 
   expect(browser.close).not.toHaveBeenCalled();

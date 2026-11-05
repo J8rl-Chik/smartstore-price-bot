@@ -91,6 +91,19 @@ it('상품마다 로그인한 페이지, 상품, 내 스토어 이름으로 가�
   expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(2, fakePage, productB, '내 스토어');
 });
 
+it('네이버 계정을 담아 로그인한 페이지를 요청한다', async () => {
+  mockFetchedTargetProducts([productA]);
+  mockValidateEnv.mockImplementation((key: string) => `env:${key}`);
+  mockGetLoggedInPage.mockResolvedValue(fakePage);
+
+  await runStartUpdate();
+
+  expect(mockGetLoggedInPage).toHaveBeenCalledWith({
+    naverId: 'env:NAVER_ID',
+    naverPassword: 'env:NAVER_PASSWORD',
+  });
+});
+
 it('수정할 상품이 없으면 로그인과 순회를 하지 않고 빈 목록으로 끝난 상태를 보낸다', async () => {
   mockFetchedTargetProducts([]);
 

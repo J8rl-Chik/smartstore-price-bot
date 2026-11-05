@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
 import loginNaver from './loginNaver.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
@@ -15,29 +15,24 @@ const createMockPage = () => ({
 vi.mock('../../utils/delayRandomSeconds.js', () => ({ default: vi.fn() }));
 
 describe('loginNaver', () => {
-  vi.stubEnv('NAVER_ID', 'test-id');
-  vi.stubEnv('NAVER_PASSWORD', 'test-password');
+  const naverAccount = { naverId: 'test-id', naverPassword: 'test-password' };
 
   beforeEach(() => {
     mockEvaluate.mockReturnValue(true);
   });
 
-  afterAll(() => {
-    vi.unstubAllEnvs();
-  });
-
   it('네이버 로그인 페이지로 이동한다', async () => {
     const mockPage = createMockPage();
 
-    await loginNaver(mockPage as unknown as Page);
+    await loginNaver(mockPage as unknown as Page, naverAccount);
 
     expect(mockPage.goto).toHaveBeenCalledWith('https://www.naver.com/');
   });
 
-  it('아이디/비밀번호 입력란을 클릭한 뒤 환경변수 값을 입력한다', async () => {
+  it('아이디/비밀번호 입력란을 클릭한 뒤 전달받은 계정을 입력한다', async () => {
     const mockPage = createMockPage();
 
-    await loginNaver(mockPage as unknown as Page);
+    await loginNaver(mockPage as unknown as Page, naverAccount);
 
     const delay = 100;
     const idSelector = '#id';
@@ -52,7 +47,7 @@ describe('loginNaver', () => {
   it('로그인 버튼을 클릭한다', async () => {
     const mockPage = createMockPage();
 
-    await loginNaver(mockPage as unknown as Page);
+    await loginNaver(mockPage as unknown as Page, naverAccount);
 
     expect(mockPage.click).toHaveBeenCalledWith('#loginBtn_row');
   });
@@ -62,7 +57,7 @@ describe('loginNaver', () => {
 
     const mockPage = createMockPage();
 
-    await loginNaver(mockPage as unknown as Page);
+    await loginNaver(mockPage as unknown as Page, naverAccount);
 
     expect(mockPage.click).not.toHaveBeenCalled();
   });
@@ -73,7 +68,7 @@ describe('loginNaver', () => {
 
     mockPage.click.mockRejectedValue(clickError);
 
-    await expect(loginNaver(mockPage as unknown as Page)).rejects.toMatchObject({
+    await expect(loginNaver(mockPage as unknown as Page, naverAccount)).rejects.toMatchObject({
       message: ERROR_MESSAGE.NAVER_LOGIN_FAILED,
       cause: clickError,
     });
@@ -85,7 +80,7 @@ describe('loginNaver', () => {
 
     mockPage.goto.mockRejectedValue(gotoError);
 
-    await expect(loginNaver(mockPage as unknown as Page)).rejects.toMatchObject({
+    await expect(loginNaver(mockPage as unknown as Page, naverAccount)).rejects.toMatchObject({
       message: ERROR_MESSAGE.NAVER_LOGIN_FAILED,
       cause: gotoError,
     });
