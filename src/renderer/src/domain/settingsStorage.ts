@@ -12,6 +12,9 @@ export const DEFAULT_SETTINGS: Settings = {
   restartDelayMinutes: null,
   productDelaySeconds: MIN_PRODUCT_DELAY_SECONDS,
   isDryRun: false,
+  encryptedNaverPassword: '',
+  encryptedClientSecret: '',
+  encryptedServiceAccountKey: '',
 };
 
 /**

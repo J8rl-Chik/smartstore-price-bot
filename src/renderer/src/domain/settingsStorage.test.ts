@@ -27,6 +27,9 @@ const settings: Settings = {
   restartDelayMinutes: 30,
   productDelaySeconds: 20,
   isDryRun: true,
+  encryptedNaverPassword: 'encrypted-password',
+  encryptedClientSecret: 'encrypted-client-secret',
+  encryptedServiceAccountKey: 'encrypted-key',
 };
 
 it('저장한 설정을 그대로 읽는다', () => {

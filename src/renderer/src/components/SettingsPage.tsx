@@ -141,7 +141,7 @@ const SettingsPage = (): React.JSX.Element => {
           <TestModeHint>켜면 실제 가격을 수정하지 않아요.</TestModeHint>
         </SettingsSection>
       </SectionGrid>
-      <SaveButton type="button" onClick={saveSettingsForm}>
+      <SaveButton type="button" onClick={() => void saveSettingsForm()}>
         저장
       </SaveButton>
     </section>

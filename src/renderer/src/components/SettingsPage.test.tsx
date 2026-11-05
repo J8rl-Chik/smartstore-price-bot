@@ -105,6 +105,9 @@ const settings: Settings = {
   restartDelayMinutes: 30,
   productDelaySeconds: 20,
   isDryRun: true,
+  encryptedNaverPassword: '',
+  encryptedClientSecret: '',
+  encryptedServiceAccountKey: '',
 };
 
 test('저장한 설정을 입력칸에 보여준다', async () => {

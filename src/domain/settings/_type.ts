@@ -2,6 +2,7 @@
  * 사용자 설정 페이지에서 입력받아 localStorage에 저장하는 값.
  * restartDelayMinutes가 null이면 자동 재실행 없이 한 번만 순회한다.
  * isDryRun이 true이면 실제 가격을 수정하지 않는다.
+ * encrypted로 시작하는 값은 main이 암호화한 base64 암호문이고, 입력한 적이 없으면 빈 문자열이다.
  */
 export interface Settings {
   naverId: string;
@@ -12,4 +13,7 @@ export interface Settings {
   restartDelayMinutes: number | null;
   productDelaySeconds: number;
   isDryRun: boolean;
+  encryptedNaverPassword: string;
+  encryptedClientSecret: string;
+  encryptedServiceAccountKey: string;
 }
