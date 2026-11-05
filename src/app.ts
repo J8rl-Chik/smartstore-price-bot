@@ -39,11 +39,17 @@ const createLoggedInPage = async (): ReturnType<typeof createPage> => {
 
 const start = async (): Promise<void> => {
   const myStoreName = validateEnv('SMART_STORE_NAME');
+  const commerceApiCredentials = {
+    clientId: validateEnv('CLIENT_ID'),
+    clientSecret: validateEnv('CLIENT_SECRET'),
+  };
 
   while (true) {
     console.time('실행 시간');
 
-    const saleProducts = shuffleArray(excludeNewlyRegisteredProducts(await getSaleProducts()));
+    const saleProducts = shuffleArray(
+      excludeNewlyRegisteredProducts(await getSaleProducts(commerceApiCredentials)),
+    );
     // 변환에 성공한 행만 쓴다.
     const productRows = (await getProductRows())
       .map(parseProductRow)
@@ -88,6 +94,7 @@ const start = async (): Promise<void> => {
             );
 
             const result = await updatePrice({
+              commerceApiCredentials,
               productNo: getOriginProductNo(saleProduct),
               deliveryFee,
               salePrice,

@@ -48,7 +48,13 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
 
     try {
       const myStoreName = validateEnv('SMART_STORE_NAME');
-      const { targetProducts, invalidProductRows } = await fetchTargetProducts();
+      // TODO: 사용자 설정을 연결하면 .env 대신 설정값을 넘긴다.
+      const commerceApiCredentials = {
+        clientId: validateEnv('CLIENT_ID'),
+        clientSecret: validateEnv('CLIENT_SECRET'),
+      };
+      const { targetProducts, invalidProductRows } =
+        await fetchTargetProducts(commerceApiCredentials);
 
       // 수정할 상품이 없으면 로그인하지 않고, 변환에 실패한 시트 행만 보낸 뒤 끝낸다.
       if (targetProducts.length === 0) {
@@ -84,7 +90,7 @@ const createStartUpdate = (scheduler: UpdateScheduler): StartUpdateHandler => {
         sendState({ currentIndex: index });
 
         const [error, update] = await tryCatch(
-          updateTargetProductPrice(page, targetProduct, myStoreName),
+          updateTargetProductPrice(page, targetProduct, myStoreName, commerceApiCredentials),
         );
 
         if (error) {

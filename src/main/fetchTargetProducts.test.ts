@@ -51,6 +51,8 @@ afterEach(() => {
   mockShuffleArray.mockReset();
 });
 
+const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test-client-secret' };
+
 it('판매 상품과 시트 행을 가공해 합친 목록과 중복된 상품명을 반환한다', async () => {
   const rawSaleProducts = [{ id: 'raw' }];
   const filteredSaleProducts = [{ id: 'filtered' }];
@@ -71,7 +73,7 @@ it('판매 상품과 시트 행을 가공해 합친 목록과 중복된 상품�
   mockFindDuplicateProductNames.mockReturnValue(['상품A']);
   mockCreateTargetProducts.mockReturnValue([targetProduct]);
 
-  const result = await fetchTargetProducts();
+  const result = await fetchTargetProducts(commerceApiCredentials);
 
   expect(mockExcludeNewlyRegisteredProducts).toHaveBeenCalledWith(rawSaleProducts);
   expect(mockShuffleArray).toHaveBeenCalledWith(filteredSaleProducts);
@@ -96,9 +98,9 @@ it('판매 상품과 시트 행을 동시에 요청한다', () => {
   mockGetSaleProducts.mockReturnValue(new Promise(() => {}));
   mockGetProductRows.mockReturnValue(new Promise(() => {}));
 
-  void fetchTargetProducts();
+  void fetchTargetProducts(commerceApiCredentials);
 
-  expect(mockGetSaleProducts).toHaveBeenCalled();
+  expect(mockGetSaleProducts).toHaveBeenCalledWith(commerceApiCredentials);
   expect(mockGetProductRows).toHaveBeenCalled();
 });
 
@@ -122,7 +124,7 @@ const mockSaleProductNamesWithInvalidRow = (names: string[]): void => {
 it('판매 상품에 이름이 있는 변환 실패 시트 행을 상품명과 에러 메시지만 담아 반환한다', async () => {
   mockSaleProductNamesWithInvalidRow(['상품C']);
 
-  const { invalidProductRows } = await fetchTargetProducts();
+  const { invalidProductRows } = await fetchTargetProducts(commerceApiCredentials);
 
   expect(invalidProductRows).toEqual([{ name: '상품C', errorMessages: ['productPrice: 에러'] }]);
 });
@@ -130,7 +132,7 @@ it('판매 상품에 이름이 있는 변환 실패 시트 행을 상품명과 �
 it('판매 상품에 이름이 없는 변환 실패 시트 행은 반환하지 않는다', async () => {
   mockSaleProductNamesWithInvalidRow(['상품A']);
 
-  const { invalidProductRows } = await fetchTargetProducts();
+  const { invalidProductRows } = await fetchTargetProducts(commerceApiCredentials);
 
   expect(invalidProductRows).toEqual([]);
 });

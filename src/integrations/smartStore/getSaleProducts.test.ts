@@ -15,6 +15,8 @@ vi.mock(import('./generateAccessToken.js'), () => ({
 }));
 
 describe('getSaleProducts', () => {
+  const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test-client-secret' };
+
   afterEach(() => {
     mockFetch.mockReset();
     mockGenerateAccessToken.mockReset();
@@ -42,15 +44,19 @@ describe('getSaleProducts', () => {
       json: async () => ({ contents: [existingProduct, newProduct] }),
     });
 
-    await expect(getSaleProducts()).resolves.toEqual([existingProduct, newProduct]);
+    await expect(getSaleProducts(commerceApiCredentials)).resolves.toEqual([
+      existingProduct,
+      newProduct,
+    ]);
   });
 
   it('상품 검색 API를 올바른 URL/메서드/인증 헤더/바디로 호출한다', async () => {
     mockGenerateAccessToken.mockResolvedValue('token-abc');
     mockFetch.mockResolvedValue({ json: async () => ({ contents: [] }) });
 
-    await getSaleProducts();
+    await getSaleProducts(commerceApiCredentials);
 
+    expect(mockGenerateAccessToken).toHaveBeenCalledWith(commerceApiCredentials);
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.commerce.naver.com/external/v1/products/search',
       {
@@ -69,7 +75,7 @@ describe('getSaleProducts', () => {
 
     mockGenerateAccessToken.mockRejectedValue(tokenError);
 
-    await expect(getSaleProducts()).rejects.toMatchObject({
+    await expect(getSaleProducts(commerceApiCredentials)).rejects.toMatchObject({
       message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
       cause: tokenError,
     });
@@ -81,7 +87,7 @@ describe('getSaleProducts', () => {
     mockFetch.mockRejectedValue(networkError);
     mockGenerateAccessToken.mockResolvedValue('token-abc');
 
-    await expect(getSaleProducts()).rejects.toMatchObject({
+    await expect(getSaleProducts(commerceApiCredentials)).rejects.toMatchObject({
       message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
       cause: networkError,
     });
@@ -93,7 +99,7 @@ describe('getSaleProducts', () => {
     mockFetch.mockResolvedValue({ json: () => Promise.reject(parseError) });
     mockGenerateAccessToken.mockResolvedValue('token-abc');
 
-    await expect(getSaleProducts()).rejects.toMatchObject({
+    await expect(getSaleProducts(commerceApiCredentials)).rejects.toMatchObject({
       message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
       cause: parseError,
     });
@@ -105,7 +111,7 @@ describe('getSaleProducts', () => {
       json: () => Promise.resolve({ message: '유효하지 않은 요청입니다.' }),
     });
 
-    await expect(getSaleProducts()).rejects.toMatchObject({
+    await expect(getSaleProducts(commerceApiCredentials)).rejects.toMatchObject({
       message: ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED,
       cause: expect.objectContaining({
         message: `${ERROR_MESSAGE.SMART_STORE_API_FAILED} (message: 유효하지 않은 요청입니다.)`,

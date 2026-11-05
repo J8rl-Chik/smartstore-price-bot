@@ -79,16 +79,30 @@ const productB = { name: '상품B', originProductNo: 222 };
 // 로그인한 페이지 자리에 넘기는 가짜 page. 닫힘 여부는 mockIsPageClosed로 정한다.
 const fakePage = {};
 
-it('상품마다 로그인한 페이지, 상품, 내 스토어 이름으로 가격 수정을 처리한다', async () => {
+it('상품마다 로그인한 페이지, 상품, 내 스토어 이름, 인증 정보로 가격 수정을 처리한다', async () => {
+  const commerceApiCredentials = { clientId: 'env:CLIENT_ID', clientSecret: 'env:CLIENT_SECRET' };
+
   mockFetchedTargetProducts([productA, productB]);
-  mockValidateEnv.mockReturnValue('내 스토어');
+  mockValidateEnv.mockImplementation((key: string) => `env:${key}`);
   mockGetLoggedInPage.mockResolvedValue(fakePage);
 
   await runStartUpdate();
 
-  expect(mockValidateEnv).toHaveBeenCalledWith('SMART_STORE_NAME');
-  expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(1, fakePage, productA, '내 스토어');
-  expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(2, fakePage, productB, '내 스토어');
+  expect(mockFetchTargetProducts).toHaveBeenCalledWith(commerceApiCredentials);
+  expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(
+    1,
+    fakePage,
+    productA,
+    'env:SMART_STORE_NAME',
+    commerceApiCredentials,
+  );
+  expect(mockUpdateTargetProductPrice).toHaveBeenNthCalledWith(
+    2,
+    fakePage,
+    productB,
+    'env:SMART_STORE_NAME',
+    commerceApiCredentials,
+  );
 });
 
 it('네이버 계정을 담아 로그인한 페이지를 요청한다', async () => {

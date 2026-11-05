@@ -23,3 +23,9 @@ export interface NaverAccount {
   naverId: string;
   naverPassword: string;
 }
+
+// 커머스 API 토큰 발급에 쓰는 인증 정보
+export interface CommerceApiCredentials {
+  clientId: string;
+  clientSecret: string;
+}

@@ -6,8 +6,10 @@ import checkSmartStoreApiSucceeded, {
 } from './checkSmartStoreApiSucceeded.js';
 import { DeliveryFee } from '../../domain/delivery/_type.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
+import type { CommerceApiCredentials } from '../../domain/settings/_type.js';
 
 interface UpdatePriceParam {
+  commerceApiCredentials: CommerceApiCredentials;
   productNo: number;
   deliveryFee: DeliveryFee;
   salePrice: number;
@@ -57,13 +59,14 @@ const sanitizeProductForUpdate = (product: OriginProduct): OriginProduct => {
 };
 
 async function updatePrice({
+  commerceApiCredentials,
   productNo,
   deliveryFee,
   salePrice,
 }: UpdatePriceParam): Promise<UpdatePriceResult> {
   try {
     const productURL = `https://api.commerce.naver.com/external/v2/products/origin-products/${productNo}`;
-    const accessToken = await generateAccessToken();
+    const accessToken = await generateAccessToken(commerceApiCredentials);
     const headers = {
       Authorization: accessToken,
       'Content-Type': 'application/json',

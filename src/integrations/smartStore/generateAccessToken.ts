@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import fetch from 'node-fetch';
 
@@ -6,22 +5,25 @@ import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
 } from './checkSmartStoreApiSucceeded.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
+import type { CommerceApiCredentials } from '../../domain/settings/_type.js';
 
 interface AccessTokenResult extends SmartStoreApiResult {
   access_token: string;
 }
 
-async function generateAccessToken(): Promise<string> {
+async function generateAccessToken({
+  clientId,
+  clientSecret,
+}: CommerceApiCredentials): Promise<string> {
   try {
-    const { CLIENT_ID, CLIENT_SECRET } = process.env;
     const timestamp = Date.now();
-    const password = `${CLIENT_ID}_${timestamp}`;
-    const hashedPassword = bcrypt.hashSync(password, CLIENT_SECRET as string);
+    const password = `${clientId}_${timestamp}`;
+    const hashedPassword = bcrypt.hashSync(password, clientSecret);
     const clientSecretSign = Buffer.from(hashedPassword, 'utf-8').toString('base64');
     const tokenURL = 'https://api.commerce.naver.com/external/v1/oauth2/token';
 
     const query = new URLSearchParams({
-      client_id: CLIENT_ID as string,
+      client_id: clientId,
       timestamp: timestamp.toString(),
       grant_type: 'client_credentials',
       client_secret_sign: clientSecretSign,

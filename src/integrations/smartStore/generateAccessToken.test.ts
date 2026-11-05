@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import generateAccessToken from './generateAccessToken.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
@@ -18,8 +18,7 @@ vi.mock('bcryptjs', () => ({
 }));
 
 describe('generateAccessToken', () => {
-  vi.stubEnv('CLIENT_ID', 'test-client-id');
-  vi.stubEnv('CLIENT_SECRET', 'test-client-secret');
+  const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test-client-secret' };
 
   beforeEach(() => {
     mockHashSync.mockReturnValue('hashed-signature');
@@ -30,20 +29,16 @@ describe('generateAccessToken', () => {
     mockHashSync.mockReset();
   });
 
-  afterAll(() => {
-    vi.unstubAllEnvs();
-  });
-
   it('발급받은 access_token을 반환한다', async () => {
     mockFetch.mockResolvedValue({ json: async () => ({ access_token: 'issued-token' }) });
 
-    await expect(generateAccessToken()).resolves.toBe('issued-token');
+    await expect(generateAccessToken(commerceApiCredentials)).resolves.toBe('issued-token');
   });
 
   it('네이버 OAuth 엔드포인트에 필수 파라미터를 담아 POST 요청한다', async () => {
     mockFetch.mockResolvedValue({ json: async () => ({ access_token: 'issued-token' }) });
 
-    await generateAccessToken();
+    await generateAccessToken(commerceApiCredentials);
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
@@ -59,6 +54,10 @@ describe('generateAccessToken', () => {
       Buffer.from('hashed-signature', 'utf-8').toString('base64'),
     );
     expect(url).not.toContain('test-client-secret');
+    expect(mockHashSync).toHaveBeenCalledWith(
+      expect.stringContaining('test-client-id_'),
+      'test-client-secret',
+    );
   });
 
   it('토큰 발급 요청이 실패하면 원인을 보존한 채 에러를 던진다', async () => {
@@ -66,7 +65,7 @@ describe('generateAccessToken', () => {
 
     mockFetch.mockRejectedValue(networkError);
 
-    await expect(generateAccessToken()).rejects.toMatchObject({
+    await expect(generateAccessToken(commerceApiCredentials)).rejects.toMatchObject({
       message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
       cause: networkError,
     });
@@ -77,7 +76,7 @@ describe('generateAccessToken', () => {
 
     mockFetch.mockResolvedValue({ json: async () => Promise.reject(parseError) });
 
-    await expect(generateAccessToken()).rejects.toMatchObject({
+    await expect(generateAccessToken(commerceApiCredentials)).rejects.toMatchObject({
       message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
       cause: parseError,
     });
@@ -90,7 +89,7 @@ describe('generateAccessToken', () => {
       throw signingError;
     });
 
-    await expect(generateAccessToken()).rejects.toMatchObject({
+    await expect(generateAccessToken(commerceApiCredentials)).rejects.toMatchObject({
       message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
       cause: signingError,
     });
@@ -101,7 +100,7 @@ describe('generateAccessToken', () => {
       json: () => Promise.resolve({ message: '유효하지 않은 클라이언트입니다.' }),
     });
 
-    await expect(generateAccessToken()).rejects.toMatchObject({
+    await expect(generateAccessToken(commerceApiCredentials)).rejects.toMatchObject({
       message: ERROR_MESSAGE.ACCESS_TOKEN_FAILED,
       cause: expect.objectContaining({
         message: `${ERROR_MESSAGE.SMART_STORE_API_FAILED} (message: 유효하지 않은 클라이언트입니다.)`,

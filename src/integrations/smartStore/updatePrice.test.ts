@@ -30,6 +30,8 @@ afterEach(() => {
   mockGenerateAccessToken.mockReset();
 });
 
+const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test-client-secret' };
+
 it('가격 수정 API의 응답을 그대로 반환한다', async () => {
   const updateResult = {
     salePrice: 50000,
@@ -42,7 +44,12 @@ it('가격 수정 API의 응답을 그대로 반환한다', async () => {
     .mockResolvedValueOnce({ json: () => Promise.resolve(updateResult) });
 
   await expect(
-    updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
+    updatePrice({
+      commerceApiCredentials,
+      productNo: 123,
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 50000,
+    }),
   ).resolves.toEqual(updateResult);
 });
 
@@ -55,6 +62,7 @@ it('상품 조회는 GET, 가격 수정은 PUT으로 같은 상품 URL에 인증
     .mockResolvedValueOnce({ json: () => Promise.resolve({ success: true }) });
 
   await updatePrice({
+    commerceApiCredentials,
     productNo: 123,
     deliveryFee: { deliveryFeeType: 'FREE' },
     salePrice: 50000,
@@ -86,6 +94,7 @@ it('detailContent/stockQuantity는 제거하고 salePrice를 반영해 수정 �
     .mockResolvedValueOnce({ json: () => Promise.resolve({ success: true }) });
 
   await updatePrice({
+    commerceApiCredentials,
     productNo: 123,
     deliveryFee: { deliveryFeeType: 'FREE' },
     salePrice: 50000,
@@ -120,6 +129,7 @@ it('원본 배송 정보와 배송비는 유지하고, 수정할 배송비와 �
     .mockResolvedValueOnce({ json: () => Promise.resolve({ success: true }) });
 
   await updatePrice({
+    commerceApiCredentials,
     productNo: 123,
     deliveryFee: { deliveryFeeType: 'PAID', deliveryFeePayType: 'PREPAID', baseFee: 3000 },
     salePrice: 50000,
@@ -145,7 +155,12 @@ it('accessToken 발급이 실패하면 원인을 보존한 채 에러를 던진�
   mockGenerateAccessToken.mockRejectedValue(tokenError);
 
   await expect(
-    updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
+    updatePrice({
+      commerceApiCredentials,
+      productNo: 123,
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 50000,
+    }),
   ).rejects.toMatchObject({
     message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: tokenError,
@@ -158,7 +173,12 @@ it('원본 상품 조회(GET)가 실패하면 원인을 보존한 채 에러를 
   mockFetch.mockRejectedValueOnce(readError);
 
   await expect(
-    updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
+    updatePrice({
+      commerceApiCredentials,
+      productNo: 123,
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 50000,
+    }),
   ).rejects.toMatchObject({
     message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: readError,
@@ -173,7 +193,12 @@ it('가격 수정(PUT) 요청이 실패하면 원인을 보존한 채 에러를 
     .mockRejectedValueOnce(updateError);
 
   await expect(
-    updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
+    updatePrice({
+      commerceApiCredentials,
+      productNo: 123,
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 50000,
+    }),
   ).rejects.toMatchObject({
     message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: updateError,
@@ -189,7 +214,12 @@ it('수정 응답에 message가 있으면(네이버 쪽 업데이트 실패) 원
     });
 
   await expect(
-    updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
+    updatePrice({
+      commerceApiCredentials,
+      productNo: 123,
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 50000,
+    }),
   ).rejects.toMatchObject({
     message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: expect.objectContaining({
@@ -206,9 +236,30 @@ it('응답 파싱이 실패해도 원인을 보존한 채 에러를 던진다', 
     .mockResolvedValueOnce({ json: () => Promise.reject(parseError) });
 
   await expect(
-    updatePrice({ productNo: 123, deliveryFee: { deliveryFeeType: 'FREE' }, salePrice: 50000 }),
+    updatePrice({
+      commerceApiCredentials,
+      productNo: 123,
+      deliveryFee: { deliveryFeeType: 'FREE' },
+      salePrice: 50000,
+    }),
   ).rejects.toMatchObject({
     message: ERROR_MESSAGE.PRICE_UPDATE_FAILED,
     cause: parseError,
   });
+});
+
+it('전달받은 인증 정보로 토큰을 발급받는다', async () => {
+  mockGenerateAccessToken.mockResolvedValue('token-abc');
+  mockFetch
+    .mockResolvedValueOnce({ json: async () => createOriginProductResult() })
+    .mockResolvedValueOnce({ json: async () => ({}) });
+
+  await updatePrice({
+    commerceApiCredentials,
+    productNo: 123,
+    deliveryFee: { deliveryFeeType: 'FREE' },
+    salePrice: 50000,
+  });
+
+  expect(mockGenerateAccessToken).toHaveBeenCalledWith(commerceApiCredentials);
 });

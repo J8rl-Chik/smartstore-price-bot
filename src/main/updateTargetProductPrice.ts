@@ -7,12 +7,14 @@ import { calculateTargetPrice } from '../domain/price/calculateTargetPrice';
 import { filterExcludedSellers } from '../domain/seller/filterExcludedSellers';
 import { ERROR_MESSAGE } from '../domain/error/errorMessage';
 import type { TargetProduct, TargetProductUpdate } from '../domain/product/_type';
+import type { CommerceApiCredentials } from '../domain/settings/_type';
 
 // 판매처 조회부터 가격 수정까지 상품 하나를 처리하고, 수정 결과를 complete 상태로 반환한다.
 const updateTargetProductPrice = async (
   page: Page,
   targetProduct: TargetProduct,
   myStoreName: string,
+  commerceApiCredentials: CommerceApiCredentials,
 ): Promise<TargetProductUpdate> => {
   const sellers = await getSellersInPuppeteer(
     page,
@@ -55,6 +57,7 @@ const updateTargetProductPrice = async (
   }
 
   const result = await updatePrice({
+    commerceApiCredentials,
     productNo: targetProduct.originProductNo,
     deliveryFee,
     salePrice,

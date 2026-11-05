@@ -6,14 +6,17 @@ import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
 } from './checkSmartStoreApiSucceeded.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
+import type { CommerceApiCredentials } from '../../domain/settings/_type.js';
 
 interface SaleProductsResult extends SmartStoreApiResult {
   contents: SaleProduct[];
 }
 
-async function getSaleProducts(): Promise<SaleProduct[]> {
+async function getSaleProducts(
+  commerceApiCredentials: CommerceApiCredentials,
+): Promise<SaleProduct[]> {
   try {
-    const accessToken = await generateAccessToken();
+    const accessToken = await generateAccessToken(commerceApiCredentials);
     const response = await fetch(`https://api.commerce.naver.com/external/v1/products/search`, {
       method: 'POST',
       headers: {

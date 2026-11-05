@@ -1,5 +1,8 @@
+import 'dotenv/config';
+
 import updatePrice from './updatePrice.js';
 import isManualTestRun from '../../utils/isManualTestRun.js';
+import validateEnv from '../../utils/validateEnv.js';
 import { buildPriceWithDeliveryFee } from '../../domain/delivery/buildPriceWithDeliveryFee.js';
 
 if (isManualTestRun(import.meta.url)) {
@@ -13,6 +16,10 @@ if (isManualTestRun(import.meta.url)) {
   );
 
   updatePrice({
+    commerceApiCredentials: {
+      clientId: validateEnv('CLIENT_ID'),
+      clientSecret: validateEnv('CLIENT_SECRET'),
+    },
     productNo: 12646660788, // 클린 웜 코튼 오 드 퍼퓸 60ml
     deliveryFee,
     salePrice,

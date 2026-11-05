@@ -85,8 +85,10 @@ const targetProduct: TargetProduct = {
   },
 };
 
+const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test-client-secret' };
+
 const run = (): Promise<TargetProductUpdate> =>
-  updateTargetProductPrice(page, targetProduct, myStoreName);
+  updateTargetProductPrice(page, targetProduct, myStoreName, commerceApiCredentials);
 
 it('상품의 카탈로그 URL과 상품명으로 판매처를 조회한다', async () => {
   await run();
@@ -133,6 +135,7 @@ it('목표 가격과 배송비 설정으로 계산한 판매가와 배송비로 
 
   expect(mockBuildPriceWithDeliveryFee).toHaveBeenCalledWith(targetProduct.sheet.delivery, 42990);
   expect(mockUpdatePrice).toHaveBeenCalledWith({
+    commerceApiCredentials,
     productNo: targetProduct.originProductNo,
     deliveryFee: { deliveryFeeType: 'PAID', deliveryFeePayType: 'PREPAID', baseFee: 3000 },
     salePrice: 39990,
