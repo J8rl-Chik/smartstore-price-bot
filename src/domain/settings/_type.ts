@@ -39,3 +39,10 @@ export interface GoogleSheetConfig {
   sheetName: string;
   auth: { keyFile: string } | { credentials: { client_email: string; private_key: string } };
 }
+
+// 순회 한 번을 실행할 때 쓰는 복호화된 설정. main 안에서만 쓰고 renderer로 보내지 않는다.
+export interface UpdateConfig {
+  naverAccount: NaverAccount;
+  commerceApiCredentials: CommerceApiCredentials;
+  googleSheetConfig: GoogleSheetConfig;
+}
