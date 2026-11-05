@@ -233,3 +233,40 @@ test('암호화에 실패하면 실패 이유를 보여주고 저장하지 않�
   await expect.element(screen.getByText(ERROR_MESSAGE.ENCRYPTION_UNAVAILABLE)).toBeVisible();
   expect(readSettings()).toEqual(DEFAULT_SETTINGS);
 });
+
+const savedServiceAccountKeyHint = '저장됨 (바꾸려면 새 파일 선택)';
+
+test('서비스 계정 키를 저장한 적이 없으면 저장됨을 보여주지 않는다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByText(savedServiceAccountKeyHint)).not.toBeInTheDocument();
+});
+
+test('서비스 계정 키를 저장했으면 저장됨을 보여준다', async () => {
+  saveSettings({ ...settings, encryptedServiceAccountKey: 'encrypted-key' });
+
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByText(savedServiceAccountKeyHint)).toBeVisible();
+});
+
+test('서비스 계정 키 파일을 선택하고 저장하면 파일 내용을 암호화해 저장한다', async () => {
+  const serviceAccountKey = JSON.stringify({ client_email: 'bot@example.com' });
+  const serviceAccountKeyFile = new File([serviceAccountKey], 'key.json', {
+    type: 'application/json',
+  });
+
+  mockEncryptSecret.mockResolvedValue('encrypted-key');
+
+  const screen = await customRender(<SettingsPage />);
+
+  const serviceAccountKeyInput = screen.getByLabelText('서비스 계정 키');
+
+  await serviceAccountKeyInput.upload(serviceAccountKeyFile);
+  await screen.getByRole('button', { name: '저장' }).click();
+
+  await expect.element(screen.getByText(savedServiceAccountKeyHint)).toBeVisible();
+  await expect.element(serviceAccountKeyInput).toHaveValue('');
+  expect(mockEncryptSecret).toHaveBeenCalledWith(serviceAccountKey);
+  expect(readSettings().encryptedServiceAccountKey).toBe('encrypted-key');
+});

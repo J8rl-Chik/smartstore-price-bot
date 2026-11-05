@@ -1,3 +1,4 @@
+import type { ChangeEvent } from 'react';
 import styled from 'styled-components';
 import SettingsField, { SettingsInput } from './SettingsField';
 import SettingsNumberInput from './SettingsNumberInput';
@@ -22,7 +23,7 @@ const SectionGrid = styled.div`
 `;
 
 // SettingsField의 라벨 너비와 간격만큼 들여 입력 요소와 왼쪽을 맞춘다.
-const TestModeHint = styled.p`
+const FieldHint = styled.p`
   margin: 8px 0 0 144px;
   font-size: 12px;
   color: ${({ theme }) => theme.color.gray500};
@@ -70,6 +71,14 @@ const SettingsPage = (): React.JSX.Element => {
     changeSecretInput,
     saveSettingsForm,
   } = useSettingsForm();
+
+  // 파일 선택을 취소하면 빈 값이 되어 저장해 둔 암호문을 유지한다.
+  const changeServiceAccountKey = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const serviceAccountKeyFile = event.target.files?.[0];
+    const serviceAccountKey = serviceAccountKeyFile ? await serviceAccountKeyFile.text() : '';
+
+    changeSecretInput('serviceAccountKey', serviceAccountKey);
+  };
 
   return (
     <section>
@@ -143,8 +152,17 @@ const SettingsPage = (): React.JSX.Element => {
             />
           </SettingsField>
           <SettingsField label="서비스 계정 키">
-            <SettingsInput type="file" accept=".json" />
+            {/* 저장하면 암호문이 바뀌어 새로 마운트되므로, 선택한 파일 이름이 입력칸에 남지 않는다. */}
+            <SettingsInput
+              key={form.encryptedServiceAccountKey}
+              type="file"
+              accept=".json"
+              onChange={(event) => void changeServiceAccountKey(event)}
+            />
           </SettingsField>
+          {form.encryptedServiceAccountKey !== '' && (
+            <FieldHint>저장됨 (바꾸려면 새 파일 선택)</FieldHint>
+          )}
         </SettingsSection>
         <SettingsSection title="실행" description="봇이 상품을 확인하는 방식을 정해요.">
           <SettingsField label="순회 간격" errorMessage={errorMessages.restartDelayMinutes}>
@@ -172,7 +190,7 @@ const SettingsPage = (): React.JSX.Element => {
               onChange={(event) => changeSettingsForm('isDryRun', event.target.checked)}
             />
           </SettingsField>
-          <TestModeHint>켜면 실제 가격을 수정하지 않아요.</TestModeHint>
+          <FieldHint>켜면 실제 가격을 수정하지 않아요.</FieldHint>
         </SettingsSection>
       </SectionGrid>
       {saveErrorMessage && <SaveErrorMessage>{saveErrorMessage}</SaveErrorMessage>}
