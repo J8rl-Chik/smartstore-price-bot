@@ -1,0 +1,45 @@
+name: PR Gate
+
+on:
+  pull_request:
+
+# 이 워크플로는 코드를 읽기만 하므로 GITHUB_TOKEN 권한을 최소로 둔다.
+permissions:
+  contents: read
+
+# 그룹 이름이 같은 실행은 동시에 돌지 않고, 새 실행이 시작되면 이전 실행을 취소한다.
+# PR에서 github.ref는 refs/pull/번호/merge라서 같은 PR끼리만 묶이고 다른 PR은 취소되지 않는다.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 이 job 이름이 Ruleset의 필수 상태 검사 목록에 나타난다. 바꾸면 Ruleset도 같이 바꿔야 한다.
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # 테스트는 puppeteer로 Chrome을 띄우지 않으므로 설치 때 Chrome을 내려받지 않는다.
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run lint:style
+
+      - run: npm run typecheck
+
+      # .test.tsx는 실제 브라우저에서 돌기 때문에 Chromium과 시스템 라이브러리가 필요하다.
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm test
+
+      - run: npm run build:electron

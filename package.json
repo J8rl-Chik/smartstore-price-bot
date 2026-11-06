@@ -9,6 +9,7 @@
   },
   "scripts": {
     "lint": "eslint",
+    "lint:style": "stylelint \"src/**/*.{ts,tsx,css}\"",
     "start:cli": "node dist/app.js",
     "start:electron": "electron .",
     "build:cli": "tsc -p tsconfig.base.json",
