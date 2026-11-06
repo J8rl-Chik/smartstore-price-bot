@@ -28,6 +28,7 @@ export default defineConfig([
       '**/rateLimitTest',
       '**/coverage',
       '**/config',
+      '**/benchmark',
     ],
   },
 
