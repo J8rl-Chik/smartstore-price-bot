@@ -1,0 +1,25 @@
+name: Gitleaks
+
+on:
+  # 모든 브랜치의 push에서 이번에 올라온 커밋을 검사한다. PR 브랜치에 push해도 여기서 검사된다.
+  push:
+  # Actions 탭에서 수동으로 실행하면 저장소 전체 이력을 검사한다.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # 이 job 이름이 Ruleset의 필수 상태 검사 목록에 나타난다.
+  gitleaks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # 기본값은 최신 커밋 하나만 받으므로, 커밋 범위나 전체 이력을 검사할 수 있게 모든 이력을 받는다.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
