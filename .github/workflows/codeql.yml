@@ -1,0 +1,42 @@
+name: CodeQL
+
+on:
+  # PR에서 이미 검사하므로 push는 기본 브랜치로 제한해 중복 실행을 피한다. 기본 브랜치를 바꾸면 여기도 바꿔야 한다.
+  push:
+    branches: [feat/implement-electron-gui]
+  pull_request:
+  # 코드가 그대로여도 CodeQL 규칙이 갱신되면 새 취약점이 잡히므로 주 1회 다시 검사한다. (UTC 일요일 18:00 = KST 월요일 03:00)
+  schedule:
+    - cron: '0 18 * * 0'
+
+permissions:
+  contents: read
+  # 분석 결과를 Security 탭의 Code scanning에 올린다.
+  security-events: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      # 한 언어의 분석이 실패해도 다른 언어의 분석은 끝까지 진행한다.
+      fail-fast: false
+      matrix:
+        # actions는 워크플로 파일 자체의 취약 패턴(권한 과다, 신뢰할 수 없는 입력 사용 등)을 검사한다.
+        language: [javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # 두 언어 모두 빌드 없이 소스만 분석한다.
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          category: /language:${{ matrix.language }}
