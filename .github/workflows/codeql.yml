@@ -11,8 +11,6 @@ on:
 
 permissions:
   contents: read
-  # 분석 결과를 Security 탭의 Code scanning에 올린다.
-  security-events: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
