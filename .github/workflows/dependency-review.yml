@@ -1,0 +1,22 @@
+name: Dependency Review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # 이 job 이름이 Ruleset의 필수 상태 검사 목록에 나타난다.
+  dependency-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # PR이 base 브랜치 대비 새로 추가하거나 바꾼 의존성만 비교하므로, 이미 있던 취약점으로는 실패하지 않는다.
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: moderate
+          # 기본값은 runtime뿐인데, 이 프로젝트는 대부분의 패키지가 devDependencies라 development도 포함한다.
+          fail-on-scopes: runtime, development
