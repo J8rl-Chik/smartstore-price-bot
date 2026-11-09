@@ -5,3 +5,21 @@ updates:
     directory: /
     schedule:
       interval: weekly
+
+  # package.json의 의존성 업데이트 PR을 받는다. 상위 패키지가 하위 의존성의 보안 수정을 반영한 새 버전도 여기서 들어온다.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # 패키지는 먼저 일치하는 그룹 하나에만 들어간다.
+    groups:
+      # vitest 계열은 서로의 버전을 peer로 정확히 고정하므로, 따로 올리면 ERESOLVE가 나서 메이저 업데이트까지 함께 묶는다.
+      vitest:
+        patterns:
+          - vitest
+          - '@vitest/*'
+      # 나머지 minor·patch 업데이트는 PR 하나로 받고, 메이저 업데이트는 패키지마다 따로 받는다.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
