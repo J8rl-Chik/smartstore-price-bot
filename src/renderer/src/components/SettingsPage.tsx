@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react';
 import styled from 'styled-components';
-import SettingsField, { SettingsInput } from './SettingsField';
+import SettingsField from './SettingsField';
+import SettingsInput from './SettingsInput';
 import SettingsNumberInput from './SettingsNumberInput';
 import SettingsSection from './SettingsSection';
 import SettingsToggle from './SettingsToggle';

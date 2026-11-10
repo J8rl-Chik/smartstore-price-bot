@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react';
 import styled from 'styled-components';
-import { SettingsInput } from './SettingsField';
+import SettingsInput from './SettingsInput';
 
 interface SettingsNumberInputProps extends Omit<ComponentPropsWithoutRef<'input'>, 'type'> {
   unit: string;
