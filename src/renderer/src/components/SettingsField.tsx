@@ -21,25 +21,6 @@ const SettingsFieldContainer = styled.label`
   }
 `;
 
-export const SettingsInput = styled.input`
-  width: 100%;
-  height: 44px;
-  padding: 0 14px;
-  font-size: 14px;
-  color: ${({ theme }) => theme.color.gray900};
-  background: ${({ theme }) => theme.color.gray50};
-  border: 1px solid ${({ theme }) => theme.color.gray200};
-  border-radius: 10px;
-
-  &::placeholder {
-    color: ${({ theme }) => theme.color.gray400};
-  }
-
-  &[type='file'] {
-    padding: 8px 14px;
-  }
-`;
-
 // 입력 요소 아래에 맞춰 두 번째 열에 둔다.
 const FieldErrorMessage = styled.span`
   grid-column: 2;

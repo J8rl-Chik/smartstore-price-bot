@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
-import SettingsField, { SettingsInput } from './SettingsField';
+import SettingsField from './SettingsField';
+import SettingsInput from './SettingsInput';
 import { customRender } from '../customRender';
 
 test('label로 입력 요소를 찾을 수 있다', async () => {
