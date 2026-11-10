@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 import type { SaleProduct } from '../../domain/product/_type.js';
 import generateAccessToken from './generateAccessToken.js';
 import checkSmartStoreApiSucceeded, {
@@ -28,7 +26,7 @@ async function getSaleProducts(
         size: 500,
       }),
     });
-    const result: SaleProductsResult = await response.json();
+    const result = (await response.json()) as SaleProductsResult;
 
     checkSmartStoreApiSucceeded(result);
 

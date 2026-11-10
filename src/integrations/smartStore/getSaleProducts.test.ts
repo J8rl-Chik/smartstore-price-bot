@@ -6,9 +6,7 @@ import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 const mockFetch = vi.fn();
 const mockGenerateAccessToken = vi.fn();
 
-vi.mock('node-fetch', () => ({
-  default: (...args: unknown[]) => mockFetch(...args),
-}));
+vi.stubGlobal('fetch', mockFetch);
 
 vi.mock(import('./generateAccessToken.js'), () => ({
   default: (...args: unknown[]) => mockGenerateAccessToken(...args),

@@ -7,9 +7,7 @@ const mockHashSync = vi.fn();
 
 mockHashSync.mockReturnValue('hashed-signature');
 
-vi.mock('node-fetch', () => ({
-  default: (...args: unknown[]) => mockFetch(...args),
-}));
+vi.stubGlobal('fetch', mockFetch);
 
 vi.mock('bcryptjs', () => ({
   default: {

@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 import generateAccessToken from './generateAccessToken.js';
 import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
@@ -43,7 +41,7 @@ const getProduct = async (
 ): Promise<ProductResult> => {
   const readResponse = await fetch(productURL, { headers, method: 'GET' });
 
-  return readResponse.json();
+  return (await readResponse.json()) as ProductResult;
 };
 
 /**
@@ -98,7 +96,7 @@ async function updatePrice({
         windowChannelProduct,
       }),
     });
-    const result: UpdatePriceResult = await response.json();
+    const result = (await response.json()) as UpdatePriceResult;
 
     checkSmartStoreApiSucceeded(result);
 

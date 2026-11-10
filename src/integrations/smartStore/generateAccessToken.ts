@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-import fetch from 'node-fetch';
 
 import checkSmartStoreApiSucceeded, {
   type SmartStoreApiResult,
@@ -37,7 +36,7 @@ async function generateAccessToken({
       },
     });
 
-    const result: AccessTokenResult = await response.json();
+    const result = (await response.json()) as AccessTokenResult;
 
     checkSmartStoreApiSucceeded(result);
 
