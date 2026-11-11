@@ -1,0 +1,19 @@
+name: Labeler
+
+on:
+  # PR 브랜치의 .github/labeler.yml을 읽으므로, 라벨 설정을 바꾼 PR에도 바로 반영된다.
+  pull_request:
+
+permissions:
+  contents: read
+  # PR에 라벨을 붙인다. 라벨을 새로 만들려면 issues: write가 필요해서, labeler.yml의 라벨은 저장소에 미리 만들어 둔다.
+  # Dependabot PR은 기본 토큰이 읽기 전용이지만, 여기 적은 권한까지는 높일 수 있다.
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # 바뀐 파일 목록은 API로 받아오므로 checkout이 필요 없다.
+      - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7.0.0
