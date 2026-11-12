@@ -33,6 +33,7 @@ jobs:
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
+            HEAD SHA: ${{ github.event.pull_request.head.sha }}
 
             이 PR을 리뷰한다. PR 브랜치는 현재 작업 디렉터리에 이미 checkout돼 있다.
 
@@ -47,6 +48,8 @@ jobs:
             - 모든 댓글은 한국어로 쓴다.
             - 특정 코드의 문제는 mcp__github_inline_comment__create_inline_comment(confirmed: true)로 해당 줄에 단다.
             - 전체 요약은 gh pr comment로 한 번만 단다. 문제가 없으면 없다고만 쓴다.
+            - 요약 댓글에서 파일을 가리킬 때는 상대 경로를 쓰지 않는다. GitHub 댓글에서는 상대 경로가 PR 페이지 기준으로 풀려 링크가 깨진다.
+              https://github.com/<REPO>/blob/<HEAD SHA>/<경로>#L<줄> 형식의 절대 URL로 링크한다.
             - 근거가 확실하지 않은 추측성 지적은 하지 않는다.
           claude_args: |
             --model claude-sonnet-5-5
