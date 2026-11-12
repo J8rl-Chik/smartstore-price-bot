@@ -1,0 +1,37 @@
+# 라벨 이름: 붙일 조건. 조건에 맞는 라벨이 여러 개면 모두 붙는다.
+
+# 작업 종류: 브랜치 이름의 접두사(커밋 타입)로 정한다.
+'type: feat':
+  - head-branch: ['^feat/']
+'type: fix':
+  - head-branch: ['^fix/']
+'type: refactor':
+  - head-branch: ['^refactor/']
+'type: test':
+  - head-branch: ['^test/']
+'type: docs':
+  - head-branch: ['^docs/']
+'type: chore':
+  - head-branch: ['^chore/']
+
+# 변경 영역: 바뀐 파일의 경로로 정한다.
+'area: renderer':
+  - changed-files:
+      - any-glob-to-any-file: src/renderer/**
+'area: main':
+  - changed-files:
+      - any-glob-to-any-file: ['src/main/**', 'src/preload/**']
+'area: domain':
+  - changed-files:
+      - any-glob-to-any-file: src/domain/**
+'area: integrations':
+  - changed-files:
+      - any-glob-to-any-file: src/integrations/**
+'area: ci':
+  - changed-files:
+      - any-glob-to-any-file: .github/**
+
+# Dependabot이 기본으로 붙이는 라벨과 이름을 맞춰, 사람이 올린 PR도 의존성 변경이면 같은 라벨로 모은다.
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file: ['package.json', 'package-lock.json']
