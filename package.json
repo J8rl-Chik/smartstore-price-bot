@@ -14,6 +14,7 @@
     "start:electron": "electron .",
     "build:cli": "tsc -p tsconfig.base.json",
     "build:electron": "electron-vite build",
+    "dist:win": "npm run build:electron && electron-builder --win",
     "dev": "electron-vite dev",
     "dev:watch": "electron-vite dev --watch",
     "dev:cli": "tsx src/app.ts",

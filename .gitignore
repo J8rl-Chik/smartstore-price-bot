@@ -11,5 +11,6 @@ rateLimitTest
 electron-vite-quick-start
 .vscode
 out
+release
 *.tsbuildinfo
 benchmark
