@@ -30,7 +30,11 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "electron-updater": "^6.8.11"
+    "electron-updater": "^6.8.11",
+    "jsdom": "^24.1.0",
+    "puppeteer": "^25.11.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.1",
@@ -60,12 +64,8 @@
     "eslint-plugin-security": "^4.2.1",
     "globals": "^17.14.0",
     "googleapis": "^173.0.0",
-    "jsdom": "^24.1.0",
     "postcss-styled-syntax": "^0.7.4",
     "prettier": "^3.9.10",
-    "puppeteer": "^25.11.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "styled-components": "^6.6.0",
