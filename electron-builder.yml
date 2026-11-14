@@ -21,5 +21,10 @@ nsis:
   # 기본값인 사용자별 원클릭 설치를 쓴다. %LOCALAPPDATA%\Programs에 관리자 권한 없이 설치된다.
   artifactName: ${productName}-${version}-setup.${ext}
 
-# 이 단계에서는 로컬에서 설치 파일만 만든다. GitHub Release 업로드는 릴리스 워크플로에서 정한다.
-publish: null
+# 릴리스 워크플로가 --publish always로 GitHub Release에 올린다. 로컬 빌드(dist:win)는 CI가 아니라 올리지 않는다.
+# releaseType을 생략하면 draft로 올라간다. 설치 테스트 후 직접 공개해야 자동 업데이트 대상이 된다.
+publish:
+  provider: github
+  # 생략하면 .git/config에서 추측한 저장소가 앱의 app-update.yml에 들어가므로 직접 적는다.
+  owner: J8rl-Chik
+  repo: smartstore-price-bot
