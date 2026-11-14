@@ -1,8 +1,15 @@
+import { join } from 'node:path';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
 
 const mockCreatePage = vi.fn();
 const mockLoginNaver = vi.fn();
+
+const userDataPath = 'C:/Users/test/AppData/Roaming/smartstore-price-bot';
+
+vi.mock('electron', () => ({
+  app: { getPath: () => userDataPath },
+}));
 
 vi.mock(import('../integrations/puppeteer/createPage'), () => ({
   default: (...args: unknown[]) => mockCreatePage(...args),
@@ -40,6 +47,15 @@ it('열린 페이지가 없으면 새 페이지를 열어 로그인한 뒤 반�
 
   await expect(getLoggedInPage(naverAccount)).resolves.toBe(page);
   expect(mockLoginNaver).toHaveBeenCalledWith(page, naverAccount);
+});
+
+it('업데이트·재설치에도 남도록 앱의 사용자 데이터 폴더 안에 Chrome 프로필을 둔다', async () => {
+  mockCreatePage.mockResolvedValue({ browser: {}, page: createFakePage() });
+  const { getLoggedInPage } = await importBrowserSession();
+
+  await getLoggedInPage(naverAccount);
+
+  expect(mockCreatePage).toHaveBeenCalledWith(join(userDataPath, 'chrome-profile'));
 });
 
 it('다시 호출되면 다시 로그인하지 않고 이전에 로그인한 페이지를 반환한다', async () => {

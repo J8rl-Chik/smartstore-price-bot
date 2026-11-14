@@ -14,9 +14,11 @@ export default defineConfig({
           format: 'cjs',
         },
       },
-      externalizeDeps: {
-        include: ['jsdom'],
-      },
+      /**
+       * dependencies에 있는 패키지는 번들에 넣지 않고 node_modules에서 불러온다. (externalizeDeps 기본 동작)
+       * jsdom은 번들에 합치면 canvas require를 해결하지 못해 dependencies에 둔다.
+       * 패키징할 때 electron-builder가 dependencies만 node_modules로 함께 넣으므로, 외부로 둔 패키지는 반드시 dependencies에 있어야 한다.
+       */
     },
   },
 

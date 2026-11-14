@@ -84,6 +84,25 @@ describe('createPage', () => {
     expect(mockLaunch).toHaveBeenCalledWith(expect.objectContaining({ headless: false }));
   });
 
+  it('Chrome 프로필 폴더를 생략하면 CLI용 config/userData로 브라우저를 실행한다', async () => {
+    mockLaunch.mockResolvedValue(createMockBrowser());
+
+    await createPage();
+
+    expect(mockLaunch).toHaveBeenCalledWith(
+      expect.objectContaining({ userDataDir: 'config/userData' }),
+    );
+  });
+
+  it('전달받은 Chrome 프로필 폴더로 브라우저를 실행한다', async () => {
+    const userDataDir = 'test/userData';
+    mockLaunch.mockResolvedValue(createMockBrowser());
+
+    await createPage(userDataDir);
+
+    expect(mockLaunch).toHaveBeenCalledWith(expect.objectContaining({ userDataDir }));
+  });
+
   it('브라우저에 페이지가 하나도 없으면 원인을 보존한 채 에러를 던진다', async () => {
     mockLaunch.mockResolvedValue({ pages: async () => [], newPage: vi.fn() });
 

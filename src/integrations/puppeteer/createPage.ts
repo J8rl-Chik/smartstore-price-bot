@@ -25,11 +25,16 @@ stealth.enabledEvasions.delete('navigator.languages');
  */
 puppeteer.use(stealth);
 
-const createPage = async (): Promise<BrowserPage> => {
+/**
+ * userDataDir은 네이버 로그인 쿠키가 저장되는 Chrome 프로필 폴더다.
+ * 생략하면 CLI용 config/userData를 쓴다. CLI는 프로젝트 폴더에서 실행하므로 작업 폴더 기준 상대 경로로 둔다.
+ * Electron은 앱의 사용자 데이터 폴더를 넘긴다.
+ */
+const createPage = async (userDataDir = 'config/userData'): Promise<BrowserPage> => {
   try {
     const browser = await puppeteer.launch({
       headless: false,
-      userDataDir: 'config/userData',
+      userDataDir,
       executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
       /**
        * 지정하지 않으면 뷰포트가 800x600으로 고정돼 실제 창 크기와 어긋난다.
