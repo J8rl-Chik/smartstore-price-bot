@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# electron-builder가 Release를 만들고 파일을 올리므로 contents 쓰기 권한이 필요하다.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # NSIS 설치 파일은 Windows에서 빌드한다.
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      # 앱은 PC에 설치된 Chrome을 쓰므로 puppeteer가 Chrome을 내려받지 않게 한다.
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      # 태그와 앱 버전이 다르면 v1.0.1 Release에 1.0.0 앱이 올라가므로 빌드 전에 막는다.
+      - name: 태그와 package.json version 비교
+        shell: bash
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::태그($GITHUB_REF_NAME)와 package.json version($version)이 다릅니다."
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - run: npm run build:electron
+
+      # draft Release를 만들고 설치 파일, blockmap, latest.yml을 올린다.
+      - run: npx electron-builder --win --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
