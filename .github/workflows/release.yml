@@ -39,7 +39,22 @@ jobs:
 
       - run: npm run build:electron
 
-      # draft Release를 만들고 설치 파일, blockmap, latest.yml을 올린다.
+      # electron-builder는 파일을 동시에 올리면서 Release가 없으면 파일마다 draft를 따로 만든다.
+      # 미리 draft를 만들어 두면 electron-builder가 그 draft를 찾아 모든 파일을 한곳에 올린다.
+      # draft는 같은 태그로 여러 개 만들어지므로, 재실행할 때 중복되지 않게 이미 있으면 건너뛴다.
+      - name: draft Release 생성
+        shell: bash
+        run: |
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$GITHUB_REF_NAME\") | .id")
+          if [ -n "$existing" ]; then
+            echo "$GITHUB_REF_NAME Release가 이미 있어 생성을 건너뜁니다."
+          else
+            gh release create "$GITHUB_REF_NAME" --draft --title "${GITHUB_REF_NAME#v}" --generate-notes
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 위에서 만든 draft에 설치 파일, blockmap, latest.yml을 올린다.
       - run: npx electron-builder --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
