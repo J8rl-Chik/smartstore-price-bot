@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { registerIpcHandlers } from './registerIpcHandlers';
 import { installExtension, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { closeBrowser } from './browserSession';
+import checkAppUpdate from './checkAppUpdate';
 import tryCatch from '../utils/tryCatch';
 
 function createWindow(): void {
@@ -70,6 +71,8 @@ app.whenReady().then(async () => {
   registerIpcHandlers();
 
   createWindow();
+
+  checkAppUpdate();
 
   // macOS: 하단의 앱 아이콘을 다시 클릭했을 때, 열려있는 창이 하나도 없다면 새로운 창을 다시 만들어준다.
   app.on('activate', function () {
