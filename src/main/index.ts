@@ -55,11 +55,12 @@ app.whenReady().then(async () => {
     }
   }
 
-  /* 
-    Windows 운영체제에서 앱의 고유 식별자(ID)를 등록하는 코드입니다.
-    Windows 환경과 앱의 원활한 소통을 위해 설정(시스템 알림(Toast Notification)등)
-  */
-  electronApp.setAppUserModelId('com.electron');
+  /**
+   * Windows 운영체제에서 앱의 고유 식별자(ID)를 등록하는 코드입니다.
+   * Windows 환경과 앱의 원활한 소통을 위해 설정(시스템 알림(Toast Notification)등)
+   * 설치 바로가기에 electron-builder.yml의 appId가 쓰이므로, 같은 값이어야 업데이트 알림이 뜬다. appId를 바꾸면 여기도 바꾼다.
+   */
+  electronApp.setAppUserModelId('com.j8rlchik.smartstore-price-bot');
 
   //  프로덕션 환경에서 사용자가 단축키로 개발자 도구를 켜지 못하도록 차단, 새로고침(Ctrl + R) 무시
   app.on('browser-window-created', (_, window) => {
