@@ -13,5 +13,7 @@
     { "text": "body도 작성할 것" },
     { "text": "body 작성시 리스트 마크다운 사용할 것" },
     { "text": "주의가 필요하면 footer도 작성할 것" }
-  ]
+  ],
+  "files.watcherExclude": { "**/release/**": true },
+  "search.exclude": { "**/release": true }
 }
