@@ -4,7 +4,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { registerIpcHandlers } from './registerIpcHandlers';
 import { installExtension, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { closeBrowser } from './browserSession';
-import checkAppUpdate from './checkAppUpdate';
+import { autoUpdater } from 'electron-updater';
+import checkAppUpdate, { hasDownloadedAppUpdate } from './checkAppUpdate';
 import tryCatch from '../utils/tryCatch';
 
 function createWindow(): void {
@@ -83,6 +84,7 @@ app.whenReady().then(async () => {
 /**
  * 윈도우 및 리눅스: 모든 창을 닫았을 때 puppeteer 브라우저를 닫고 프로그램을 완전히 종료한다.
  * 브라우저를 닫지 못해도 앱은 꺼지도록, 실패는 로그로만 남기고 종료한다.
+ * 새 버전을 내려받아 두었으면 설치 창을 띄워 설치하며 종료한다.
  */
 app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
@@ -90,6 +92,16 @@ app.on('window-all-closed', async () => {
 
     if (error) {
       console.error(error);
+    }
+
+    /**
+     * isSilent를 생략하면 false라 설치 진행 창이 보인다. (앱을 끌 때의 자동 설치는 항상 조용히 설치해 진행 상태가 안 보인다)
+     * electron-updater가 창을 모두 닫고 앱을 종료하므로 app.quit()을 다시 부르지 않는다.
+     */
+    if (hasDownloadedAppUpdate()) {
+      autoUpdater.quitAndInstall();
+
+      return;
     }
 
     app.quit();
