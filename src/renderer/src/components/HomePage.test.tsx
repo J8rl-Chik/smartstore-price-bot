@@ -7,6 +7,7 @@ import type { TargetProductWithUpdate } from '../../../domain/product/_type';
 
 const mockOnStartUpdate = vi.fn<() => void>();
 const mockOnStopUpdate = vi.fn<() => void>();
+const mockOnCancelAutoStart = vi.fn<() => void>();
 
 const createTargetProduct = (
   overrides: Partial<TargetProductWithUpdate> = {},
@@ -43,8 +44,10 @@ const homePageProps: ComponentProps<typeof HomePage> = {
   errorMessage: null,
   nextRunAt: null,
   hasSettings: true,
+  autoStartAt: null,
   onStartUpdate: mockOnStartUpdate,
   onStopUpdate: mockOnStopUpdate,
+  onCancelAutoStart: mockOnCancelAutoStart,
 };
 
 beforeEach(() => {
@@ -122,4 +125,32 @@ test('필수 설정이 있으면 안내를 보여주지 않는다', async () => 
 
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeEnabled();
   await expect.element(screen.getByText(ERROR_MESSAGE.SETTINGS_REQUIRED)).not.toBeInTheDocument();
+});
+
+test('자동 시작을 예약했으면 남은 시간과 중지 버튼을 보여준다', async () => {
+  const screen = await customRender(
+    <HomePage {...homePageProps} autoStartAt={Date.now() + 3 * 60 * 1000} />,
+  );
+
+  await expect.element(screen.getByRole('status')).toHaveTextContent('다음 자동 수정까지 03:00');
+  await expect.element(screen.getByRole('button', { name: '자동 재실행 중지' })).toBeVisible();
+});
+
+test('자동 시작을 기다리는 중에 중지 버튼을 클릭하면 자동 시작을 취소한다', async () => {
+  const screen = await customRender(
+    <HomePage {...homePageProps} autoStartAt={Date.now() + 3 * 60 * 1000} />,
+  );
+
+  await screen.getByRole('button', { name: '자동 재실행 중지' }).click();
+
+  expect(mockOnCancelAutoStart).toHaveBeenCalledOnce();
+  expect(mockOnStopUpdate).not.toHaveBeenCalled();
+});
+
+test('자동 시작을 기다리는 중에도 시작 버튼을 클릭할 수 있다', async () => {
+  const screen = await customRender(
+    <HomePage {...homePageProps} autoStartAt={Date.now() + 3 * 60 * 1000} />,
+  );
+
+  await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeEnabled();
 });
