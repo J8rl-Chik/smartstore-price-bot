@@ -16,7 +16,8 @@ const SettingsFieldContainer = styled.label`
   font-weight: 500;
   color: ${({ theme }) => theme.color.gray700};
 
-  & + & {
+  /* 앞에 다른 입력칸뿐 아니라 안내 문구(FieldHint)가 있어도 같은 간격을 둔다. */
+  * + & {
     margin-top: 12px;
   }
 `;

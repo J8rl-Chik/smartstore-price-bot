@@ -5,6 +5,10 @@ import SettingsInput from './SettingsInput';
 import SettingsNumberInput from './SettingsNumberInput';
 import SettingsSection from './SettingsSection';
 import SettingsToggle from './SettingsToggle';
+import {
+  MAX_AUTO_START_DELAY_MINUTES,
+  MIN_AUTO_START_DELAY_MINUTES,
+} from '../domain/parseAutoStartDelay';
 import { MIN_PRODUCT_DELAY_SECONDS } from '../domain/parseProductDelay';
 import { MIN_RESTART_DELAY_MINUTES } from '../domain/parseRestartDelay';
 import useSettingsForm from '../hooks/useSettingsForm';
@@ -66,10 +70,12 @@ const SettingsPage = (): React.JSX.Element => {
   const {
     form,
     secretInputs,
+    isOpenAtLogin,
     errorMessages,
     saveErrorMessage,
     changeSettingsForm,
     changeSecretInput,
+    changeOpenAtLogin,
     saveSettingsForm,
   } = useSettingsForm();
 
@@ -192,6 +198,33 @@ const SettingsPage = (): React.JSX.Element => {
             />
           </SettingsField>
           <FieldHint>켜면 실제 가격을 수정하지 않아요.</FieldHint>
+          <SettingsField label="자동 실행">
+            <SettingsToggle
+              isChecked={isOpenAtLogin}
+              onChange={(event) => changeOpenAtLogin(event.target.checked)}
+            />
+          </SettingsField>
+          <FieldHint>
+            켜면 Windows를 시작할 때 프로그램이 실행되고, 정한 시간 뒤에 수정을 시작해요.
+          </FieldHint>
+          {/* 꺼져 있으면 쓰지 않는 값이라 입력칸을 숨긴다. 저장해 둔 값은 다시 켤 때 그대로 보인다. */}
+          {isOpenAtLogin && (
+            <SettingsField
+              label="시작 대기 시간"
+              errorMessage={errorMessages.autoStartDelayMinutes}
+            >
+              <SettingsNumberInput
+                unit="분"
+                min={MIN_AUTO_START_DELAY_MINUTES}
+                max={MAX_AUTO_START_DELAY_MINUTES}
+                step={1}
+                value={form.autoStartDelayMinutes}
+                onChange={(event) =>
+                  changeSettingsForm('autoStartDelayMinutes', event.target.value)
+                }
+              />
+            </SettingsField>
+          )}
         </SettingsSection>
       </SectionGrid>
       {saveErrorMessage && <SaveErrorMessage>{saveErrorMessage}</SaveErrorMessage>}

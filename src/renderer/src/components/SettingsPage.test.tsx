@@ -8,14 +8,15 @@ import type { IpcInvoke, IpcListener } from '../../../preload/_type';
 import type { Settings } from '../../../domain/settings/_type';
 
 const mockEncryptSecret = vi.fn<IpcInvoke['encryptSecret']>();
+const mockIsOpenAtLoginEnabled = vi.fn<IpcInvoke['isOpenAtLoginEnabled']>();
+const mockSetOpenAtLogin = vi.fn<IpcInvoke['setOpenAtLogin']>();
 
 window.api = {
   startUpdate: vi.fn<IpcInvoke['startUpdate']>(),
   stopUpdate: vi.fn<IpcInvoke['stopUpdate']>(),
   encryptSecret: mockEncryptSecret,
-  // 설정 화면이 뜰 때 시작 프로그램 등록 여부를 읽으므로, 등록돼 있지 않은 상태로 돌려준다.
-  isOpenAtLoginEnabled: vi.fn<IpcInvoke['isOpenAtLoginEnabled']>().mockResolvedValue(false),
-  setOpenAtLogin: vi.fn<IpcInvoke['setOpenAtLogin']>().mockResolvedValue(undefined),
+  isOpenAtLoginEnabled: mockIsOpenAtLoginEnabled,
+  setOpenAtLogin: mockSetOpenAtLogin,
   isOpenedAtLogin: vi.fn<IpcInvoke['isOpenedAtLogin']>(),
   onUpdateState: vi.fn<IpcListener['onUpdateState']>(),
 };
@@ -23,6 +24,9 @@ window.api = {
 beforeEach(() => {
   localStorage.clear();
   mockEncryptSecret.mockReset();
+  // 설정 화면이 뜰 때 시작 프로그램 등록 여부를 읽으므로, 등록돼 있지 않은 상태로 시작한다.
+  mockIsOpenAtLoginEnabled.mockReset().mockResolvedValue(false);
+  mockSetOpenAtLogin.mockReset().mockResolvedValue(undefined);
 });
 
 test('사용자 설정 제목을 보여준다', async () => {
@@ -151,16 +155,20 @@ test('입력하고 저장 버튼을 클릭하면 입력값을 저장한다', asy
   await screen.getByLabelText('시트 이름').fill('상품 목록');
   await screen.getByLabelText(/순회 간격/).fill('30');
   await screen.getByLabelText(/상품 간 대기 시간/).fill('20');
-  await screen.getByText('꺼짐').click();
+  await screen.getByText(/테스트 모드/).click();
   await screen.getByRole('button', { name: '저장' }).click();
 
-  expect(readSettings()).toEqual(settings);
+  // 자동 실행을 켜지 않았으므로 시작 대기 시간은 기본값 그대로 저장된다.
+  expect(readSettings()).toEqual({
+    ...settings,
+    autoStartDelayMinutes: DEFAULT_SETTINGS.autoStartDelayMinutes,
+  });
 });
 
 test('테스트 모드를 클릭하면 켜짐으로 바뀐다', async () => {
   const screen = await customRender(<SettingsPage />);
 
-  await screen.getByText('꺼짐').click();
+  await screen.getByText(/테스트 모드/).click();
 
   await expect.element(screen.getByRole('switch', { name: /테스트 모드/ })).toBeChecked();
   await expect.element(screen.getByText('켜짐')).toBeVisible();
@@ -274,4 +282,45 @@ test('서비스 계정 키 파일을 선택하고 저장하면 파일 내용을 
   await expect.element(serviceAccountKeyInput).toHaveValue('');
   expect(mockEncryptSecret).toHaveBeenCalledWith(serviceAccountKey);
   expect(readSettings().encryptedServiceAccountKey).toBe('encrypted-key');
+});
+
+test('자동 실행은 꺼져 있고, 시작 대기 시간 입력칸은 보이지 않는다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByRole('switch', { name: /자동 실행/ })).not.toBeChecked();
+  await expect.element(screen.getByLabelText(/시작 대기 시간/)).not.toBeInTheDocument();
+  await expect.element(screen.getByText(/Windows를 시작할 때 프로그램이 실행되고/)).toBeVisible();
+});
+
+test('시작 프로그램에 등록돼 있으면 자동 실행이 켜져 있고 저장한 시작 대기 시간을 보여준다', async () => {
+  mockIsOpenAtLoginEnabled.mockResolvedValue(true);
+  saveSettings(settings);
+
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByRole('switch', { name: /자동 실행/ })).toBeChecked();
+  await expect.element(screen.getByLabelText(/시작 대기 시간/)).toHaveValue(3);
+});
+
+test('자동 실행을 켜고 시작 대기 시간을 입력해 저장하면 시작 프로그램에 등록하고 저장한다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await screen.getByText(/자동 실행/).click();
+  await screen.getByLabelText(/시작 대기 시간/).fill('10');
+  await screen.getByRole('button', { name: '저장' }).click();
+
+  await expect.poll(() => mockSetOpenAtLogin).toHaveBeenCalledWith(true);
+  expect(readSettings().autoStartDelayMinutes).toBe(10);
+});
+
+test('시작 대기 시간이 잘못되면 실패 이유를 보여주고 저장하지 않는다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await screen.getByText(/자동 실행/).click();
+  await screen.getByLabelText(/시작 대기 시간/).fill('61');
+  await screen.getByRole('button', { name: '저장' }).click();
+
+  await expect.element(screen.getByText(ERROR_MESSAGE.AUTO_START_DELAY_OUT_OF_RANGE)).toBeVisible();
+  expect(readSettings()).toEqual(DEFAULT_SETTINGS);
+  expect(mockSetOpenAtLogin).not.toHaveBeenCalled();
 });
