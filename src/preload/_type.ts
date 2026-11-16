@@ -18,6 +18,12 @@ export interface IpcInvoke {
   stopUpdate: () => Promise<void>;
   // 비밀값을 암호화해 base64 암호문으로 돌려준다. 평문 대신 이 암호문을 저장한다.
   encryptSecret: (secret: string) => Promise<string>;
+  // Windows 시작 프로그램에 등록돼 있는지 확인한다. 작업 관리자에서 끈 것도 반영된다.
+  isOpenAtLoginEnabled: () => Promise<boolean>;
+  // 켜면 Windows 시작 프로그램에 등록하고, 끄면 해제한다. 개발 실행에서는 아무것도 하지 않는다.
+  setOpenAtLogin: (isEnabled: boolean) => Promise<void>;
+  // 이번 실행이 Windows 시작 프로그램으로 켜진 것인지 확인한다. 바로가기로 켜면 false다.
+  isOpenedAtLogin: () => Promise<boolean>;
 }
 
 /**

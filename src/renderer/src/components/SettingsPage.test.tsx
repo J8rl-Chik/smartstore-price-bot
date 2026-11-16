@@ -13,6 +13,9 @@ window.api = {
   startUpdate: vi.fn<IpcInvoke['startUpdate']>(),
   stopUpdate: vi.fn<IpcInvoke['stopUpdate']>(),
   encryptSecret: mockEncryptSecret,
+  isOpenAtLoginEnabled: vi.fn<IpcInvoke['isOpenAtLoginEnabled']>(),
+  setOpenAtLogin: vi.fn<IpcInvoke['setOpenAtLogin']>(),
+  isOpenedAtLogin: vi.fn<IpcInvoke['isOpenedAtLogin']>(),
   onUpdateState: vi.fn<IpcListener['onUpdateState']>(),
 };
 

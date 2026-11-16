@@ -15,5 +15,14 @@ export const STOP_UPDATE_CHANNEL = 'stopUpdate' satisfies keyof IpcInvoke;
 // preload가 비밀값 암호화를 요청하고 main이 처리하는 채널 이름
 export const ENCRYPT_SECRET_CHANNEL = 'encryptSecret' satisfies keyof IpcInvoke;
 
+// preload가 시작 프로그램 등록 여부를 묻고 main이 처리하는 채널 이름
+export const IS_OPEN_AT_LOGIN_ENABLED_CHANNEL = 'isOpenAtLoginEnabled' satisfies keyof IpcInvoke;
+
+// preload가 시작 프로그램 등록·해제를 요청하고 main이 처리하는 채널 이름
+export const SET_OPEN_AT_LOGIN_CHANNEL = 'setOpenAtLogin' satisfies keyof IpcInvoke;
+
+// preload가 이번 실행이 시작 프로그램으로 켜졌는지 묻고 main이 처리하는 채널 이름
+export const IS_OPENED_AT_LOGIN_CHANNEL = 'isOpenedAtLogin' satisfies keyof IpcInvoke;
+
 // main이 순회 상태를 보내고 preload가 구독하는 채널 이름
 export const UPDATE_STATE_CHANNEL = 'updateState';

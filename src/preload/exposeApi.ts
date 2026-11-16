@@ -11,6 +11,9 @@ import type { UpdateState } from '../domain/product/_type';
 import type { IpcInvoke, IpcListener } from './_type';
 import {
   ENCRYPT_SECRET_CHANNEL,
+  IS_OPEN_AT_LOGIN_ENABLED_CHANNEL,
+  IS_OPENED_AT_LOGIN_CHANNEL,
+  SET_OPEN_AT_LOGIN_CHANNEL,
   START_UPDATE_CHANNEL,
   STOP_UPDATE_CHANNEL,
   UPDATE_STATE_CHANNEL,
@@ -24,6 +27,12 @@ const api: IpcInvoke & IpcListener = {
   stopUpdate: () => ipcRenderer.invoke(STOP_UPDATE_CHANNEL),
   // renderer -> main으로 'encryptSecret' 요청을 보내 비밀값을 암호화한다.
   encryptSecret: (secret) => ipcRenderer.invoke(ENCRYPT_SECRET_CHANNEL, secret),
+  // renderer -> main으로 'isOpenAtLoginEnabled' 요청을 보내 시작 프로그램 등록 여부를 받는다.
+  isOpenAtLoginEnabled: () => ipcRenderer.invoke(IS_OPEN_AT_LOGIN_ENABLED_CHANNEL),
+  // renderer -> main으로 'setOpenAtLogin' 요청을 보내 시작 프로그램에 등록하거나 해제한다.
+  setOpenAtLogin: (isEnabled) => ipcRenderer.invoke(SET_OPEN_AT_LOGIN_CHANNEL, isEnabled),
+  // renderer -> main으로 'isOpenedAtLogin' 요청을 보내 이번 실행이 시작 프로그램으로 켜졌는지 받는다.
+  isOpenedAtLogin: () => ipcRenderer.invoke(IS_OPENED_AT_LOGIN_CHANNEL),
   // main -> renderer로 오는 'updateState' 채널을 구독한다. 반환한 함수를 호출하면 구독을 해제한다.
   onUpdateState: (callback) => {
     const listener = (_event: unknown, state: UpdateState): void => callback(state);

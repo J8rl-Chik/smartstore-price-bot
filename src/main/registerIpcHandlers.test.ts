@@ -8,6 +8,9 @@ const mockCreateStopUpdate = vi.fn();
 const mockStartUpdate = vi.fn();
 const mockStopUpdate = vi.fn();
 const mockEncryptSecret = vi.fn();
+const mockIsOpenAtLoginEnabled = vi.fn();
+const mockSetOpenAtLogin = vi.fn();
+const mockIsOpenedAtLogin = vi.fn();
 
 vi.mock('electron', () => ({
   ipcMain: { handle: (...args: unknown[]) => mockHandle(...args) },
@@ -29,6 +32,12 @@ vi.mock(import('./encryptSecret'), () => ({
   default: (...args: unknown[]) => mockEncryptSecret(...args),
 }));
 
+vi.mock(import('./openAtLogin'), () => ({
+  isOpenAtLoginEnabled: () => mockIsOpenAtLoginEnabled(),
+  setOpenAtLogin: (isEnabled: boolean) => mockSetOpenAtLogin(isEnabled),
+  isOpenedAtLogin: () => mockIsOpenedAtLogin(),
+}));
+
 afterEach(() => {
   mockHandle.mockReset();
   mockCreateUpdateScheduler.mockReset();
@@ -37,6 +46,9 @@ afterEach(() => {
   mockStartUpdate.mockReset();
   mockStopUpdate.mockReset();
   mockEncryptSecret.mockReset();
+  mockIsOpenAtLoginEnabled.mockReset();
+  mockSetOpenAtLogin.mockReset();
+  mockIsOpenedAtLogin.mockReset();
 });
 
 // ipcMain.handle에 등록된 콜백 중 해당 채널의 콜백을 찾는다.
@@ -91,4 +103,29 @@ it('encryptSecret 채널이 호출되면 비밀값을 핸들러에 전달하고 
 
   expect(mockEncryptSecret).toHaveBeenCalledWith('secret', sender);
   expect(response).toBe('encrypted');
+});
+
+it('isOpenAtLoginEnabled 채널이 호출되면 시작 프로그램 등록 여부를 응답한다', async () => {
+  mockIsOpenAtLoginEnabled.mockReturnValue(true);
+
+  registerIpcHandlers();
+  const response = await findRegisteredCallback('isOpenAtLoginEnabled')({ sender: {} });
+
+  expect(response).toBe(true);
+});
+
+it('setOpenAtLogin 채널이 호출되면 켤지 여부를 핸들러에 전달한다', async () => {
+  registerIpcHandlers();
+  await findRegisteredCallback('setOpenAtLogin')({ sender: {} }, true);
+
+  expect(mockSetOpenAtLogin).toHaveBeenCalledWith(true);
+});
+
+it('isOpenedAtLogin 채널이 호출되면 시작 프로그램으로 켜졌는지를 응답한다', async () => {
+  mockIsOpenedAtLogin.mockReturnValue(true);
+
+  registerIpcHandlers();
+  const response = await findRegisteredCallback('isOpenedAtLogin')({ sender: {} });
+
+  expect(response).toBe(true);
 });

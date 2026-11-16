@@ -96,6 +96,27 @@ it('encryptSecret을 호출하면 비밀값을 담아 encryptSecret 채널로 in
   expect(mockInvoke).toHaveBeenCalledWith('encryptSecret', 'secret');
 });
 
+it('isOpenAtLoginEnabled를 호출하면 isOpenAtLoginEnabled 채널로 invoke를 호출한다', async () => {
+  const api = getExposedApi();
+  await api.isOpenAtLoginEnabled();
+
+  expect(mockInvoke).toHaveBeenCalledWith('isOpenAtLoginEnabled');
+});
+
+it('setOpenAtLogin을 호출하면 켤지 여부를 담아 setOpenAtLogin 채널로 invoke를 호출한다', async () => {
+  const api = getExposedApi();
+  await api.setOpenAtLogin(true);
+
+  expect(mockInvoke).toHaveBeenCalledWith('setOpenAtLogin', true);
+});
+
+it('isOpenedAtLogin을 호출하면 isOpenedAtLogin 채널로 invoke를 호출한다', async () => {
+  const api = getExposedApi();
+  await api.isOpenedAtLogin();
+
+  expect(mockInvoke).toHaveBeenCalledWith('isOpenedAtLogin');
+});
+
 it('onUpdateState를 호출하면 updateState 채널에 listener를 등록한다', () => {
   const api = getExposedApi();
   api.onUpdateState(vi.fn());
