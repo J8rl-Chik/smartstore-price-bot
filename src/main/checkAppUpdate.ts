@@ -2,15 +2,28 @@ import { app, Notification } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import tryCatch from '../utils/tryCatch';
 
+// 새 버전을 다 내려받았는지 보관한다. 앱을 끌 때 quitAndInstall로 설치할지 정하는 데 쓴다.
+let isUpdateDownloaded = false;
+
+export const hasDownloadedAppUpdate = (): boolean => isUpdateDownloaded;
+
 /**
  * 앱을 시작할 때 GitHub Releases에 새 버전이 있는지 확인한다.
- * 새 버전이 있으면 내려받고, 다 받으면 Windows 알림을 띄운다. 설치는 앱을 종료할 때 된다.
+ * 새 버전이 있으면 내려받고, 다 받으면 Windows 알림을 띄운다. 설치는 앱을 끌 때 index.ts에서 quitAndInstall로 한다.
  * checkForUpdatesAndNotify는 다운로드 실패를 내부에서 처리하지 않아 처리되지 않은 rejection이 남으므로,
  * checkForUpdates로 확인하고 다운로드를 직접 기다린 뒤 알림을 띄운다.
  * 실패해도 앱은 계속 동작해야 하므로 에러를 던지지 않는다.
  * 실패 로그는 electron-updater가 기본으로 등록한 error 리스너가 console에 남기므로 여기서 다시 남기지 않는다.
  */
 const checkAppUpdate = async (): Promise<void> => {
+  /**
+   * 앱을 끌 때 조용히 설치하는 자동 설치를 끄고, index.ts에서 quitAndInstall로 설치 창을 띄워 설치한다.
+   * (electron-updater v27의 autoInstallEvent = "manual"과 같은 설정이다. 지금 버전(6.x)에는 autoInstallEvent가 없다)
+   */
+  autoUpdater.autoInstallOnAppQuit = false;
+  // 사용자는 앱을 끄려고 닫은 것이므로 설치가 끝난 뒤 앱을 다시 실행하지 않는다.
+  autoUpdater.autoRunAppAfterInstall = false;
+
   /**
    * 확인 실패: 새 버전 정보(latest.yml)를 받아 오지 못한 경우다.
    * 예) 네트워크 끊김, GitHub 응답 오류·요청 제한, Release에 latest.yml이 없음, 앱의 app-update.yml을 읽지 못함
@@ -44,6 +57,8 @@ const checkAppUpdate = async (): Promise<void> => {
 
     return;
   }
+
+  isUpdateDownloaded = true;
 
   // electron-updater의 checkForUpdatesAndNotify가 띄우던 기본 문구를 그대로 쓴다.
   new Notification({
