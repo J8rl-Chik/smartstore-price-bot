@@ -1,34 +1,51 @@
 %%{init: {"flowchart": {"htmlLabels": false, "wrappingWidth": 400}, "themeVariables": {"fontSize": "20px"}, "themeCSS": ".cluster-label text { font-size: 22px; font-weight: bold; }"}}%%
 flowchart LR
-  subgraph Electron["Electron 앱"]
+  subgraph GitHub["GitHub 저장소"]
     direction LR
-    subgraph Renderer["Renderer 프로세스(UI)"]
-      React["Main으로 가격 수정 요청"]
-    end
-
-    subgraph Main["Main 프로세스(Node.js)"]
+    subgraph Electron["Electron 앱"]
       direction LR
-      Core["가격 수정<br/>UI로 진행 상태 전송"]
-      subgraph Domain["domain"]
-        DomainLogic["가격 계산<br/>최저가 비교 · 수정가 계산"]
-      end
-      subgraph Adapters["integrations"]
+      subgraph Renderer["Renderer 프로세스(UI)"]
         direction TB
-        StoreAd["스마트스토어 연동<br/>제품 정보 조회 · 제품 가격 수정"]
-        SheetsAd["시트 연동<br/>사용자 설정 제품 정보 불러오기"]
-        CatalogAd["네이버 쇼핑 연동<br/>브라우저 자동화 · 판매처 정보 수집"]
+        React["Main으로 가격 수정 요청"]
+        LocalStorage["localStorage<br/>사용자 설정"]
+        LocalStorage --- React
       end
-      Core --> DomainLogic
-      Core --> StoreAd
-      Core --> SheetsAd
-      Core --> CatalogAd
+
+      subgraph Main["Main 프로세스(Node.js)"]
+        direction LR
+        Core["가격 수정<br/>UI로 진행 상태 전송"]
+        subgraph Domain["domain"]
+          DomainLogic["가격 계산<br/>최저가 비교 · 수정가 계산"]
+        end
+        subgraph Adapters["integrations"]
+          direction TB
+          StoreAd["스마트스토어 연동<br/>제품 정보 조회 · 제품 가격 수정"]
+          SheetsAd["시트 연동<br/>사용자 설정 제품 정보 불러오기"]
+          CatalogAd["네이버 쇼핑 연동<br/>브라우저 자동화 · 판매처 정보 수집"]
+        end
+        Core --> DomainLogic
+        Core --> StoreAd
+        Core --> SheetsAd
+        Core --> CatalogAd
+      end
+
+      subgraph IPC["IPC"]
+        Preload["Preload(통신 중계)"]
+      end
+
+      React <--> Preload <--> Core
     end
 
-    subgraph IPC["IPC"]
-      Preload["Preload(통신 중계)"]
+    subgraph Actions["GitHub Actions"]
+      direction LR
+      PR["CI<br/>PR마다 품질 · 보안 검사 · AI 리뷰"]
+      Release["CD<br/>태그 push 시 설치 파일 릴리스"]
+      %% CI와 CD는 서로 연결되지 않지만 나란히 놓으려고 보이지 않는 링크로 잇는다.
+      PR ~~~ Release
     end
-
-    React <--> Preload <--> Core
+    Updater["자동 업데이트<br/>새 버전 확인 · 다운로드 · 설치"]
+    Release --- Updater
+    Electron <--- Updater
   end
 
   subgraph External["외부 API"]
