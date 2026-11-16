@@ -2,6 +2,8 @@
  * 사용자 설정 페이지에서 입력받아 localStorage에 저장하는 값.
  * restartDelayMinutes가 null이면 자동 재실행 없이 한 번만 순회한다.
  * isDryRun이 true이면 실제 가격을 수정하지 않는다.
+ * autoStartDelayMinutes는 Windows 시작 프로그램으로 켜졌을 때 가격 수정을 시작하기까지 기다리는 시간(분)이다.
+ * 시작 프로그램 등록 여부는 Windows 레지스트리가 기준이라 여기에 저장하지 않는다.
  * encrypted로 시작하는 값은 main이 암호화한 base64 암호문이고, 입력한 적이 없으면 빈 문자열이다.
  */
 export interface Settings {
@@ -12,6 +14,7 @@ export interface Settings {
   sheetName: string;
   restartDelayMinutes: number | null;
   productDelaySeconds: number;
+  autoStartDelayMinutes: number;
   isDryRun: boolean;
   encryptedNaverPassword: string;
   encryptedClientSecret: string;
