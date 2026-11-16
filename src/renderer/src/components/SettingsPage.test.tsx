@@ -13,8 +13,9 @@ window.api = {
   startUpdate: vi.fn<IpcInvoke['startUpdate']>(),
   stopUpdate: vi.fn<IpcInvoke['stopUpdate']>(),
   encryptSecret: mockEncryptSecret,
-  isOpenAtLoginEnabled: vi.fn<IpcInvoke['isOpenAtLoginEnabled']>(),
-  setOpenAtLogin: vi.fn<IpcInvoke['setOpenAtLogin']>(),
+  // 설정 화면이 뜰 때 시작 프로그램 등록 여부를 읽으므로, 등록돼 있지 않은 상태로 돌려준다.
+  isOpenAtLoginEnabled: vi.fn<IpcInvoke['isOpenAtLoginEnabled']>().mockResolvedValue(false),
+  setOpenAtLogin: vi.fn<IpcInvoke['setOpenAtLogin']>().mockResolvedValue(undefined),
   isOpenedAtLogin: vi.fn<IpcInvoke['isOpenedAtLogin']>(),
   onUpdateState: vi.fn<IpcListener['onUpdateState']>(),
 };

@@ -11,12 +11,13 @@ import type { Settings } from '../../domain/settings/_type';
 const mockStartUpdate = vi.fn<IpcInvoke['startUpdate']>();
 const mockStopUpdate = vi.fn<IpcInvoke['stopUpdate']>();
 const mockOnUpdateState = vi.fn<IpcListener['onUpdateState']>();
+const mockIsOpenAtLoginEnabled = vi.fn<IpcInvoke['isOpenAtLoginEnabled']>();
 
 window.api = {
   startUpdate: mockStartUpdate,
   stopUpdate: mockStopUpdate,
   encryptSecret: vi.fn<IpcInvoke['encryptSecret']>(),
-  isOpenAtLoginEnabled: vi.fn<IpcInvoke['isOpenAtLoginEnabled']>(),
+  isOpenAtLoginEnabled: mockIsOpenAtLoginEnabled,
   setOpenAtLogin: vi.fn<IpcInvoke['setOpenAtLogin']>(),
   isOpenedAtLogin: vi.fn<IpcInvoke['isOpenedAtLogin']>(),
   onUpdateState: mockOnUpdateState,
@@ -43,6 +44,8 @@ const mockSentUpdateState = (state: UpdateState): void => {
 beforeEach(() => {
   vi.resetAllMocks();
   localStorage.clear();
+  // 설정 화면이 뜰 때 시작 프로그램 등록 여부를 읽으므로, 등록돼 있지 않은 상태로 돌려준다.
+  mockIsOpenAtLoginEnabled.mockResolvedValue(false);
 
   mockSentUpdateState(updateState);
 });
