@@ -43,8 +43,15 @@ export const ERROR_MESSAGE = {
   PRODUCT_DELAY_NOT_INTEGER: '상품 간 대기 시간은 초 단위 정수로 입력해주세요.',
   PRODUCT_DELAY_TOO_SHORT: '상품 간 대기 시간은 10초 이상으로 입력해주세요.',
 
+  // 자동 실행 후 시작 대기 시간 입력 (renderer/domain/parseAutoStartDelay). 범위는 MIN·MAX_AUTO_START_DELAY_MINUTES와 맞춘다.
+  AUTO_START_DELAY_NOT_INTEGER: '자동 실행 후 시작 대기 시간은 분 단위 정수로 입력해주세요.',
+  AUTO_START_DELAY_OUT_OF_RANGE: '자동 실행 후 시작 대기 시간은 0분에서 60분 사이로 입력해주세요.',
+
   // 사용자 설정 (renderer/domain/hasRequiredSettings)
   SETTINGS_REQUIRED: '사용자 설정의 필수 값을 모두 입력하면 시작할 수 있어요.',
+
+  // Windows 시작 프로그램 등록 (renderer/hooks/useSettingsForm)
+  OPEN_AT_LOGIN_FAILED: 'Windows 시작 시 자동 실행 설정을 바꾸지 못했습니다.',
 
   // 비밀값 암호화·복호화 (main/encryptSecret, main/createUpdateConfig)
   ENCRYPTION_UNAVAILABLE: '이 환경에서는 비밀값을 암호화할 수 없어 저장하지 못했습니다.',

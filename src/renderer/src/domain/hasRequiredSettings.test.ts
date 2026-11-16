@@ -10,6 +10,7 @@ const settings: Settings = {
   sheetName: '상품 목록',
   restartDelayMinutes: null,
   productDelaySeconds: 10,
+  autoStartDelayMinutes: 3,
   isDryRun: false,
   encryptedNaverPassword: 'encrypted-password',
   encryptedClientSecret: 'encrypted-client-secret',

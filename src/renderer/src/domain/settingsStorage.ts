@@ -11,6 +11,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sheetName: '',
   restartDelayMinutes: null,
   productDelaySeconds: MIN_PRODUCT_DELAY_SECONDS,
+  // 재부팅 직후 네트워크와 Chrome이 준비될 시간을 두려고 5분 뒤에 시작한다.
+  autoStartDelayMinutes: 5,
   isDryRun: false,
   encryptedNaverPassword: '',
   encryptedClientSecret: '',

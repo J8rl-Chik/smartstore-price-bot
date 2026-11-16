@@ -14,6 +14,10 @@ export type ParsedRestartDelay =
 export type ParsedProductDelay =
   { isValid: true; productDelaySeconds: number } | { isValid: false; errorMessage: string };
 
+// parseAutoStartDelay가 자동 실행 후 시작 대기 시간 입력을 검사한 결과
+export type ParsedAutoStartDelay =
+  { isValid: true; autoStartDelayMinutes: number } | { isValid: false; errorMessage: string };
+
 // formatTime이 만드는 시:분:초 문자열
 export type FormattedTime = `${string}:${string}:${string}`;
 

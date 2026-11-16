@@ -18,6 +18,9 @@ window.api = {
   startUpdate: mockStartUpdate,
   stopUpdate: mockStopUpdate,
   encryptSecret: vi.fn<IpcInvoke['encryptSecret']>(),
+  isOpenAtLoginEnabled: vi.fn<IpcInvoke['isOpenAtLoginEnabled']>(),
+  setOpenAtLogin: vi.fn<IpcInvoke['setOpenAtLogin']>(),
+  isOpenedAtLogin: vi.fn<IpcInvoke['isOpenedAtLogin']>(),
   onUpdateState: mockOnUpdateState,
 };
 
@@ -59,6 +62,7 @@ const settings: Settings = {
   sheetName: '상품 목록',
   restartDelayMinutes: 30,
   productDelaySeconds: 20,
+  autoStartDelayMinutes: 3,
   isDryRun: true,
   encryptedNaverPassword: 'encrypted-password',
   encryptedClientSecret: 'encrypted-client-secret',

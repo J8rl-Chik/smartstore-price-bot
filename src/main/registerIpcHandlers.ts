@@ -2,10 +2,14 @@ import { ipcMain, type WebContents } from 'electron';
 import { IpcInvoke } from '../preload/_type';
 import {
   ENCRYPT_SECRET_CHANNEL,
+  IS_OPEN_AT_LOGIN_ENABLED_CHANNEL,
+  IS_OPENED_AT_LOGIN_CHANNEL,
+  SET_OPEN_AT_LOGIN_CHANNEL,
   START_UPDATE_CHANNEL,
   STOP_UPDATE_CHANNEL,
 } from '../preload/ipcChannel';
 import encryptSecret from './encryptSecret';
+import { isOpenAtLoginEnabled, isOpenedAtLogin, setOpenAtLogin } from './openAtLogin';
 import createUpdateScheduler from './updateScheduler';
 import createStartUpdate from './startUpdate';
 import createStopUpdate from './stopUpdate';
@@ -31,4 +35,9 @@ export const registerIpcHandlers = (): void => {
   handleIpc(START_UPDATE_CHANNEL, createStartUpdate(scheduler));
   handleIpc(STOP_UPDATE_CHANNEL, createStopUpdate(scheduler));
   handleIpc(ENCRYPT_SECRET_CHANNEL, encryptSecret);
+
+  // openAtLogin의 함수는 동기 함수라, 채널 응답 타입(Promise)에 맞게 async로 감싼다.
+  handleIpc(IS_OPEN_AT_LOGIN_ENABLED_CHANNEL, async () => isOpenAtLoginEnabled());
+  handleIpc(SET_OPEN_AT_LOGIN_CHANNEL, async (isEnabled) => setOpenAtLogin(isEnabled));
+  handleIpc(IS_OPENED_AT_LOGIN_CHANNEL, async () => isOpenedAtLogin());
 };
