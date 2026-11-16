@@ -1,6 +1,6 @@
 {
   "name": "smartstore-price-bot",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Set price automatically",
   "main": "./out/main/index.cjs",
   "type": "module",
