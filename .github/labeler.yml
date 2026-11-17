@@ -30,6 +30,10 @@
 'area: ci':
   - changed-files:
       - any-glob-to-any-file: .github/**
+# Claude Code 지침(CLAUDE.md)과 스킬·설정(.claude/) 변경
+'area: claude':
+  - changed-files:
+      - any-glob-to-any-file: ['CLAUDE.md', '.claude/**']
 
 # Dependabot이 기본으로 붙이는 라벨과 이름을 맞춰, 사람이 올린 PR도 의존성 변경이면 같은 라벨로 모은다.
 dependencies:
