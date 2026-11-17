@@ -31,6 +31,7 @@ vi.mock('puppeteer-extra', () => ({
 
 const createMockPage = () => ({
   close: vi.fn(),
+  windowId: vi.fn().mockResolvedValue('window-1'),
 });
 
 type MockPage = ReturnType<typeof createMockPage>;
@@ -41,6 +42,7 @@ const createMockBrowser = (
 ) => ({
   pages: async () => [mockPage],
   newPage: async () => mockNewPage,
+  setWindowBounds: vi.fn(),
 });
 
 describe('createPage', () => {
@@ -101,6 +103,43 @@ describe('createPage', () => {
     await createPage(userDataDir);
 
     expect(mockLaunch).toHaveBeenCalledWith(expect.objectContaining({ userDataDir }));
+  });
+
+  it('창 위치와 크기를 전달받으면 새 페이지의 창을 그 위치와 크기로 옮긴다', async () => {
+    const mockBrowser = createMockBrowser();
+    mockLaunch.mockResolvedValue(mockBrowser);
+
+    await createPage('test/userData', { left: 0, top: 0, width: 960, height: 1040 });
+
+    expect(mockBrowser.setWindowBounds).toHaveBeenCalledWith('window-1', {
+      left: 0,
+      top: 0,
+      width: 960,
+      height: 1040,
+    });
+  });
+
+  it('창 위치와 크기를 생략하면 창을 옮기지 않는다', async () => {
+    const mockBrowser = createMockBrowser();
+    mockLaunch.mockResolvedValue(mockBrowser);
+
+    await createPage();
+
+    expect(mockBrowser.setWindowBounds).not.toHaveBeenCalled();
+  });
+
+  it('창을 옮기지 못하면 원인을 보존한 채 에러를 던진다', async () => {
+    const boundsError = new Error('창 이동 실패');
+    const mockBrowser = createMockBrowser();
+    mockBrowser.setWindowBounds.mockRejectedValue(boundsError);
+    mockLaunch.mockResolvedValue(mockBrowser);
+
+    await expect(
+      createPage('test/userData', { left: 0, top: 0, width: 960, height: 1040 }),
+    ).rejects.toMatchObject({
+      message: ERROR_MESSAGE.BROWSER_PAGE_FAILED,
+      cause: boundsError,
+    });
   });
 
   it('브라우저에 페이지가 하나도 없으면 원인을 보존한 채 에러를 던진다', async () => {

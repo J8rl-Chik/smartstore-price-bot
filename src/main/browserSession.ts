@@ -4,6 +4,7 @@ import type { Browser, Page } from 'puppeteer';
 import createPage from '../integrations/puppeteer/createPage';
 import loginNaver from '../integrations/puppeteer/loginNaver';
 import tryCatch from '../utils/tryCatch';
+import { BROWSER_WINDOW_BOUNDS } from './windowLayout';
 import type { NaverAccount } from '../domain/settings/_type';
 
 /**
@@ -25,8 +26,14 @@ export const isPageClosed = (page: Page): boolean => page.isClosed() || !page.br
  */
 export const getLoggedInPage = async (naverAccount: NaverAccount): Promise<Page> => {
   if (!session || isPageClosed(session.page)) {
-    // 설치 폴더는 업데이트·재설치 때 지워질 수 있어, 로그인 쿠키가 남도록 사용자 데이터 폴더에 Chrome 프로필을 둔다.
-    const { browser, page } = await createPage(join(app.getPath('userData'), 'chrome-profile'));
+    /**
+     * 설치 폴더는 업데이트·재설치 때 지워질 수 있어, 로그인 쿠키가 남도록 사용자 데이터 폴더에 Chrome 프로필을 둔다.
+     * 앱 창과 겹치지 않도록 화면 왼쪽 절반에 띄운다.
+     */
+    const { browser, page } = await createPage(
+      join(app.getPath('userData'), 'chrome-profile'),
+      BROWSER_WINDOW_BOUNDS,
+    );
     const [error] = await tryCatch(loginNaver(page, naverAccount));
 
     if (error) {

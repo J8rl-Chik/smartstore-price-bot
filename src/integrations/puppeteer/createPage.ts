@@ -1,6 +1,6 @@
 import puppeteerExtra, { type PuppeteerExtra } from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import type { Browser, Page } from 'puppeteer';
+import type { Browser, Page, WindowBounds } from 'puppeteer';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 interface BrowserPage {
@@ -29,8 +29,12 @@ puppeteer.use(stealth);
  * userDataDir은 네이버 로그인 쿠키가 저장되는 Chrome 프로필 폴더다.
  * 생략하면 CLI용 config/userData를 쓴다. CLI는 프로젝트 폴더에서 실행하므로 작업 폴더 기준 상대 경로로 둔다.
  * Electron은 앱의 사용자 데이터 폴더를 넘긴다.
+ * windowBounds를 생략하면 Chrome이 프로필에 기억해 둔 위치와 크기로 창을 연다.
  */
-const createPage = async (userDataDir = 'config/userData'): Promise<BrowserPage> => {
+const createPage = async (
+  userDataDir = 'config/userData',
+  windowBounds?: WindowBounds,
+): Promise<BrowserPage> => {
   try {
     const browser = await puppeteer.launch({
       headless: false,
@@ -52,6 +56,16 @@ const createPage = async (userDataDir = 'config/userData'): Promise<BrowserPage>
     const page = await browser.newPage();
 
     await blankPage?.close();
+
+    if (windowBounds) {
+      /**
+       * windowState를 생략하면 CDP 기본값인 normal이라, 프로필에 최대화 상태가 남아 있어도 풀고 옮긴다.
+       * page.windowId()는 experimental이라 puppeteer를 올릴 때 바뀌지 않았는지 확인한다.
+       * 창을 옮기지 못하면 다른 실패처럼 BROWSER_PAGE_FAILED로 던진다. 띄운 Chrome이 남는 문제는 #75에서 다룬다.
+       */
+      const windowId = await page.windowId();
+      await browser.setWindowBounds(windowId, windowBounds);
+    }
 
     return { browser, page };
   } catch (error) {

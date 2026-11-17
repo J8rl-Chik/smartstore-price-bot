@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
+import { BROWSER_WINDOW_BOUNDS } from './windowLayout';
 
 const mockCreatePage = vi.fn();
 const mockLoginNaver = vi.fn();
@@ -55,7 +56,19 @@ it('업데이트·재설치에도 남도록 앱의 사용자 데이터 폴더 �
 
   await getLoggedInPage(naverAccount);
 
-  expect(mockCreatePage).toHaveBeenCalledWith(join(userDataPath, 'chrome-profile'));
+  expect(mockCreatePage).toHaveBeenCalledWith(
+    join(userDataPath, 'chrome-profile'),
+    expect.anything(),
+  );
+});
+
+it('브라우저는 앱 창과 겹치지 않도록 정해 둔 왼쪽 절반 위치에 띄운다', async () => {
+  mockCreatePage.mockResolvedValue({ browser: {}, page: createFakePage() });
+  const { getLoggedInPage } = await importBrowserSession();
+
+  await getLoggedInPage(naverAccount);
+
+  expect(mockCreatePage).toHaveBeenCalledWith(expect.any(String), BROWSER_WINDOW_BOUNDS);
 });
 
 it('다시 호출되면 다시 로그인하지 않고 이전에 로그인한 페이지를 반환한다', async () => {
