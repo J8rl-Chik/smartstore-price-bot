@@ -42,6 +42,8 @@ const updateTargetProductPrice = async (
     targetProduct.sheet.delivery,
     targetPrice,
   );
+  // 무료 배송은 배송비 속성이 없어 0으로 본다.
+  const baseFee = 'baseFee' in deliveryFee ? deliveryFee.baseFee : 0;
 
   // 실제 상품을 건드리지 않고 돌려볼 수 있도록, 테스트 모드이면 수정 요청을 보내지 않고 계산한 값을 수정 결과처럼 반환한다.
   if (isDryRun) {
@@ -52,9 +54,17 @@ const updateTargetProductPrice = async (
     return {
       status: 'complete',
       price: salePrice,
-      baseFee: 'baseFee' in deliveryFee ? deliveryFee.baseFee : 0,
+      baseFee,
       time: Date.now(),
     };
+  }
+
+  /**
+   * 커머스 API 요청 수를 줄이도록, 계산한 판매가와 배송비가 순회를 시작할 때 받아 온 스토어의 값과 같으면 수정 요청을 보내지 않는다.
+   * 스토어 값에는 배송비 유형이 없어 금액만 비교한다.
+   */
+  if (targetProduct.store.salePrice === salePrice && targetProduct.store.deliveryFee === baseFee) {
+    return { status: 'complete', price: salePrice, baseFee, time: Date.now() };
   }
 
   const result = await updatePrice({
