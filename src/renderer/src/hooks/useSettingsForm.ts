@@ -42,6 +42,8 @@ interface SettingsFormState {
   errorMessages: SettingsFormErrorMessages;
   // 암호화나 시작 프로그램 등록에 실패한 이유. 없으면 null
   saveErrorMessage: string | null;
+  // 설정을 저장했는지. 입력을 바꾸거나 다시 저장을 시작하면 false로 돌아간다.
+  isSaved: boolean;
   changeSettingsForm: <Field extends keyof SettingsForm>(
     field: Field,
     value: SettingsForm[Field],
@@ -85,6 +87,7 @@ const useSettingsForm = (): SettingsFormState => {
   const [isOpenAtLogin, setIsOpenAtLogin] = useState(false);
   const [errorMessages, setErrorMessages] = useState(initialErrorMessages);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   /**
    * 레지스트리 값은 비동기로 받아 오므로 처음에는 꺼짐으로 보인다.
@@ -108,15 +111,19 @@ const useSettingsForm = (): SettingsFormState => {
     };
   }, []);
 
+  // 입력을 바꾸면 화면의 값이 저장한 값과 달라지므로 저장 완료 표시를 지운다.
   const changeSettingsForm: SettingsFormState['changeSettingsForm'] = (field, value) => {
+    setIsSaved(false);
     setForm((currentForm) => ({ ...currentForm, [field]: value }));
   };
 
   const changeSecretInput: SettingsFormState['changeSecretInput'] = (field, value) => {
+    setIsSaved(false);
     setSecretInputs((currentInputs) => ({ ...currentInputs, [field]: value }));
   };
 
   const changeOpenAtLogin: SettingsFormState['changeOpenAtLogin'] = (isEnabled) => {
+    setIsSaved(false);
     setIsOpenAtLogin(isEnabled);
   };
 
@@ -132,6 +139,7 @@ const useSettingsForm = (): SettingsFormState => {
       : ({ isValid: true, autoStartDelayMinutes: readSettings().autoStartDelayMinutes } as const);
 
     setSaveErrorMessage(null);
+    setIsSaved(false);
     setErrorMessages({
       restartDelayMinutes: parsedRestartDelay.isValid ? null : parsedRestartDelay.errorMessage,
       productDelaySeconds: parsedProductDelay.isValid ? null : parsedProductDelay.errorMessage,
@@ -170,6 +178,7 @@ const useSettingsForm = (): SettingsFormState => {
       });
       setForm((currentForm) => ({ ...currentForm, ...encryptedSecrets }));
       setSecretInputs(initialSecretInputs);
+      setIsSaved(true);
     } catch {
       // IPC 에러 메시지에는 Electron이 채널 정보를 덧붙이므로, 화면에는 정해 둔 메시지를 보여준다.
       setSaveErrorMessage(ERROR_MESSAGE.ENCRYPTION_UNAVAILABLE);
@@ -191,6 +200,7 @@ const useSettingsForm = (): SettingsFormState => {
     isOpenAtLogin,
     errorMessages,
     saveErrorMessage,
+    isSaved,
     changeSettingsForm,
     changeSecretInput,
     changeOpenAtLogin,

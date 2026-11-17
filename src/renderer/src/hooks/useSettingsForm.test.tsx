@@ -436,3 +436,102 @@ test('암호화에 실패하면 시작 프로그램 등록을 바꾸지 않는�
 
   expect(mockSetOpenAtLogin).not.toHaveBeenCalled();
 });
+
+test('처음에는 저장 완료 상태가 아니다', async () => {
+  const { result } = await renderHook(() => useSettingsForm());
+
+  expect(result.current.isSaved).toBe(false);
+});
+
+test('저장하면 저장 완료 상태가 된다', async () => {
+  const { result, act } = await renderHook(() => useSettingsForm());
+
+  await act(async () => {
+    await result.current.saveSettingsForm();
+  });
+
+  expect(result.current.isSaved).toBe(true);
+});
+
+test('저장한 뒤 입력을 바꾸면 저장 완료 상태가 풀린다', async () => {
+  const { result, act } = await renderHook(() => useSettingsForm());
+
+  await act(async () => {
+    await result.current.saveSettingsForm();
+  });
+  await act(async () => {
+    result.current.changeSettingsForm('naverId', 'new-id');
+  });
+
+  expect(result.current.isSaved).toBe(false);
+});
+
+test('저장한 뒤 비밀값을 입력하면 저장 완료 상태가 풀린다', async () => {
+  const { result, act } = await renderHook(() => useSettingsForm());
+
+  await act(async () => {
+    await result.current.saveSettingsForm();
+  });
+  await act(async () => {
+    result.current.changeSecretInput('naverPassword', 'new-password');
+  });
+
+  expect(result.current.isSaved).toBe(false);
+});
+
+test('저장한 뒤 자동 실행 토글을 바꾸면 저장 완료 상태가 풀린다', async () => {
+  const { result, act } = await renderHook(() => useSettingsForm());
+
+  await act(async () => {
+    await result.current.saveSettingsForm();
+  });
+  await act(async () => {
+    result.current.changeOpenAtLogin(true);
+  });
+
+  expect(result.current.isSaved).toBe(false);
+});
+
+test('입력 검사에 실패하면 저장 완료 상태가 되지 않는다', async () => {
+  const { result, act } = await renderHook(() => useSettingsForm());
+
+  await act(async () => {
+    result.current.changeSettingsForm('restartDelayMinutes', '0');
+  });
+  await act(async () => {
+    await result.current.saveSettingsForm();
+  });
+
+  expect(result.current.isSaved).toBe(false);
+});
+
+test('암호화에 실패하면 저장 완료 상태가 되지 않는다', async () => {
+  mockEncryptSecret.mockRejectedValue(new Error('암호화 실패'));
+
+  const { result, act } = await renderHook(() => useSettingsForm());
+
+  await act(async () => {
+    result.current.changeSecretInput('naverPassword', 'new-password');
+  });
+  await act(async () => {
+    await result.current.saveSettingsForm();
+  });
+
+  expect(result.current.isSaved).toBe(false);
+});
+
+test('시작 프로그램 등록에만 실패하면 나머지 설정은 저장했으므로 저장 완료 상태와 실패 이유를 함께 알려준다', async () => {
+  mockSetOpenAtLogin.mockRejectedValue(new Error('등록 실패'));
+
+  const { result, act } = await renderHook(() => useSettingsForm());
+
+  await act(async () => {
+    result.current.changeOpenAtLogin(true);
+  });
+  await act(async () => {
+    await result.current.saveSettingsForm();
+  });
+
+  expect(result.current.isSaved).toBe(true);
+  expect(result.current.saveErrorMessage).toBe(ERROR_MESSAGE.OPEN_AT_LOGIN_FAILED);
+});
