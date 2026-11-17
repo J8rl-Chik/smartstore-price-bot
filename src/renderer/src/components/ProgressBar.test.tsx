@@ -4,7 +4,7 @@ import { customRender } from '../customRender';
 
 test('수정 중인 상품 이름과 진행 카운트를 보여준다', async () => {
   const screen = await customRender(
-    <ProgressBar totalCount={108} currentOrder={63} productName="상품A" />,
+    <ProgressBar totalCount={108} currentOrder={63} productName="상품A" isPreparing={false} />,
   );
 
   await expect.element(screen.getByText('상품A')).toBeVisible();
@@ -12,7 +12,9 @@ test('수정 중인 상품 이름과 진행 카운트를 보여준다', async ()
 });
 
 test('상품 이름이 없으면 대기 중으로 보여준다', async () => {
-  const screen = await customRender(<ProgressBar totalCount={108} currentOrder={0} />);
+  const screen = await customRender(
+    <ProgressBar totalCount={108} currentOrder={0} isPreparing={false} />,
+  );
 
   await expect.element(screen.getByText('대기 중')).toBeVisible();
   await expect.element(screen.getByText('0 / 108 확인 중')).toBeVisible();
@@ -20,7 +22,7 @@ test('상품 이름이 없으면 대기 중으로 보여준다', async () => {
 
 test('진행률을 전달받은 currentOrder와 totalCount에 반영한다', async () => {
   const screen = await customRender(
-    <ProgressBar totalCount={108} currentOrder={63} productName="상품A" />,
+    <ProgressBar totalCount={108} currentOrder={63} productName="상품A" isPreparing={false} />,
   );
 
   const progressbar = screen.getByRole('progressbar');
@@ -28,4 +30,11 @@ test('진행률을 전달받은 currentOrder와 totalCount에 반영한다', asy
   await expect.element(progressbar).toBeVisible();
   await expect.element(progressbar).toHaveAttribute('value', '63');
   await expect.element(progressbar).toHaveAttribute('max', '108');
+});
+
+test('준비 중이면 대기 중 대신 상품 목록을 불러오는 중으로 보여준다', async () => {
+  const screen = await customRender(<ProgressBar totalCount={0} currentOrder={0} isPreparing />);
+
+  await expect.element(screen.getByText('상품 목록을 불러오는 중')).toBeVisible();
+  await expect.element(screen.getByText('대기 중')).not.toBeInTheDocument();
 });

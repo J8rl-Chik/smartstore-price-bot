@@ -5,6 +5,8 @@ interface ProgressBarProps {
   currentOrder: number;
   // 가격 수정 중인 상품 이름. 없으면 대기 중으로 표시한다.
   productName?: string;
+  // 상품 목록을 불러오는 중인지. 아직 수정할 상품이 없어 대기 중 대신 불러오는 중으로 표시한다.
+  isPreparing: boolean;
 }
 
 const shimmer = keyframes`
@@ -60,7 +62,7 @@ const ProgressTrack = styled.progress`
   border-radius: 4px;
 
   &::-webkit-progress-bar {
-    background: ${({ theme }) => theme.color.gray100};
+    background: ${({ theme }) => theme.color.gray200};
     border-radius: 4px;
   }
 
@@ -85,10 +87,13 @@ const ProgressBar = ({
   totalCount,
   currentOrder,
   productName,
+  isPreparing,
 }: ProgressBarProps): React.JSX.Element => (
   <ProgressContainer>
     <StatusRow>
-      <StatusText>{productName ?? '대기 중'}</StatusText>
+      <StatusText>
+        {isPreparing ? '상품 목록을 불러오는 중' : (productName ?? '대기 중')}
+      </StatusText>
       <ProgressCount>
         {currentOrder} / {totalCount} 확인 중
       </ProgressCount>

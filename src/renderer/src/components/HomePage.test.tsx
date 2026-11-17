@@ -86,6 +86,17 @@ test('준비 중이면 시작 버튼이 비활성화된다', async () => {
   await expect.element(screen.getByRole('button', { name: '자동 수정 시작' })).toBeDisabled();
 });
 
+test('준비 중이면 상품 목록 자리에 불러오는 중 상자를 보여준다', async () => {
+  const screen = await customRender(
+    <HomePage {...homePageProps} targetProducts={[]} isPreparing />,
+  );
+
+  await expect
+    .element(screen.getByRole('status', { name: '상품 목록을 불러오는 중' }))
+    .toBeVisible();
+  await expect.element(screen.getByText('상품 목록을 불러오는 중')).toBeVisible();
+});
+
 test('순회 중이면 시작 버튼이 비활성화된다', async () => {
   const screen = await customRender(<HomePage {...homePageProps} isRunning />);
 

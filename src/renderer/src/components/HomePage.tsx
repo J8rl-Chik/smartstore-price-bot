@@ -58,10 +58,12 @@ const HomePage = ({
         totalCount={targetProducts.length}
         currentOrder={currentOrder}
         productName={currentProduct?.name}
+        isPreparing={isPreparing}
       />
       <ProductTable
         products={targetProducts.map(parseToProductTableRow)}
         currentProductId={currentProduct?.originProductNo ?? null}
+        isPreparing={isPreparing}
       />
     </>
   );

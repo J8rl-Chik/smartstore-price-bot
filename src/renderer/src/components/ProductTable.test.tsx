@@ -37,14 +37,18 @@ const products: TProductTableRow[] = [
 ];
 
 test('상품 목록 제목을 테이블의 이름으로 보여준다', async () => {
-  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
+  const screen = await customRender(
+    <ProductTable products={products} currentProductId={null} isPreparing={false} />,
+  );
 
   await expect.element(screen.getByRole('table', { name: '상품 목록' })).toBeVisible();
   await expect.element(screen.getByText('상품 목록')).toBeVisible();
 });
 
 test('테이블 컬럼 헤더를 보여준다', async () => {
-  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
+  const screen = await customRender(
+    <ProductTable products={products} currentProductId={null} isPreparing={false} />,
+  );
 
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('columnheader', { name: '설정가' })).toBeVisible();
@@ -55,7 +59,9 @@ test('테이블 컬럼 헤더를 보여준다', async () => {
 });
 
 test('헤더 행과 상품 행으로 구성된다', async () => {
-  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
+  const screen = await customRender(
+    <ProductTable products={products} currentProductId={null} isPreparing={false} />,
+  );
   const thead = screen.getByRole('rowgroup').nth(0); // rowgroup은 thead, tbody 순서로 2개다.
   const tbody = screen.getByRole('rowgroup').nth(1);
 
@@ -71,7 +77,9 @@ test('헤더 행과 상품 행으로 구성된다', async () => {
 const updatingRowBackground = 'rgb(239, 246, 255)';
 
 test('currentProductId와 id가 같은 상품 행만 강조한다', async () => {
-  const screen = await customRender(<ProductTable products={products} currentProductId={2} />);
+  const screen = await customRender(
+    <ProductTable products={products} currentProductId={2} isPreparing={false} />,
+  );
 
   await expect
     .element(screen.getByRole('row', { name: /블루투스 스피커 미니/ }))
@@ -85,7 +93,9 @@ test('currentProductId와 id가 같은 상품 행만 강조한다', async () => 
 });
 
 test('currentProductId가 null이면 강조하는 행이 없다', async () => {
-  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
+  const screen = await customRender(
+    <ProductTable products={products} currentProductId={null} isPreparing={false} />,
+  );
   const tbody = screen.getByRole('rowgroup').nth(1);
 
   for (const row of tbody.getByRole('row').all()) {
@@ -94,10 +104,54 @@ test('currentProductId가 null이면 강조하는 행이 없다', async () => {
 });
 
 test('상품이 없으면 헤더 행만 보여준다', async () => {
-  const screen = await customRender(<ProductTable products={[]} currentProductId={null} />);
+  const screen = await customRender(
+    <ProductTable products={[]} currentProductId={null} isPreparing={false} />,
+  );
 
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('cell')).not.toBeInTheDocument();
+});
+
+test('준비 중이면 상품 행 대신 불러오는 중 상자를 보여준다', async () => {
+  const screen = await customRender(
+    <ProductTable products={[]} currentProductId={null} isPreparing />,
+  );
+
+  await expect
+    .element(screen.getByRole('status', { name: '상품 목록을 불러오는 중' }))
+    .toBeVisible();
+  await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
+});
+
+test('준비 중이면 상품이 있어도 상품 행을 보여주지 않는다', async () => {
+  const screen = await customRender(
+    <ProductTable products={products} currentProductId={null} isPreparing />,
+  );
+
+  await expect
+    .element(screen.getByRole('cell', { name: '무선 이어폰 프로' }))
+    .not.toBeInTheDocument();
+});
+
+test('준비 중이면 표가 부모의 남은 높이를 채워 스켈레톤 셀이 최소 높이보다 커진다', async () => {
+  // AppContainer처럼 높이가 정해진 flex column 안에 렌더한다.
+  const screen = await customRender(
+    <div style={{ display: 'flex', flexDirection: 'column', height: '800px' }}>
+      <ProductTable products={[]} currentProductId={null} isPreparing />
+    </div>,
+  );
+  const skeletonCell = screen.getByRole('status', { name: '상품 목록을 불러오는 중' }).element();
+
+  // 스켈레톤 셀의 최소 높이(상자 240px + 위아래 여백 32px)
+  expect(skeletonCell.getBoundingClientRect().height).toBeGreaterThan(272);
+});
+
+test('준비 중이 아니면 불러오는 중 상자를 보여주지 않는다', async () => {
+  const screen = await customRender(
+    <ProductTable products={products} currentProductId={null} isPreparing={false} />,
+  );
+
+  await expect.element(screen.getByRole('status')).not.toBeInTheDocument();
 });
 
 /**
@@ -105,7 +159,9 @@ test('상품이 없으면 헤더 행만 보여준다', async () => {
  * 렌더링된 열 너비를 테이블 너비에 대한 비율로 구한다.
  */
 const getColumnWidthRatio = async (testId: string): Promise<number> => {
-  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
+  const screen = await customRender(
+    <ProductTable products={products} currentProductId={null} isPreparing={false} />,
+  );
   const table = screen.getByRole('table', { name: '상품 목록' }).element();
   const column = screen.getByTestId(testId).element();
 
