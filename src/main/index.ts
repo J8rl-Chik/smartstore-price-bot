@@ -7,11 +7,12 @@ import { closeBrowser } from './browserSession';
 import { autoUpdater } from 'electron-updater';
 import checkAppUpdate, { hasDownloadedAppUpdate } from './checkAppUpdate';
 import tryCatch from '../utils/tryCatch';
+import { APP_WINDOW_BOUNDS } from './windowLayout';
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 1024,
+    // 수집 브라우저와 겹치지 않도록 화면 오른쪽 절반에 띄운다.
+    ...APP_WINDOW_BOUNDS,
     // 우선 화면에 띄우지 않고 백그라운드에서 로딩합니다.
     show: false,
     autoHideMenuBar: true,
