@@ -6,9 +6,13 @@ import type { TProductTableRow } from '../domain/_type';
 
 interface ProductTableRowProps {
   product: TProductTableRow;
+  // 순회 중 지금 가격을 수정하고 있는 상품인지. 목록에서 위치를 찾기 쉽게 행을 강조한다.
+  isUpdating: boolean;
 }
 
-const ProductTableRowContainer = styled.tr`
+const ProductTableRowContainer = styled.tr<{ $isUpdating: boolean }>`
+  background: ${({ $isUpdating, theme }) => ($isUpdating ? theme.color.blue50 : 'transparent')};
+
   &:not(:last-child) td {
     border-bottom: 1px solid ${({ theme }) => theme.color.gray100};
   }
@@ -63,8 +67,8 @@ const UpdateTimeCell = styled.td`
   text-align: right;
 `;
 
-const ProductTableRow = ({ product }: ProductTableRowProps): React.JSX.Element => (
-  <ProductTableRowContainer>
+const ProductTableRow = ({ product, isUpdating }: ProductTableRowProps): React.JSX.Element => (
+  <ProductTableRowContainer $isUpdating={isUpdating}>
     <NameCell>{product.name}</NameCell>
     <ConfiguredPriceCell>
       {formatTotalPrice(product.configuredPrice)}

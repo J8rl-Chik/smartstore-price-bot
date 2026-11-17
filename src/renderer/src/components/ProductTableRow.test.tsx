@@ -14,8 +14,8 @@ const baseProduct: TProductTableRow = {
   updateTime: '13:34:48',
 };
 
-const renderRow = (product: TProductTableRow) =>
-  customRender(<ProductTableRow product={product} />);
+const renderRow = (product: TProductTableRow, isUpdating = false) =>
+  customRender(<ProductTableRow product={product} isUpdating={isUpdating} />);
 
 test('상품 이름을 보여준다', async () => {
   const screen = await renderRow(baseProduct);
@@ -128,4 +128,23 @@ test('실패 이유가 없으면 상태 뱃지만 보여준다', async () => {
 
   // exact로 비교해 상태 칸에 뱃지 문구 말고 다른 글자가 없는지 확인한다.
   await expect.element(screen.getByRole('cell', { name: '완료', exact: true })).toBeVisible();
+});
+
+// theme.color.blue50(#eff6ff)을 getComputedStyle이 돌려주는 rgb 형식으로 적었다.
+const updatingRowBackground = 'rgb(239, 246, 255)';
+
+test('수정 중인 상품이면 행 배경을 강조한다', async () => {
+  const screen = await renderRow(baseProduct, true);
+
+  await expect
+    .element(screen.getByRole('row'))
+    .toHaveStyle({ backgroundColor: updatingRowBackground });
+});
+
+test('수정 중인 상품이 아니면 행 배경을 강조하지 않는다', async () => {
+  const screen = await renderRow(baseProduct);
+
+  await expect
+    .element(screen.getByRole('row'))
+    .not.toHaveStyle({ backgroundColor: updatingRowBackground });
 });

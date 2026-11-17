@@ -37,14 +37,14 @@ const products: TProductTableRow[] = [
 ];
 
 test('상품 목록 제목을 테이블의 이름으로 보여준다', async () => {
-  const screen = await customRender(<ProductTable products={products} />);
+  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
 
   await expect.element(screen.getByRole('table', { name: '상품 목록' })).toBeVisible();
   await expect.element(screen.getByText('상품 목록')).toBeVisible();
 });
 
 test('테이블 컬럼 헤더를 보여준다', async () => {
-  const screen = await customRender(<ProductTable products={products} />);
+  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
 
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('columnheader', { name: '설정가' })).toBeVisible();
@@ -55,7 +55,7 @@ test('테이블 컬럼 헤더를 보여준다', async () => {
 });
 
 test('헤더 행과 상품 행으로 구성된다', async () => {
-  const screen = await customRender(<ProductTable products={products} />);
+  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
   const thead = screen.getByRole('rowgroup').nth(0); // rowgroup은 thead, tbody 순서로 2개다.
   const tbody = screen.getByRole('rowgroup').nth(1);
 
@@ -67,8 +67,34 @@ test('헤더 행과 상품 행으로 구성된다', async () => {
   await expect.element(screen.getByRole('cell', { name: '스테인리스 텀블러' })).toBeVisible();
 });
 
+// theme.color.blue50(#eff6ff)을 getComputedStyle이 돌려주는 rgb 형식으로 적었다.
+const updatingRowBackground = 'rgb(239, 246, 255)';
+
+test('currentProductId와 id가 같은 상품 행만 강조한다', async () => {
+  const screen = await customRender(<ProductTable products={products} currentProductId={2} />);
+
+  await expect
+    .element(screen.getByRole('row', { name: /블루투스 스피커 미니/ }))
+    .toHaveStyle({ backgroundColor: updatingRowBackground });
+  await expect
+    .element(screen.getByRole('row', { name: /무선 이어폰 프로/ }))
+    .not.toHaveStyle({ backgroundColor: updatingRowBackground });
+  await expect
+    .element(screen.getByRole('row', { name: /스테인리스 텀블러/ }))
+    .not.toHaveStyle({ backgroundColor: updatingRowBackground });
+});
+
+test('currentProductId가 null이면 강조하는 행이 없다', async () => {
+  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
+  const tbody = screen.getByRole('rowgroup').nth(1);
+
+  for (const row of tbody.getByRole('row').all()) {
+    await expect.element(row).not.toHaveStyle({ backgroundColor: updatingRowBackground });
+  }
+});
+
 test('상품이 없으면 헤더 행만 보여준다', async () => {
-  const screen = await customRender(<ProductTable products={[]} />);
+  const screen = await customRender(<ProductTable products={[]} currentProductId={null} />);
 
   await expect.element(screen.getByRole('columnheader', { name: '제품명' })).toBeVisible();
   await expect.element(screen.getByRole('cell')).not.toBeInTheDocument();
@@ -79,7 +105,7 @@ test('상품이 없으면 헤더 행만 보여준다', async () => {
  * 렌더링된 열 너비를 테이블 너비에 대한 비율로 구한다.
  */
 const getColumnWidthRatio = async (testId: string): Promise<number> => {
-  const screen = await customRender(<ProductTable products={products} />);
+  const screen = await customRender(<ProductTable products={products} currentProductId={null} />);
   const table = screen.getByRole('table', { name: '상품 목록' }).element();
   const column = screen.getByTestId(testId).element();
 

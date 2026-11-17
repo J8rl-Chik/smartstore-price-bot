@@ -64,6 +64,22 @@ test('실패 이유가 있으면 에러 배너, 변환 실패 배너, 상품 목
   await expect.element(screen.getByText('블루투스 스피커 미니')).toBeVisible();
 });
 
+test('순회 중이면 지금 수정하고 있는 상품의 행을 강조한다', async () => {
+  const screen = await customRender(
+    <HomePage
+      {...homePageProps}
+      isRunning
+      currentProduct={homePageProps.targetProducts[1]}
+      currentOrder={2}
+    />,
+  );
+
+  // theme.color.blue50(#eff6ff)
+  await expect
+    .element(screen.getByRole('row', { name: /블루투스 스피커 미니/ }))
+    .toHaveStyle({ backgroundColor: 'rgb(239, 246, 255)' });
+});
+
 test('준비 중이면 시작 버튼이 비활성화된다', async () => {
   const screen = await customRender(<HomePage {...homePageProps} isPreparing />);
 
