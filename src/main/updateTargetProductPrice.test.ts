@@ -86,8 +86,8 @@ const targetProduct: TargetProduct = {
 
 const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test-client-secret' };
 
-const run = (isDryRun = false): Promise<TargetProductUpdate> =>
-  updateTargetProductPrice(page, targetProduct, myStoreName, commerceApiCredentials, isDryRun);
+const run = (isDryRun = false, product = targetProduct): Promise<TargetProductUpdate> =>
+  updateTargetProductPrice(page, product, myStoreName, commerceApiCredentials, isDryRun);
 
 it('상품의 카탈로그 URL과 상품명으로 판매처를 조회한다', async () => {
   await run();
@@ -184,4 +184,48 @@ it('테스트 모드이고 배송비가 무료이면 기본 배송비를 0으로
     baseFee: 0,
     time: updateTime,
   });
+});
+
+const unchangedProduct: TargetProduct = {
+  ...targetProduct,
+  store: { salePrice: 39990, stockQuantity: 10, deliveryFee: 3000 },
+};
+
+it('계산한 판매가와 배송비가 스토어의 현재 값과 같으면 가격 수정을 요청하지 않고 complete 상태를 반환한다', async () => {
+  expect(await run(false, unchangedProduct)).toEqual({
+    status: 'complete',
+    price: 39990,
+    baseFee: 3000,
+    time: updateTime,
+  });
+  expect(mockUpdatePrice).not.toHaveBeenCalled();
+});
+
+it('판매가가 같아도 배송비가 다르면 가격 수정을 요청한다', async () => {
+  await run(false, {
+    ...unchangedProduct,
+    store: { ...unchangedProduct.store, deliveryFee: 2500 },
+  });
+
+  expect(mockUpdatePrice).toHaveBeenCalled();
+});
+
+it('배송비가 같아도 판매가가 다르면 가격 수정을 요청한다', async () => {
+  await run(false, { ...unchangedProduct, store: { ...unchangedProduct.store, salePrice: 45000 } });
+
+  expect(mockUpdatePrice).toHaveBeenCalled();
+});
+
+it('무료 배송이고 스토어 배송비가 0이며 판매가가 같으면 가격 수정을 요청하지 않는다', async () => {
+  mockBuildPriceWithDeliveryFee.mockReturnValue({
+    deliveryFee: { deliveryFeeType: 'FREE' },
+    salePrice: 42990,
+  });
+
+  await run(false, {
+    ...targetProduct,
+    store: { salePrice: 42990, stockQuantity: 10, deliveryFee: 0 },
+  });
+
+  expect(mockUpdatePrice).not.toHaveBeenCalled();
 });
