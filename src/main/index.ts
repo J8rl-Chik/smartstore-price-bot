@@ -21,7 +21,10 @@ function createWindow(): void {
     },
   });
 
-  mainWindow.webContents.openDevTools();
+  // 배포 빌드에서는 사용자에게 개발자 도구가 보이지 않게 개발 모드에서만 연다.
+  if (is.dev) {
+    mainWindow.webContents.openDevTools();
+  }
 
   mainWindow.on('ready-to-show', () => {
     // 로딩이 완전히 끝나면 그때 화면을 보여줍니다.
