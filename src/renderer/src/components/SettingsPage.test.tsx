@@ -324,3 +324,51 @@ test('시작 대기 시간이 잘못되면 실패 이유를 보여주고 저장�
   expect(readSettings()).toEqual(DEFAULT_SETTINGS);
   expect(mockSetOpenAtLogin).not.toHaveBeenCalled();
 });
+
+test('저장하기 전에는 저장 완료 문구를 보여주지 않는다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await expect.element(screen.getByText('저장했습니다.')).not.toBeInTheDocument();
+});
+
+test('저장 버튼을 클릭해 저장하면 버튼 옆에 저장 완료 문구를 보여준다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await screen.getByRole('button', { name: '저장' }).click();
+
+  // status 역할은 내용으로 이름이 정해지지 않아, 역할로 찾은 뒤 문구를 확인한다.
+  await expect.element(screen.getByRole('status')).toHaveTextContent('저장했습니다.');
+});
+
+test('저장한 뒤 입력을 바꾸면 저장 완료 문구가 사라진다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await screen.getByRole('button', { name: '저장' }).click();
+  await screen.getByLabelText('네이버 아이디').fill('naver-id');
+
+  await expect.element(screen.getByText('저장했습니다.')).not.toBeInTheDocument();
+});
+
+test('입력 검사에 실패하면 저장 완료 문구를 보여주지 않는다', async () => {
+  const screen = await customRender(<SettingsPage />);
+
+  await screen.getByLabelText(/순회 간격/).fill('0');
+  await screen.getByRole('button', { name: '저장' }).click();
+
+  await expect.element(screen.getByText(ERROR_MESSAGE.RESTART_DELAY_TOO_SHORT)).toBeVisible();
+  await expect.element(screen.getByText('저장했습니다.')).not.toBeInTheDocument();
+});
+
+test('저장은 했지만 자동 실행 설정에 실패하면 저장 완료 문구와 실패 이유를 함께 보여준다', async () => {
+  mockSetOpenAtLogin.mockRejectedValue(new Error('등록 실패'));
+
+  const screen = await customRender(<SettingsPage />);
+
+  await screen.getByLabelText('네이버 아이디').fill('naver-id');
+  await screen.getByText(/자동 실행/).click();
+  await screen.getByRole('button', { name: '저장' }).click();
+
+  await expect.element(screen.getByText(ERROR_MESSAGE.OPEN_AT_LOGIN_FAILED)).toBeVisible();
+  await expect.element(screen.getByRole('status')).toHaveTextContent('저장했습니다.');
+  expect(readSettings().naverId).toBe('naver-id');
+});

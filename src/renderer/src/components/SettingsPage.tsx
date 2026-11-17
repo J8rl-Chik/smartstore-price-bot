@@ -34,11 +34,23 @@ const FieldHint = styled.p`
   color: ${({ theme }) => theme.color.gray500};
 `;
 
+// 저장 완료 문구를 버튼 왼쪽에 두도록 오른쪽 끝에 붙여 가로로 놓는다.
+const SaveRow = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 24px;
+`;
+
+const SavedMessage = styled.span`
+  font-size: 13px;
+  color: ${({ theme }) => theme.color.green700};
+`;
+
 const SaveButton = styled.button`
-  display: block;
   width: 100px;
   height: 48px;
-  margin: 24px 0 0 auto;
   font-size: 16px;
   font-weight: 700;
   color: ${({ theme }) => theme.color.white};
@@ -73,6 +85,7 @@ const SettingsPage = (): React.JSX.Element => {
     isOpenAtLogin,
     errorMessages,
     saveErrorMessage,
+    isSaved,
     changeSettingsForm,
     changeSecretInput,
     changeOpenAtLogin,
@@ -228,9 +241,12 @@ const SettingsPage = (): React.JSX.Element => {
         </SettingsSection>
       </SectionGrid>
       {saveErrorMessage && <SaveErrorMessage>{saveErrorMessage}</SaveErrorMessage>}
-      <SaveButton type="button" onClick={() => void saveSettingsForm()}>
-        저장
-      </SaveButton>
+      <SaveRow>
+        {isSaved && <SavedMessage role="status">저장했습니다.</SavedMessage>}
+        <SaveButton type="button" onClick={() => void saveSettingsForm()}>
+          저장
+        </SaveButton>
+      </SaveRow>
     </section>
   );
 };
