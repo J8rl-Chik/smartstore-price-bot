@@ -125,7 +125,7 @@ test('순회 간격이 잘못되면 실패 이유를 알려주고 저장하지 �
   const { result, act } = await renderHook(() => useSettingsForm());
 
   await act(async () => {
-    result.current.changeSettingsForm('restartDelayMinutes', '1');
+    result.current.changeSettingsForm('restartDelayMinutes', '0');
   });
   await act(async () => {
     await result.current.saveSettingsForm();
@@ -181,7 +181,7 @@ test('잘못된 입력을 고쳐 다시 저장하면 실패 이유를 지우고 
   const { result, act } = await renderHook(() => useSettingsForm());
 
   await act(async () => {
-    result.current.changeSettingsForm('restartDelayMinutes', '1');
+    result.current.changeSettingsForm('restartDelayMinutes', '0');
   });
   await act(async () => {
     await result.current.saveSettingsForm();
@@ -281,7 +281,7 @@ test('입력 검사에 실패하면 비밀값을 암호화하지 않는다', asy
   const { result, act } = await renderHook(() => useSettingsForm());
 
   await act(async () => {
-    result.current.changeSettingsForm('restartDelayMinutes', '1');
+    result.current.changeSettingsForm('restartDelayMinutes', '0');
     result.current.changeSecretInput('naverPassword', 'new-password');
   });
   await act(async () => {

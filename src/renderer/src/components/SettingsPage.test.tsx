@@ -177,7 +177,7 @@ test('테스트 모드를 클릭하면 켜짐으로 바뀐다', async () => {
 test('순회 간격이 잘못되면 실패 이유를 보여주고 저장하지 않는다', async () => {
   const screen = await customRender(<SettingsPage />);
 
-  await screen.getByLabelText(/순회 간격/).fill('1');
+  await screen.getByLabelText(/순회 간격/).fill('0');
   await screen.getByRole('button', { name: '저장' }).click();
 
   await expect.element(screen.getByText(ERROR_MESSAGE.RESTART_DELAY_TOO_SHORT)).toBeVisible();
