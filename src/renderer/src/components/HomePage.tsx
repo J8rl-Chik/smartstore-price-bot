@@ -59,7 +59,10 @@ const HomePage = ({
         currentOrder={currentOrder}
         productName={currentProduct?.name}
       />
-      <ProductTable products={targetProducts.map(parseToProductTableRow)} />
+      <ProductTable
+        products={targetProducts.map(parseToProductTableRow)}
+        currentProductId={currentProduct?.originProductNo ?? null}
+      />
     </>
   );
 };

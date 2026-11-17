@@ -6,6 +6,8 @@ type TextAlign = 'left' | 'center' | 'right';
 
 interface ProductTableProps {
   products: TProductTableRow[];
+  // 지금 가격을 수정하고 있는 상품의 id. 순회 중이 아니면 null
+  currentProductId: TProductTableRow['id'] | null;
 }
 
 /**
@@ -41,7 +43,7 @@ const HeaderCell = styled.th.attrs({ scope: 'col' })<{ $align?: TextAlign }>`
   border-bottom: 1px solid ${({ theme }) => theme.color.gray200};
 `;
 
-const ProductTable = ({ products }: ProductTableProps): React.JSX.Element => (
+const ProductTable = ({ products, currentProductId }: ProductTableProps): React.JSX.Element => (
   <ProductTableContainer>
     <Title>상품 목록</Title>
     <colgroup>
@@ -64,7 +66,11 @@ const ProductTable = ({ products }: ProductTableProps): React.JSX.Element => (
     </thead>
     <tbody>
       {products.map((product) => (
-        <ProductTableRow key={product.id} product={product} />
+        <ProductTableRow
+          key={product.id}
+          product={product}
+          isUpdating={product.id === currentProductId}
+        />
       ))}
     </tbody>
   </ProductTableContainer>
