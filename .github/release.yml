@@ -1,0 +1,27 @@
+# release 워크플로의 gh release create --generate-notes가 이 설정으로 PR을 라벨별 섹션에 나눠 릴리스 노트를 만든다.
+# 라벨은 labeler.yml이 붙인 이름과 같아야 한다. PR은 위에서부터 처음 맞는 섹션 하나에만 들어간다.
+changelog:
+  categories:
+    - title: ✨ 새 기능
+      labels:
+        - 'type: feat'
+    - title: 🐛 버그 수정
+      labels:
+        - 'type: fix'
+    - title: ♻️ 리팩토링
+      labels:
+        - 'type: refactor'
+    - title: 📝 문서
+      labels:
+        - 'type: docs'
+    - title: ✅ 테스트
+      labels:
+        - 'type: test'
+    # type 섹션보다 아래에 둬서, package.json을 함께 바꾼 기능 PR은 새 기능에 남긴다.
+    - title: 📦 의존성 업데이트
+      labels:
+        - dependencies
+    # 위 섹션에 맞지 않는 PR(type: chore, 라벨 없음)을 모은다. 맨 아래에 있어야 한다.
+    - title: 🔧 기타
+      labels:
+        - '*'
