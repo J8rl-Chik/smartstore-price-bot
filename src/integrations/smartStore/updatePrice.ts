@@ -13,9 +13,12 @@ interface UpdatePriceParam {
   salePrice: number;
 }
 
+// 수정 결과는 응답 최상위가 아니라 originProduct 안에 담겨 온다.
 export interface UpdatePriceResult extends SmartStoreApiResult {
-  salePrice: number;
-  deliveryInfo: { deliveryFee: { baseFee: number } };
+  originProduct: {
+    salePrice: number;
+    deliveryInfo: { deliveryFee: { baseFee: number } };
+  };
 }
 
 interface OriginProduct {

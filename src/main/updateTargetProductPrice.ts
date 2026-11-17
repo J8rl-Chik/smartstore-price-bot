@@ -76,8 +76,8 @@ const updateTargetProductPrice = async (
 
   return {
     status: 'complete',
-    price: result.salePrice,
-    baseFee: result.deliveryInfo.deliveryFee.baseFee,
+    price: result.originProduct.salePrice,
+    baseFee: result.originProduct.deliveryInfo.deliveryFee.baseFee,
     time: Date.now(),
   };
 };

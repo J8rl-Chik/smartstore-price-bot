@@ -32,8 +32,8 @@ const commerceApiCredentials = { clientId: 'test-client-id', clientSecret: 'test
 
 it('가격 수정 API의 응답을 그대로 반환한다', async () => {
   const updateResult = {
-    salePrice: 50000,
-    deliveryInfo: { deliveryFee: { baseFee: 3000 } },
+    originProductNo: 123,
+    originProduct: { salePrice: 50000, deliveryInfo: { deliveryFee: { baseFee: 3000 } } },
   };
 
   mockGenerateAccessToken.mockResolvedValue('token-abc');
