@@ -52,8 +52,7 @@ beforeEach(() => {
     salePrice: 39990,
   });
   mockUpdatePrice.mockResolvedValue({
-    salePrice: 39990,
-    deliveryInfo: { deliveryFee: { baseFee: 3000 } },
+    originProduct: { salePrice: 39990, deliveryInfo: { deliveryFee: { baseFee: 3000 } } },
   });
 });
 
@@ -141,10 +140,9 @@ it('목표 가격과 배송비 설정으로 계산한 판매가와 배송비로 
   });
 });
 
-it('가격 수정에 성공하면 응답의 판매가와 기본 배송비로 complete 상태를 반환한다', async () => {
+it('가격 수정에 성공하면 응답 originProduct의 판매가와 기본 배송비로 complete 상태를 반환한다', async () => {
   mockUpdatePrice.mockResolvedValue({
-    salePrice: 38990,
-    deliveryInfo: { deliveryFee: { baseFee: 2500 } },
+    originProduct: { salePrice: 38990, deliveryInfo: { deliveryFee: { baseFee: 2500 } } },
   });
 
   expect(await run()).toEqual({
