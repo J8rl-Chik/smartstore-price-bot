@@ -13,6 +13,7 @@ import useTargetProductsUpdate from './hooks/useTargetProductsUpdate';
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
+  min-height: 100%;
   padding: 24px;
   font-family: ${({ theme }) => theme.font.kr};
   background: ${({ theme }) => theme.color.gray100};
