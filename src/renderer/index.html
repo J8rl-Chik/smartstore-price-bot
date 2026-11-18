@@ -2,9 +2,19 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      default-src 'self': 따로 정하지 않은 리소스(연결, 폰트, 프레임 등)는 앱 파일에서만 불러온다.
+      script-src 'self': 앱 번들 스크립트만 실행하고 inline 스크립트와 eval은 막는다.
+      style-src 'unsafe-inline': styled-components가 런타임에 <style> 태그를 넣어서 허용한다.
+      img-src data:: Vite가 작은 이미지를 data URL로 인라인할 수 있어 허용한다.
+      object-src 'none': 플러그인(<object>, <embed>)을 쓰지 않으므로 막는다.
+      base-uri 'none': 주입된 <base>가 상대 경로를 외부 주소로 바꾸지 못하게 막는다.
+      form-action 'none': 폼 전송을 쓰지 않으므로 입력값이 외부로 전송되지 않게 막는다.
+      base-uri와 form-action은 default-src를 따르지 않아 따로 적는다.
+    -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Electron</title>
