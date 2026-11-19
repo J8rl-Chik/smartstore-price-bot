@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
  * importMetaURL(호출한 모듈 자신의 위치)과 process.argv[1](node 실행 진입점 경로)이
  * 같으면 이 모듈이 직접 실행된 것이고, 다르면 다른 파일에 import되어 실행된 것이다.
  * 진입점 경로 자체가 없으면 직접 실행된 파일이 아니므로 false.
+ * 수동 테스트 스크립트(*.run.ts)에서 쓴다. 이 스크립트는 실제 상품 번호 같은 값이 들어가 gitignore로 로컬에만 둔다.
  */
 const isManualTestRun = (importMetaURL: string): boolean => {
   const entryPointPath = process.argv[1];
