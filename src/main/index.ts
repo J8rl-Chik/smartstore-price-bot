@@ -8,6 +8,7 @@ import { autoUpdater } from 'electron-updater';
 import checkAppUpdate, { hasDownloadedAppUpdate } from './checkAppUpdate';
 import tryCatch from '../utils/tryCatch';
 import { APP_WINDOW_BOUNDS } from './windowLayout';
+import { getRendererURL } from './rendererURL';
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -55,12 +56,8 @@ function createWindow(): void {
     event.preventDefault();
   });
 
-  // 실시간 새로고침(HMR) 사용하기 위한 설정
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
-  }
+  // 개발 모드는 실시간 새로고침(HMR)을 쓰도록 개발 서버를, 배포 빌드는 빌드한 index.html을 띄운다.
+  mainWindow.loadURL(getRendererURL());
 }
 
 // Electron 앱이 구동될 준비가 완벽히 끝났을 때
