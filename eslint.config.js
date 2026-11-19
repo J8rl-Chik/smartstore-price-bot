@@ -72,6 +72,10 @@ export default defineConfig([
       ...eslintPluginReactHooks.configs.recommended.rules,
       // Vite 환경에서 리액트 컴포넌트가 정상적으로 핫 리로딩되도록 보장하는 규칙을 적용합니다.
       ...eslintPluginReactRefresh.configs.vite.rules,
+      // HTML 문자열을 이스케이프 없이 넣는 dangerouslySetInnerHTML을 막는다. 꼭 필요하면 그 줄에서만 끈다.
+      'react/no-danger': 'error',
+      // href 등에 javascript: URL을 넣어 스크립트를 실행하지 못하게 막는다.
+      'react/jsx-no-script-url': 'error',
     },
   },
 
