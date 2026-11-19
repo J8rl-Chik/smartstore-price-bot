@@ -30,7 +30,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "electron-updater": "^6.8.11",
     "jsdom": "^24.1.0",
