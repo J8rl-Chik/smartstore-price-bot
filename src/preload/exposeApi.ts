@@ -5,8 +5,6 @@
  * 이 파일을 import해도 아무것도 실행되지 않으므로, 테스트는 mock을 준비한 뒤 원하는 시점에 exposeApi()를 호출한다.
  */
 import { contextBridge, ipcRenderer } from 'electron';
-// electron-toolkit이 제공하는 공통 헬퍼(ipcRenderer 래퍼 등)
-import { electronAPI } from '@electron-toolkit/preload';
 import type { UpdateState } from '../domain/product/_type';
 import type { IpcInvoke, IpcListener } from './_type';
 import {
@@ -53,9 +51,10 @@ const api: IpcInvoke & IpcListener = {
  */
 export const exposeApi = (): void => {
   try {
-    // renderer에서 window.electron 으로 electron-toolkit 헬퍼 사용 가능
-    contextBridge.exposeInMainWorld('electron', electronAPI);
-    // renderer에서 window.api 로 커스텀 API 사용 가능
+    /**
+     * renderer에서 window.api 로 커스텀 API 사용 가능
+     * ipcRenderer를 그대로 노출하면 renderer가 아무 채널이나 호출할 수 있어, 정해 둔 채널의 함수만 노출한다.
+     */
     contextBridge.exposeInMainWorld('api', api);
   } catch (error) {
     console.error(error);

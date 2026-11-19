@@ -1,4 +1,3 @@
-import { ElectronAPI } from '@electron-toolkit/preload';
 import type { UpdateState } from '../domain/product/_type';
 import type { Settings } from '../domain/settings/_type';
 
@@ -34,11 +33,12 @@ export interface IpcListener {
   onUpdateState: (callback: (state: UpdateState) => void) => () => void;
 }
 
-// 선언 병합으로 전역 Window 인터페이스에 electron, api 프로퍼티를 추가한다.
-// api는 IpcInvoke와 IpcListener를 합친 모양이다. preload가 각 채널을 같은 이름의 함수로 노출한다.
+/**
+ * 선언 병합으로 전역 Window 인터페이스에 api 프로퍼티를 추가한다.
+ * api는 IpcInvoke와 IpcListener를 합친 모양이다. preload가 각 채널을 같은 이름의 함수로 노출한다.
+ */
 declare global {
   interface Window {
-    electron: ElectronAPI;
     api: IpcInvoke & IpcListener;
   }
 }

@@ -1,6 +1,6 @@
 /**
  * main과 preload가 함께 쓰는 IPC 채널 이름.
- * exposeApi.ts에 두면 main이 이 값을 import할 때 contextBridge, @electron-toolkit/preload 같은 preload 전용 코드까지 딸려 오므로,
+ * exposeApi.ts에 두면 main이 이 값을 import할 때 contextBridge 같은 preload 전용 코드까지 딸려 오므로,
  * 값만 가져갈 수 있도록 다른 import가 없는 파일로 분리한다.
  */
 
