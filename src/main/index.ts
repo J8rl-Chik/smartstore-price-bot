@@ -34,11 +34,25 @@ function createWindow(): void {
 
   // window.open()을 실행하거나, <a target="_blank"> 링크를 클릭해서 새 창이 열렸을 때의 이벤트 핸들러.
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    // 운영체제(OS)의 기본 브라우저로 연다.
-    shell.openExternal(details.url);
+    /**
+     * https 주소만 운영체제(OS)의 기본 브라우저로 연다.
+     * file:, ms-msdt: 같은 다른 스킴은 OS의 프로그램을 실행할 수 있어 열지 않는다.
+     */
+    if (URL.canParse(details.url) && new URL(details.url).protocol === 'https:') {
+      shell.openExternal(details.url);
+    }
 
     // Electron 앱 내부에서 새 창 열기를 취소한다.
     return { action: 'deny' };
+  });
+
+  /**
+   * 앱 창은 renderer 페이지 하나만 띄우므로 다른 주소로 이동하지 못하게 막는다.
+   * 외부 페이지로 이동하면 그 페이지에서도 preload의 window.api를 쓸 수 있기 때문이다.
+   * 새로고침(HMR 포함)은 이동이 아니라서 이 이벤트가 발생하지 않는다.
+   */
+  mainWindow.webContents.on('will-navigate', (event) => {
+    event.preventDefault();
   });
 
   // 실시간 새로고침(HMR) 사용하기 위한 설정
