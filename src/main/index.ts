@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron';
+import { app, shell, BrowserWindow, session } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { registerIpcHandlers } from './registerIpcHandlers';
@@ -85,6 +85,14 @@ app.whenReady().then(async () => {
   //  프로덕션 환경에서 사용자가 단축키로 개발자 도구를 켜지 못하도록 차단, 새로고침(Ctrl + R) 무시
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
+  });
+
+  /**
+   * renderer는 카메라, 마이크, 위치, 알림 같은 권한이 필요 없으므로 모든 권한 요청을 거부한다.
+   * Electron은 핸들러가 없으면 모든 요청을 허용한다. 업데이트 알림은 main의 Notification이라 영향이 없다.
+   */
+  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false);
   });
 
   registerIpcHandlers();
