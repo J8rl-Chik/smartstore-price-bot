@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          # git push 같은 인증이 필요한 작업이 없으므로, 이후 단계의 action이 토큰을 읽지 못하게 git 인증 정보를 남기지 않는다.
+          persist-credentials: false
 
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
