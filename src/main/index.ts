@@ -9,6 +9,10 @@ import checkAppUpdate, { hasDownloadedAppUpdate } from './checkAppUpdate';
 import tryCatch from '../utils/tryCatch';
 import { APP_WINDOW_BOUNDS } from './windowLayout';
 import { getRendererURL } from './rendererURL';
+import { registerAppProtocol, registerAppScheme } from './appProtocol';
+
+// 스킴 등록은 앱이 준비되기 전에만 할 수 있어 파일을 불러올 때 바로 한다.
+registerAppScheme();
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -93,6 +97,9 @@ app.whenReady().then(async () => {
   });
 
   registerIpcHandlers();
+
+  // 창이 app://renderer/ 주소를 불러올 수 있도록 창을 만들기 전에 등록한다.
+  registerAppProtocol();
 
   createWindow();
 
