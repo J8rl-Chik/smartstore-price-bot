@@ -5,7 +5,7 @@
   "main": "./out/main/index.cjs",
   "type": "module",
   "engines": {
-    "node": "24.22.1"
+    "node": "24.22.3"
   },
   "scripts": {
     "lint": "eslint",
@@ -43,7 +43,6 @@
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@eslint/js": "^9.39.5",
-    "@types/bcrypt": "^6.0.0",
     "@types/jsdom": "^28.0.3",
     "@types/node": "^26.6.6",
     "@types/react": "^19.2.7",
@@ -54,7 +53,7 @@
     "bcryptjs": "^3.0.3",
     "concurrently": "^10.0.5",
     "dotenv": "^17.4.2",
-    "electron": "^44.4.1",
+    "electron": "^44.11.5",
     "electron-builder": "^26.0.12",
     "electron-devtools-installer": "^4.0.0",
     "electron-vite": "^6.0.0",
