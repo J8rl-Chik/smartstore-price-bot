@@ -20,8 +20,23 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # 태그 커밋이 기본 브랜치에 있는지 조상 관계로 확인하려면 전체 이력이 필요하다.
+          fetch-depth: 0
           # 이후 단계(npm ci의 install script 등)가 토큰을 읽지 못하게 git 인증 정보를 남기지 않는다.
           persist-credentials: false
+
+      # 기본 브랜치에 병합되지 않은(리뷰와 CI를 거치지 않은) 커밋에 붙은 태그는 빌드하지 않는다.
+      # public 저장소라 persist-credentials: false여도 인증 없이 fetch할 수 있다.
+      - name: 태그 커밋이 기본 브랜치에 있는지 확인
+        shell: bash
+        run: |
+          git fetch --no-tags origin "$DEFAULT_BRANCH"
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" FETCH_HEAD; then
+            echo "::error::태그($GITHUB_REF_NAME) 커밋이 $DEFAULT_BRANCH 브랜치에 없습니다."
+            exit 1
+          fi
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
