@@ -13,6 +13,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # git push 같은 인증이 필요한 작업이 없으므로, 이후 단계의 action이 토큰을 읽지 못하게 git 인증 정보를 남기지 않는다.
+          persist-credentials: false
 
       # PR이 base 브랜치 대비 새로 추가하거나 바꾼 의존성만 비교하므로, 이미 있던 취약점으로는 실패하지 않는다.
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0

@@ -23,6 +23,9 @@ jobs:
     steps:
       # Claude가 diff 바깥의 관련 코드와 컨벤션 파일까지 읽을 수 있게 PR 브랜치를 받는다.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # git push 같은 인증이 필요한 작업이 없으므로, 이후 단계의 action이 토큰을 읽지 못하게 git 인증 정보를 남기지 않는다.
+          persist-credentials: false
 
       - uses: anthropics/claude-code-action@4fa93a88de49bbef68b10eb15aabedf28ca0e1ed # v1.0.271
         with:

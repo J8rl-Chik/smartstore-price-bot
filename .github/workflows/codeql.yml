@@ -30,6 +30,9 @@ jobs:
         language: [javascript-typescript, actions]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # git push 같은 인증이 필요한 작업이 없으므로, 이후 단계의 action이 토큰을 읽지 못하게 git 인증 정보를 남기지 않는다.
+          persist-credentials: false
 
       # 두 언어 모두 빌드 없이 소스만 분석한다.
       - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
