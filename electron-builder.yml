@@ -21,6 +21,19 @@ nsis:
   # 기본값인 사용자별 원클릭 설치를 쓴다. %LOCALAPPDATA%\Programs에 관리자 권한 없이 설치된다.
   artifactName: ${productName}-${version}-setup.${ext}
 
+# 배포한 실행 파일을 다른 프로그램이 Node처럼 실행하거나 디버거를 붙여, 이 앱의 권한으로 비밀값을 복호화하지 못하게 막는다.
+electronFuses:
+  # ELECTRON_RUN_AS_NODE로 실행 파일을 Node로 실행하지 못하게 한다. main은 process.fork를 쓰지 않는다.
+  runAsNode: false
+  # NODE_OPTIONS로 시작 시 임의 코드를 불러오지 못하게 한다.
+  enableNodeOptionsEnvironmentVariable: false
+  # --inspect 인자로 디버거를 붙이지 못하게 한다.
+  enableNodeCliInspectArguments: false
+  # app.asar가 빌드 때 계산한 해시와 다르면 실행하지 않는다. Windows는 Electron 30부터 지원한다.
+  enableEmbeddedAsarIntegrityValidation: true
+  # 검사하지 않은 app 폴더 대신 app.asar에서만 앱 코드를 불러온다.
+  onlyLoadAppFromAsar: true
+
 # 릴리스 워크플로가 --publish always로 GitHub Release에 올린다. 로컬 빌드(dist)는 CI가 아니라 올리지 않는다.
 # releaseType을 생략하면 draft로 올라간다. 설치 테스트 후 직접 공개해야 자동 업데이트 대상이 된다.
 publish:

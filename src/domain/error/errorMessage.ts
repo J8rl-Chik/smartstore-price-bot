@@ -53,6 +53,9 @@ export const ERROR_MESSAGE = {
   // Windows 시작 프로그램 등록 (renderer/hooks/useSettingsForm)
   OPEN_AT_LOGIN_FAILED: 'Windows 시작 시 자동 실행 설정을 바꾸지 못했습니다.',
 
+  // IPC 발신자 검사 (main/registerIpcHandlers)
+  IPC_SENDER_NOT_ALLOWED: '앱 화면이 아닌 곳에서 보낸 요청은 처리하지 않습니다.',
+
   // 비밀값 암호화·복호화 (main/encryptSecret, main/createUpdateConfig)
   ENCRYPTION_UNAVAILABLE: '이 환경에서는 비밀값을 암호화할 수 없어 저장하지 못했습니다.',
   SECRET_DECRYPT_FAILED: '저장한 비밀값을 읽지 못했습니다. 사용자 설정에서 다시 입력해주세요.',

@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron';
+import { app, shell, BrowserWindow, session } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { registerIpcHandlers } from './registerIpcHandlers';
@@ -8,6 +8,7 @@ import { autoUpdater } from 'electron-updater';
 import checkAppUpdate, { hasDownloadedAppUpdate } from './checkAppUpdate';
 import tryCatch from '../utils/tryCatch';
 import { APP_WINDOW_BOUNDS } from './windowLayout';
+import { getRendererURL } from './rendererURL';
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -34,19 +35,29 @@ function createWindow(): void {
 
   // window.open()을 실행하거나, <a target="_blank"> 링크를 클릭해서 새 창이 열렸을 때의 이벤트 핸들러.
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    // 운영체제(OS)의 기본 브라우저로 연다.
-    shell.openExternal(details.url);
+    /**
+     * https 주소만 운영체제(OS)의 기본 브라우저로 연다.
+     * file:, ms-msdt: 같은 다른 스킴은 OS의 프로그램을 실행할 수 있어 열지 않는다.
+     */
+    if (URL.canParse(details.url) && new URL(details.url).protocol === 'https:') {
+      shell.openExternal(details.url);
+    }
 
     // Electron 앱 내부에서 새 창 열기를 취소한다.
     return { action: 'deny' };
   });
 
-  // 실시간 새로고침(HMR) 사용하기 위한 설정
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
-  }
+  /**
+   * 앱 창은 renderer 페이지 하나만 띄우므로 다른 주소로 이동하지 못하게 막는다.
+   * 외부 페이지로 이동하면 그 페이지에서도 preload의 window.api를 쓸 수 있기 때문이다.
+   * 새로고침(HMR 포함)은 이동이 아니라서 이 이벤트가 발생하지 않는다.
+   */
+  mainWindow.webContents.on('will-navigate', (event) => {
+    event.preventDefault();
+  });
+
+  // 개발 모드는 실시간 새로고침(HMR)을 쓰도록 개발 서버를, 배포 빌드는 빌드한 index.html을 띄운다.
+  mainWindow.loadURL(getRendererURL());
 }
 
 // Electron 앱이 구동될 준비가 완벽히 끝났을 때
@@ -71,6 +82,14 @@ app.whenReady().then(async () => {
   //  프로덕션 환경에서 사용자가 단축키로 개발자 도구를 켜지 못하도록 차단, 새로고침(Ctrl + R) 무시
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
+  });
+
+  /**
+   * renderer는 카메라, 마이크, 위치, 알림 같은 권한이 필요 없으므로 모든 권한 요청을 거부한다.
+   * Electron은 핸들러가 없으면 모든 요청을 허용한다. 업데이트 알림은 main의 Notification이라 영향이 없다.
+   */
+  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false);
   });
 
   registerIpcHandlers();
