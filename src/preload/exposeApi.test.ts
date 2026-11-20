@@ -7,15 +7,6 @@ import type { IpcInvoke, IpcListener } from './_type';
 // preload가 renderer에 노출하는 api의 형태. IpcInvoke와 IpcListener를 합친 모양이다.
 type Api = IpcInvoke & IpcListener;
 
-// vi.mock 팩토리는 import보다 먼저 호이스팅되므로, 팩토리가 참조하는 값도 vi.hoisted로 먼저 만든다.
-const { fakeElectronAPI } = vi.hoisted(() => ({
-  fakeElectronAPI: { name: 'fake-electron-api' },
-}));
-
-vi.mock('@electron-toolkit/preload', () => ({
-  electronAPI: fakeElectronAPI,
-}));
-
 const mockInvoke = vi.fn();
 const mockOn = vi.fn();
 const mockRemoveListener = vi.fn();
@@ -39,10 +30,10 @@ afterEach(() => {
   mockExposeInMainWorld.mockReset();
 });
 
-it('electron과 api를 renderer에 노출한다', () => {
+it('api만 renderer에 노출한다', () => {
   exposeApi();
 
-  expect(mockExposeInMainWorld).toHaveBeenCalledWith('electron', fakeElectronAPI);
+  expect(mockExposeInMainWorld).toHaveBeenCalledTimes(1);
   expect(mockExposeInMainWorld).toHaveBeenCalledWith('api', expect.any(Object));
 });
 
