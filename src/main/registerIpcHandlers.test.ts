@@ -39,10 +39,10 @@ vi.mock(import('./openAtLogin'), () => ({
   isOpenedAtLogin: () => mockIsOpenedAtLogin(),
 }));
 
-const rendererURL = 'file:///C:/app/out/renderer/index.html';
+const rendererOrigin = 'app://renderer';
 
 vi.mock(import('./rendererURL'), () => ({
-  getRendererURL: () => rendererURL,
+  getRendererOrigin: () => rendererOrigin,
 }));
 
 afterEach(() => {
@@ -82,7 +82,7 @@ it('scheduler를 한 번만 만들어 startUpdate, stopUpdate 핸들러에 함�
 });
 
 // 요청을 보낸 프레임. 앱 창이 띄운 renderer 페이지다.
-const senderFrame = { url: rendererURL };
+const senderFrame = { origin: rendererOrigin, url: `${rendererOrigin}/index.html` };
 
 it('startUpdate 채널이 호출되면 설정과 요청한 창(sender)을 핸들러에 전달한다', async () => {
   const sender = { send: vi.fn() };
@@ -143,36 +143,40 @@ it('isOpenedAtLogin 채널이 호출되면 시작 프로그램으로 켜졌는�
   expect(response).toBe(true);
 });
 
-it('renderer 페이지 주소에 해시나 쿼리가 붙어 있어도 같은 페이지로 보고 처리한다', async () => {
+it('주소(url)와 관계없이 renderer와 같은 origin에서 보낸 요청은 처리한다', async () => {
   mockCreateStopUpdate.mockReturnValue(mockStopUpdate);
 
   registerIpcHandlers();
+  // about:blank로 연 자식 창은 url이 빈 문자열이고 origin은 부모 프레임의 origin이다.
   await findRegisteredCallback('stopUpdate')({
     sender: {},
-    senderFrame: { url: `${rendererURL}?tab=settings#save` },
+    senderFrame: { origin: rendererOrigin, url: '' },
   });
 
   expect(mockStopUpdate).toHaveBeenCalledOnce();
 });
 
-it('renderer 페이지가 아닌 곳에서 보낸 요청은 핸들러를 호출하지 않고 에러를 던진다', async () => {
+it('외부 페이지에서 보낸 요청은 핸들러를 호출하지 않고 에러를 던진다', async () => {
   registerIpcHandlers();
 
   await expect(
     findRegisteredCallback('encryptSecret')(
-      { sender: {}, senderFrame: { url: 'https://example.com/' } },
+      { sender: {}, senderFrame: { origin: 'https://example.com', url: 'https://example.com/' } },
       'secret',
     ),
   ).rejects.toThrow(ERROR_MESSAGE.IPC_SENDER_NOT_ALLOWED);
   expect(mockEncryptSecret).not.toHaveBeenCalled();
 });
 
-it('같은 file 프로토콜이어도 다른 로컬 파일에서 보낸 요청은 처리하지 않는다', async () => {
+it('로컬 파일(file://)에서 보낸 요청은 처리하지 않는다', async () => {
   registerIpcHandlers();
 
   await expect(
     findRegisteredCallback('setOpenAtLogin')(
-      { sender: {}, senderFrame: { url: 'file:///C:/Users/user/Downloads/page.html' } },
+      {
+        sender: {},
+        senderFrame: { origin: 'file://', url: 'file:///C:/Users/user/Downloads/page.html' },
+      },
       true,
     ),
   ).rejects.toThrow(ERROR_MESSAGE.IPC_SENDER_NOT_ALLOWED);
@@ -188,11 +192,14 @@ it('요청을 보낸 프레임이 이미 사라졌으면(null) 처리하지 않�
   expect(mockIsOpenedAtLogin).not.toHaveBeenCalled();
 });
 
-it('요청을 보낸 프레임의 주소를 해석할 수 없으면 처리하지 않는다', async () => {
+it('origin이 없는 프레임(sandbox, data: 등 "null" origin)에서 보낸 요청은 처리하지 않는다', async () => {
   registerIpcHandlers();
 
   await expect(
-    findRegisteredCallback('isOpenAtLoginEnabled')({ sender: {}, senderFrame: { url: '' } }),
+    findRegisteredCallback('isOpenAtLoginEnabled')({
+      sender: {},
+      senderFrame: { origin: 'null', url: 'about:srcdoc' },
+    }),
   ).rejects.toThrow(ERROR_MESSAGE.IPC_SENDER_NOT_ALLOWED);
   expect(mockIsOpenAtLoginEnabled).not.toHaveBeenCalled();
 });

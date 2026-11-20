@@ -60,7 +60,7 @@ function createWindow(): void {
     event.preventDefault();
   });
 
-  // 개발 모드는 실시간 새로고침(HMR)을 쓰도록 개발 서버를, 배포 빌드는 빌드한 index.html을 띄운다.
+  // 개발 모드는 실시간 새로고침(HMR)을 쓰도록 개발 서버를, 배포 빌드는 app://renderer/index.html을 띄운다.
   mainWindow.loadURL(getRendererURL());
 }
 

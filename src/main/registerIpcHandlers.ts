@@ -1,7 +1,7 @@
 import { ipcMain, type WebContents, type WebFrameMain } from 'electron';
 import { IpcInvoke } from '../preload/_type';
 import { ERROR_MESSAGE } from '../domain/error/errorMessage';
-import { getRendererURL } from './rendererURL';
+import { getRendererOrigin } from './rendererURL';
 import {
   ENCRYPT_SECRET_CHANNEL,
   IS_OPEN_AT_LOGIN_ENABLED_CHANNEL,
@@ -16,24 +16,14 @@ import createUpdateScheduler from './updateScheduler';
 import createStartUpdate from './startUpdate';
 import createStopUpdate from './stopUpdate';
 
-// 같은 페이지 안의 이동(#해시)이나 쿼리는 다른 페이지가 아니므로 비교에서 뺀다.
-const removeHashAndSearch = (url: string): string => {
-  const parsedURL = new URL(url);
-
-  parsedURL.hash = '';
-  parsedURL.search = '';
-
-  return parsedURL.href;
-};
-
 /**
- * 요청을 보낸 프레임이 앱 창이 띄운 renderer 페이지인지 확인한다.
- * 프레임이 이미 사라졌거나(null), 주소를 해석할 수 없거나, 다른 페이지면 신뢰하지 않는다.
+ * 요청을 보낸 프레임의 origin이 renderer 페이지의 origin과 같은지 확인한다.
+ * URL은 about:blank, blob:처럼 누가 띄웠는지 알 수 없는 값이 있어 공식 문서 권장대로 origin을 비교한다.
+ * renderer는 app://renderer라 다른 로컬 파일(file://)이나 외부 페이지와 origin이 겹치지 않는다.
+ * 프레임이 이미 사라졌으면(null) 신뢰하지 않는다.
  */
 const isTrustedSender = (senderFrame: WebFrameMain | null): boolean =>
-  senderFrame !== null &&
-  URL.canParse(senderFrame.url) &&
-  removeHashAndSearch(senderFrame.url) === removeHashAndSearch(getRendererURL());
+  senderFrame !== null && senderFrame.origin === getRendererOrigin();
 
 /**
  * 채널 이름(K)에 맞는 요청 인자와 응답 타입을 강제하는 ipcMain.handle 래퍼.

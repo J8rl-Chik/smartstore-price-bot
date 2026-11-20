@@ -1,13 +1,12 @@
 import { net, protocol } from 'electron';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { APP_HOST, APP_SCHEME } from './appOrigin';
 
 /**
  * renderer 페이지를 file:// 대신 app://renderer/로 띄우기 위한 커스텀 프로토콜.
  * file://은 모든 로컬 파일이 같은 origin이라, 앱 페이지만 가진 origin을 만들어 다른 로컬 파일과 구분한다.
  */
-const appScheme = 'app';
-const appHost = 'renderer';
 
 // 빌드한 renderer 파일이 있는 폴더. main 번들(out/main/index.cjs) 기준 위치다.
 const rendererRoot = join(__dirname, '../renderer');
@@ -23,7 +22,7 @@ const resolveRendererFilePath = (requestURL: string): string | null => {
    */
   const { host, pathname } = new URL(requestURL);
 
-  if (host !== appHost) {
+  if (host !== APP_HOST) {
     return null;
   }
 
@@ -77,13 +76,13 @@ const resolveRendererFilePath = (requestURL: string): string | null => {
  */
 export const registerAppScheme = (): void => {
   protocol.registerSchemesAsPrivileged([
-    { scheme: appScheme, privileges: { standard: true, secure: true, supportFetchAPI: true } },
+    { scheme: APP_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } },
   ]);
 };
 
 // app:// 요청에 renderer 폴더 안의 파일로 응답한다. app.whenReady() 뒤에 호출해야 한다.
 export const registerAppProtocol = (): void => {
-  protocol.handle(appScheme, (request) => {
+  protocol.handle(APP_SCHEME, (request) => {
     const filePath = resolveRendererFilePath(request.url);
 
     if (filePath === null) {
