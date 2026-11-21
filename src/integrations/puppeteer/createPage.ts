@@ -38,6 +38,12 @@ const createPage = async (
   try {
     const browser = await puppeteer.launch({
       headless: false,
+      /**
+       * Puppeteer와 Chrome의 원격 디버깅(CDP) 통신을 localhost 포트 대신 프로세스 파이프로 연결한다.
+       * 포트로 열면 같은 PC의 다른 프로그램도 접속해 로그인된 브라우저를 조종하고 네이버 쿠키를 읽을 수 있다.
+       * 파이프는 Chrome을 띄운 이 프로세스만 가지므로 다른 프로그램이 접속할 수 없다.
+       */
+      pipe: true,
       userDataDir,
       executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
       /**
