@@ -20,6 +20,9 @@ win:
 nsis:
   # 기본값인 사용자별 원클릭 설치를 쓴다. %LOCALAPPDATA%\Programs에 관리자 권한 없이 설치된다.
   artifactName: ${productName}-${version}-setup.${ext}
+  # 앱을 지우면 네이버 로그인 쿠키(chrome-profile)와 저장한 설정이 든 %APPDATA%\smartstore-price-bot도 함께 지운다.
+  # 자동 업데이트로 기존 버전을 제거할 때는 지우지 않는다. (원클릭 설치에서만 동작)
+  deleteAppDataOnUninstall: true
 
 # 배포한 실행 파일을 다른 프로그램이 Node처럼 실행하거나 디버거를 붙여, 이 앱의 권한으로 비밀값을 복호화하지 못하게 막는다.
 electronFuses:
