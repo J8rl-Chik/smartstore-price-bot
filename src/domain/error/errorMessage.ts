@@ -19,6 +19,8 @@ export const ERROR_MESSAGE = {
   // 구글 시트 (integrations/googleSheets, domain/product)
   SHEET_FETCH_FAILED: 'Google Sheets에서 상품 목록을 가져오지 못했습니다.',
   SHEET_ROW_PARSE_FAILED: '시트의 상품 행을 읽지 못했습니다.',
+  CATALOG_URL_INVALID:
+    '카탈로그 주소는 네이버 쇼핑 카탈로그(https://search.shopping.naver.com/catalog/번호)여야 합니다.',
 
   // 가격 (domain/price)
   PRICE_NOT_NUMBER: '가격을 숫자로 변환할 수 없습니다.',

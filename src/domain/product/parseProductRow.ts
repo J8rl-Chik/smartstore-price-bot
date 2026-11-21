@@ -1,5 +1,6 @@
 import parseToNumberFromKRW from '../price/parseToNumberFromKRW.js';
 import { validateFeeType } from '../delivery/validateFeeType.js';
+import { validateCatalogURL } from './validateCatalogURL.js';
 import { COLUMN } from './_constant.js';
 import type { ColumnKey, ProductRow, ProductRowParseResult, RowValues } from './_type.js';
 import { DELIVERY_FEE_TYPE } from '../delivery/_constant.js';
@@ -85,6 +86,12 @@ export const parseExcludedSellerNames = (excludedSellerName: string): string[] =
  */
 export const parseProductRow = (rowValues: RowValues): ProductRowParseResult => {
   const errorMessages: string[] = [];
+
+  /**
+   * 카탈로그 주소는 네이버에 로그인된 브라우저로 열기 때문에 네이버 쇼핑 카탈로그 주소만 받는다.
+   * 실패해도 어떤 행인지 화면에서 알아볼 수 있도록 productRow에는 시트 값을 그대로 둔다.
+   */
+  parseCell(errorMessages, 'catalogURL', () => validateCatalogURL(rowValues[COLUMN.catalogURL]));
 
   const feeType = parseCell(errorMessages, 'feeType', () =>
     validateFeeType(rowValues[COLUMN.feeType]),
