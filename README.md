@@ -8,16 +8,20 @@
 
 ## 기술 스택
 
-| 영역            | 사용 기술                                    |
-| --------------- | -------------------------------------------- |
-| 언어            | TypeScript                                   |
-| 실행 환경       | Node.js                                      |
-| 데스크톱        | Electron, electron-vite                      |
-| UI              | React 19, styled-components                  |
-| 브라우저 자동화 | Puppeteer                                    |
-| 외부 API        | 스마트스토어 Commerce API, Google Sheets API |
-| 테스트          | Vitest, vitest-browser-react                 |
-| 코드 품질       | ESLint, Prettier, Stylelint                  |
+| 영역            | 사용 기술                                                 |
+| --------------- | --------------------------------------------------------- |
+| 언어            | TypeScript                                                |
+| 데스크톱        | Electron, electron-vite                                   |
+| UI              | React 19, styled-components                               |
+| 브라우저 자동화 | Puppeteer                                                 |
+| 외부 API        | 스마트스토어 Commerce API, Google Sheets API              |
+| 테스트          | Vitest, vitest-browser-react                              |
+| 코드 품질       | ESLint, Prettier, Stylelint                               |
+| CI/CD           | GitHub Actions                                            |
+| 보안 검사       | Snyk, CodeQL, gitleaks, dependency-review                 |
+| 패키징·업데이트 | electron-builder(NSIS), electron-updater, GitHub Releases |
+| 의존성 관리     | Dependabot                                                |
+| AI              | Claude Code, Claude Design                                |
 
 ## AI 활용
 
