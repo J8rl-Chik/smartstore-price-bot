@@ -86,6 +86,14 @@ describe('createPage', () => {
     expect(mockLaunch).toHaveBeenCalledWith(expect.objectContaining({ headless: false }));
   });
 
+  it('원격 디버깅 포트를 열지 않도록 pipe로 브라우저를 실행한다', async () => {
+    mockLaunch.mockResolvedValue(createMockBrowser());
+
+    await createPage();
+
+    expect(mockLaunch).toHaveBeenCalledWith(expect.objectContaining({ pipe: true }));
+  });
+
   it('Chrome 프로필 폴더를 생략하면 CLI용 config/userData로 브라우저를 실행한다', async () => {
     mockLaunch.mockResolvedValue(createMockBrowser());
 
