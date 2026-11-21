@@ -10,9 +10,12 @@ import { COLUMN } from './_constant.js';
 import type { ColumnKey, RowValues } from './_type.js';
 import { ERROR_MESSAGE } from '../error/errorMessage.js';
 
+// 카탈로그 주소 검사(validateCatalogURL)를 통과하는 네이버 쇼핑 카탈로그 주소.
+const naverCatalogURL = 'https://search.shopping.naver.com/catalog/111';
+
 const createProductRow = ({
   name = '테스트 상품',
-  catalogURL = 'https://example.com/catalog',
+  catalogURL = naverCatalogURL,
   feeType = '무료',
   freeDeliveryPrice = '₩10,000',
   productPrice = '₩15,000',
@@ -220,7 +223,7 @@ describe('parseProductRow', () => {
   it('프로퍼티의 문자열 값들을 사용에 알맞은 형태로 변환한다.', () => {
     const rowValues: RowValues = [
       '테스트 상품',
-      'https://example.com/catalog',
+      naverCatalogURL,
       'TRUE',
       '',
       '',
@@ -237,7 +240,7 @@ describe('parseProductRow', () => {
       status: 'ok',
       productRow: {
         name: '테스트 상품',
-        catalogURL: 'https://example.com/catalog',
+        catalogURL: naverCatalogURL,
         feeType: '무료',
         freeDeliveryPrice: 10_000,
         productPrice: 10_000,
@@ -251,7 +254,7 @@ describe('parseProductRow', () => {
   it('가격(KRW) 문자열을 숫자로 변환한다', () => {
     const result = parseProductRow([
       '테스트 상품',
-      'https://example.com/catalog',
+      naverCatalogURL,
       'TRUE',
       '',
       '',
@@ -288,7 +291,7 @@ describe('parseProductRow 에러', () => {
       status: 'error',
       productRow: {
         name: '무선 이어폰',
-        catalogURL: 'https://example.com/catalog',
+        catalogURL: naverCatalogURL,
         feeType: '유료',
         freeDeliveryPrice: undefined,
         productPrice: undefined,
@@ -323,5 +326,17 @@ describe('parseProductRow 에러', () => {
     expect(result.productRow).not.toHaveProperty('freeDeliveryPrice');
     expect(result.productRow).not.toHaveProperty('productPrice');
     expect(result.productRow).not.toHaveProperty('baseFee');
+  });
+
+  it('카탈로그 주소가 네이버 쇼핑 카탈로그가 아니면 에러 결과를 반환하고, 어떤 행인지 알 수 있게 시트 값은 그대로 둔다', () => {
+    const row = createProductRow({ catalogURL: 'https://example.com/catalog' });
+
+    expect(parseProductRow(row)).toMatchObject({
+      status: 'error',
+      productRow: { name: '테스트 상품', catalogURL: 'https://example.com/catalog' },
+      errorMessages: [
+        `catalogURL: ${ERROR_MESSAGE.CATALOG_URL_INVALID} (catalogURL: https://example.com/catalog)`,
+      ],
+    });
   });
 });
