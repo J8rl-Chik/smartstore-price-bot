@@ -66,17 +66,17 @@ Claude Code와 Claude Design을 개발 과정 전반에 활용했습니다. AI�
 
 - **성과** — 보안 점검 항목 21건을 조치하고, 우선순위가 낮은 5건은 이슈로 분리했습니다.
 
-  | 단계                             | 건수 |
-  | -------------------------------- | ---- |
-  | 1. XSS와 localStorage            | 0    |
-  | 2. CSP와 CSRF                    | 1    |
-  | 3. npm과 Node                    | 1    |
-  | 4. 에러 메시지와 하드코딩된 정보 | 1    |
-  | 5. Electron 공식 보안 체크리스트 | 7    |
-  | 6. React                         | 1    |
-  | 7. GitHub와 Actions              | 7    |
-  | 8. TypeScript와 JavaScript       | 0    |
-  | 9. 추가 주제                     | 3    |
+  | 단계                             | 건수 | 조치 내용                                                                                                                                                                                                 |
+  | -------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | 1. XSS와 localStorage            | 0    | 조치할 항목 없음                                                                                                                                                                                          |
+  | 2. CSP와 CSRF                    | 1    | CSP에 `object-src`, `base-uri`, `form-action` 추가                                                                                                                                                        |
+  | 3. npm과 Node                    | 1    | Node·Electron 패치 버전으로 업데이트                                                                                                                                                                      |
+  | 4. 에러 메시지와 하드코딩된 정보 | 1    | 로컬 실행 스크립트(`*.run.ts`)를 저장소에서 제외                                                                                                                                                          |
+  | 5. Electron 공식 보안 체크리스트 | 7    | • preload의 `window.electron` 노출 제거<br>• IPC 발신자 검증<br>• 페이지 이동 차단<br>• 외부 링크 https만 허용<br>• 권한 요청 거부<br>• Fuses 설정<br>• `app://` 커스텀 프로토콜 적용                     |
+  | 6. React                         | 1    | ESLint에 `react/no-danger`, `jsx-no-script-url` 규칙 추가                                                                                                                                                 |
+  | 7. GitHub와 Actions              | 7    | • checkout `persist-credentials: false`<br>• 릴리스 태그가 기본 브랜치 커밋인지 검사<br>• 태그 보호 ruleset<br>• 보안 업데이트 켜기<br>• 악성 패키지 알림 켜기<br>• 비공개 취약점 제보 켜기<br>• 2FA 정리 |
+  | 8. TypeScript와 JavaScript       | 0    | 우선순위가 낮은 4건을 이슈로 분리                                                                                                                                                                         |
+  | 9. 추가 주제                     | 3    | • 카탈로그 URL 검증<br>• Puppeteer를 pipe로 실행해 디버깅 포트 닫기<br>• 앱 삭제 시 앱 데이터 삭제<br>(토큰 재사용 1건은 이슈로 분리)                                                                     |
 
 #### Node.js에서 발견된 보안 취약점
 
