@@ -31,6 +31,8 @@ jobs:
     env:
       # 테스트는 puppeteer로 Chrome을 띄우지 않으므로 설치 때 Chrome을 내려받지 않는다.
       PUPPETEER_SKIP_DOWNLOAD: 'true'
+      # 테스트는 electron을 mock하고 빌드는 패키지만 쓰므로 electron 실행 파일을 내려받지 않는다.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
