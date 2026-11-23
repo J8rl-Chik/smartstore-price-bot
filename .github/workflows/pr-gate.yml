@@ -21,6 +21,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # TODO: 시간 측정용 임시 설정. 같은 job을 러너 10대에서 동시에 실행한다.
+    # job 이름이 verify (1)~(10)로 바뀌어 Ruleset 필수 검사가 통과되지 않으므로 머지 전에 제거한다.
+    strategy:
+      # 한 job이 실패해도 나머지 측정이 취소되지 않게 한다.
+      fail-fast: false
+      matrix:
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     env:
       # 테스트는 puppeteer로 Chrome을 띄우지 않으므로 설치 때 Chrome을 내려받지 않는다.
       PUPPETEER_SKIP_DOWNLOAD: 'true'
