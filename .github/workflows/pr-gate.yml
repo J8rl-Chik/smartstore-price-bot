@@ -40,8 +40,10 @@ jobs:
 
       - run: npm run typecheck
 
-      # .test.tsx는 실제 브라우저에서 돌기 때문에 Chromium과 시스템 라이브러리가 필요하다.
-      - run: npx playwright install --with-deps chromium
+      # .test.tsx는 실제 브라우저에서 돌기 때문에 Chromium이 필요하다.
+      # 러너 이미지에 실행 라이브러리가 이미 있어 --with-deps는 폰트 패키지만 apt로 설치하는데,
+      # 이 apt 설치가 가끔 수 분씩 걸려 브라우저만 내려받는다.
+      - run: npx playwright install chromium
 
       - run: npm test
 
