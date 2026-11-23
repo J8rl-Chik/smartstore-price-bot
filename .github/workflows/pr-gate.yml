@@ -17,6 +17,9 @@ jobs:
   # 이 job 이름이 Ruleset의 필수 상태 검사 목록에 나타난다. 바꾸면 Ruleset도 같이 바꿔야 한다.
   verify:
     runs-on: ubuntu-latest
+    # Chromium과 시스템 라이브러리가 들어 있는 Playwright 공식 이미지에서 실행해 설치 단계를 없앤다.
+    # 태그는 package-lock.json의 playwright 버전과 같아야 한다. 다르면 브라우저 실행 파일을 찾지 못한다.
+    container: mcr.microsoft.com/playwright:v1.65.0-noble
     timeout-minutes: 15
     # TODO: 시간 측정용 임시 설정. 같은 job을 러너 10대에서 동시에 실행한다.
     # job 이름이 verify (1)~(10)로 바뀌어 Ruleset 필수 검사가 통과되지 않으므로 머지 전에 제거한다.
@@ -46,9 +49,6 @@ jobs:
       - run: npm run lint:style
 
       - run: npm run typecheck
-
-      # .test.tsx는 실제 브라우저에서 돌기 때문에 Chromium과 시스템 라이브러리가 필요하다.
-      - run: npx playwright install --with-deps chromium
 
       - run: npm test
 
