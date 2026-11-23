@@ -2,6 +2,8 @@ name: PR Gate
 
 on:
   pull_request:
+  # Actions 화면의 Run workflow 버튼으로 원하는 브랜치에서 수동 실행한다.
+  workflow_dispatch:
 
 # 이 워크플로는 코드를 읽기만 하므로 GITHUB_TOKEN 권한을 최소로 둔다.
 permissions:
@@ -9,6 +11,7 @@ permissions:
 
 # 그룹 이름이 같은 실행은 동시에 돌지 않고, 새 실행이 시작되면 이전 실행을 취소한다.
 # PR에서 github.ref는 refs/pull/번호/merge라서 같은 PR끼리만 묶이고 다른 PR은 취소되지 않는다.
+# 수동 실행에서는 refs/heads/브랜치라서 같은 브랜치의 수동 실행끼리 묶인다.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
