@@ -2,6 +2,10 @@ name: PR Gate
 
 on:
   pull_request:
+  # PR이 저장한 캐시는 그 PR에서만 쓸 수 있다. base 브랜치에 push될 때도 실행해 캐시를 저장해야
+  # 새 PR의 첫 실행에서도 node_modules 캐시를 복원할 수 있다.
+  push:
+    branches: [feat/implement-electron-gui, main]
 
 # 이 워크플로는 코드를 읽기만 하므로 GITHUB_TOKEN 권한을 최소로 둔다.
 permissions:
@@ -9,6 +13,7 @@ permissions:
 
 # 그룹 이름이 같은 실행은 동시에 돌지 않고, 새 실행이 시작되면 이전 실행을 취소한다.
 # PR에서 github.ref는 refs/pull/번호/merge라서 같은 PR끼리만 묶이고 다른 PR은 취소되지 않는다.
+# push에서는 refs/heads/브랜치라서 같은 브랜치의 push끼리 묶인다.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -35,11 +40,21 @@ jobs:
           persist-credentials: false
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        id: setup-node
         with:
           node-version-file: package.json
           cache: npm
 
-      - run: npm ci
+      # lock 파일과 Node 버전이 같으면 node_modules를 그대로 복원해 npm ci를 건너뛴다.
+      # 다른 lock 파일의 node_modules가 섞이지 않게 restore-keys는 쓰지 않는다.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: node-modules-cache
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-${{ hashFiles('package-lock.json') }}
+
+      - if: steps.node-modules-cache.outputs.cache-hit != 'true'
+        run: npm ci
 
       - run: npm run lint
 
