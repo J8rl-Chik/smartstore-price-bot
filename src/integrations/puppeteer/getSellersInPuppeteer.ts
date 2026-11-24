@@ -1,6 +1,9 @@
 import type { Page } from 'puppeteer';
 
-import parseSellerItem from './parseSellerItem.js';
+import parseSellerItem, {
+  collectSellerItemTexts,
+  type SellerItemTexts,
+} from './parseSellerItem.js';
 import type { Seller } from '../../domain/seller/_type.js';
 import validateCatalogPage from './validateCatalogPage.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
@@ -25,19 +28,16 @@ export const createReferer = (productName: string): Referer => {
   return referer as Referer;
 };
 
-export const getSellerItemHTMLList = async (
+export const getSellerItemTexts = async (
   page: Page,
   catalogURL: string,
   referer: Referer,
-): Promise<string[]> => {
+): Promise<SellerItemTexts[]> => {
   await goToCatalog(page, catalogURL, referer);
   await validateCatalogPage(page);
 
-  // 요소 객체를 가져올 수 없어 outerHTML를 가져온다.
-  return page.evaluate(
-    (selector) => Array.from(document.querySelectorAll(selector)).map((item) => item.outerHTML),
-    SELLER_ITEM_SELECTOR,
-  );
+  // 요소 객체는 Node로 가져올 수 없어, 브라우저 안에서 필요한 텍스트만 꺼내 온다.
+  return page.evaluate(collectSellerItemTexts, SELLER_ITEM_SELECTOR);
 };
 
 const getSellersInPuppeteer = async (
@@ -47,9 +47,9 @@ const getSellersInPuppeteer = async (
 ): Promise<Seller[]> => {
   try {
     const referer = createReferer(productName);
-    const sellerItemHTMLList = await getSellerItemHTMLList(page, catalogURL, referer);
+    const sellerItemTexts = await getSellerItemTexts(page, catalogURL, referer);
 
-    return sellerItemHTMLList.flatMap(parseSellerItem);
+    return sellerItemTexts.flatMap(parseSellerItem);
   } catch (error) {
     /**
      * 카탈로그 접속 제한(UnexpectedCatalogPageError)도 같이 감싼다.
