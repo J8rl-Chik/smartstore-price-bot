@@ -2,11 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Page } from 'puppeteer';
 import getSellersInPuppeteer, {
   goToCatalog,
-  getSellerItemHTMLList,
+  getSellerItemTexts,
   createReferer,
   SELLER_ITEM_SELECTOR,
 } from './getSellersInPuppeteer.js';
 import { UnexpectedCatalogPageError } from './validateCatalogPage.js';
+import { collectSellerItemTexts, type SellerItemTexts } from './parseSellerItem.js';
 import { DELIVERY_FEE_TYPE } from '../../domain/delivery/_constant.js';
 import type { Seller } from '../../domain/seller/_type.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
@@ -24,7 +25,8 @@ vi.mock('./validateCatalogPage.js', async () => {
 
 const mockParseSellerItem = vi.fn();
 
-vi.mock(import('./parseSellerItem.js'), () => ({
+vi.mock(import('./parseSellerItem.js'), async (importOriginal) => ({
+  ...(await importOriginal()),
   default: (...args: unknown[]) => mockParseSellerItem(...args),
 }));
 
@@ -72,19 +74,19 @@ describe('createReferer', () => {
   });
 });
 
-describe('getSellerItemHTMLList', () => {
+describe('getSellerItemTexts', () => {
   const catalogUrl = 'https://example.com/catalog';
   const referer = `https://search.shopping.naver.com/search/all?query=productName&vertical=search`;
 
-  const createMockPage = (htmlList: string[] = []) => ({
+  const createMockPage = (sellerItemTexts: SellerItemTexts[] = []) => ({
     goto: vi.fn(),
-    evaluate: vi.fn().mockResolvedValue(htmlList),
+    evaluate: vi.fn().mockResolvedValue(sellerItemTexts),
   });
 
   it('goToCatalog 함수에 catalogURL과 referer를 전달해 catalogURL로 이동한다', async () => {
     const mockPage = createMockPage();
 
-    await getSellerItemHTMLList(mockPage as unknown as Page, catalogUrl, referer);
+    await getSellerItemTexts(mockPage as unknown as Page, catalogUrl, referer);
 
     expect(mockPage.goto).toHaveBeenCalledWith(catalogUrl, { referer });
   });
@@ -92,7 +94,7 @@ describe('getSellerItemHTMLList', () => {
   it('이동한 뒤에 카탈로그 페이지인지 validateCatalogPage 함수로 검증한다', async () => {
     const mockPage = createMockPage();
 
-    await getSellerItemHTMLList(mockPage as unknown as Page, catalogUrl, referer);
+    await getSellerItemTexts(mockPage as unknown as Page, catalogUrl, referer);
 
     expect(mockValidateCatalogPage).toHaveBeenCalledTimes(1);
     expect(mockValidateCatalogPage).toHaveBeenCalledWith(mockPage);
@@ -110,19 +112,23 @@ describe('getSellerItemHTMLList', () => {
     mockValidateCatalogPage.mockRejectedValue(validateError);
 
     await expect(
-      getSellerItemHTMLList(mockPage as unknown as Page, catalogUrl, referer),
+      getSellerItemTexts(mockPage as unknown as Page, catalogUrl, referer),
     ).rejects.toThrow(validateError);
     expect(mockPage.evaluate).not.toHaveBeenCalled();
   });
 
-  it('카탈로그 페이지면 SELLER_ITEM_SELECTOR로 판매처 항목의 outerHTML 배열을 반환한다', async () => {
-    const itemsHTML = ['<div>item1</div>', '<div>item2</div>'];
-    const mockPage = createMockPage(itemsHTML);
-    const result = await getSellerItemHTMLList(mockPage as unknown as Page, catalogUrl, referer);
+  const sellerItemTexts: SellerItemTexts[] = [
+    { name: '판매처1', price: '1,000', discountPrice: null, delivery: '무료배송' },
+    { name: '판매처2', price: '2,000', discountPrice: '1,800', delivery: '2,500원 포함' },
+  ];
+
+  it('카탈로그 페이지면 SELLER_ITEM_SELECTOR로 collectSellerItemTexts를 브라우저에서 실행해 그 결과를 반환한다', async () => {
+    const mockPage = createMockPage(sellerItemTexts);
+    const result = await getSellerItemTexts(mockPage as unknown as Page, catalogUrl, referer);
 
     expect(mockPage.evaluate).toHaveBeenCalledTimes(1);
-    expect(mockPage.evaluate).toHaveBeenCalledWith(expect.any(Function), SELLER_ITEM_SELECTOR);
-    expect(result).toEqual(itemsHTML);
+    expect(mockPage.evaluate).toHaveBeenCalledWith(collectSellerItemTexts, SELLER_ITEM_SELECTOR);
+    expect(result).toEqual(sellerItemTexts);
   });
 });
 
@@ -130,9 +136,16 @@ describe('getSellersInPuppeteer', () => {
   const catalogUrl = 'https://example.com/catalog';
   const productName = '제품';
 
-  const createMockPage = (htmlList: string[] = []) => ({
+  const createMockPage = (sellerItemTexts: SellerItemTexts[] = []) => ({
     goto: vi.fn(),
-    evaluate: vi.fn().mockResolvedValue(htmlList),
+    evaluate: vi.fn().mockResolvedValue(sellerItemTexts),
+  });
+
+  const createSellerItemTexts = (name: string): SellerItemTexts => ({
+    name,
+    price: '1,000',
+    discountPrice: null,
+    delivery: '무료배송',
   });
 
   const createSeller = (name: string): Seller => ({
@@ -142,11 +155,10 @@ describe('getSellersInPuppeteer', () => {
     deliveryFeeType: DELIVERY_FEE_TYPE.FREE,
   });
 
-  it('수집한 HTML을 parseSellerItem으로 변환한 뒤 하나의 배열로 합친다', async () => {
-    const mockPage = createMockPage([
-      '<div>판매처1 관련 데이터</div>',
-      '<div>판매처2 관련 데이터</div>',
-    ]);
+  it('수집한 텍스트를 parseSellerItem으로 변환한 뒤 하나의 배열로 합친다', async () => {
+    const sellerItem1Texts = createSellerItemTexts('판매처1');
+    const sellerItem2Texts = createSellerItemTexts('판매처2');
+    const mockPage = createMockPage([sellerItem1Texts, sellerItem2Texts]);
     const seller1 = createSeller('판매처1');
     const seller2 = createSeller('판매처2');
     const seller2Discounted = createSeller('판매처2');
@@ -161,8 +173,8 @@ describe('getSellersInPuppeteer', () => {
       productName,
     );
 
-    expect(mockParseSellerItem.mock.calls[0]?.[0]).toBe('<div>판매처1 관련 데이터</div>');
-    expect(mockParseSellerItem.mock.calls[1]?.[0]).toBe('<div>판매처2 관련 데이터</div>');
+    expect(mockParseSellerItem.mock.calls[0]?.[0]).toBe(sellerItem1Texts);
+    expect(mockParseSellerItem.mock.calls[1]?.[0]).toBe(sellerItem2Texts);
     expect(result).toEqual([seller1, seller2, seller2Discounted]);
   });
 
@@ -192,7 +204,7 @@ describe('getSellersInPuppeteer', () => {
   });
 
   it('parseSellerItem이 실패하면 원인을 보존한 채 에러를 던진다', async () => {
-    const mockPage = createMockPage(['<div>item1</div>']);
+    const mockPage = createMockPage([createSellerItemTexts('판매처1')]);
     const parseError = new Error('파싱 실패');
 
     mockParseSellerItem.mockImplementation(() => {
