@@ -1,4 +1,4 @@
-import { google, type sheets_v4 } from 'googleapis';
+import { auth, sheets, type sheets_v4 } from '@googleapis/sheets';
 import { COLUMN } from '../../domain/product/_constant.js';
 import type { RowValues } from '../../domain/product/_type.js';
 import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
@@ -7,12 +7,12 @@ import type { GoogleSheetConfig } from '../../domain/settings/_type.js';
 const getSheetsResource = (
   sheetAuth: GoogleSheetConfig['auth'],
 ): sheets_v4.Resource$Spreadsheets => {
-  const auth = new google.auth.GoogleAuth({
+  const googleAuth = new auth.GoogleAuth({
     ...sheetAuth,
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
 
-  const { spreadsheets: sheetsResource } = google.sheets({ version: 'v4', auth });
+  const { spreadsheets: sheetsResource } = sheets({ version: 'v4', auth: googleAuth });
 
   return sheetsResource;
 };
