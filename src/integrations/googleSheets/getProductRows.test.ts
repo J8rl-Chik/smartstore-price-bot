@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { auth } from '@googleapis/sheets';
 import { afterEach, expect, it, vi } from 'vitest';
 import getProductRows from './getProductRows.js';
 import { COLUMN } from '../../domain/product/_constant.js';
@@ -6,19 +6,17 @@ import { ERROR_MESSAGE } from '../../domain/error/errorMessage.js';
 
 const mockValuesGet = vi.fn();
 
-vi.mock('googleapis', () => ({
-  google: {
-    auth: {
-      GoogleAuth: vi.fn(),
-    },
-    sheets: vi.fn(() => ({
-      spreadsheets: {
-        values: {
-          get: mockValuesGet,
-        },
-      },
-    })),
+vi.mock('@googleapis/sheets', () => ({
+  auth: {
+    GoogleAuth: vi.fn(),
   },
+  sheets: vi.fn(() => ({
+    spreadsheets: {
+      values: {
+        get: mockValuesGet,
+      },
+    },
+  })),
 }));
 
 afterEach(() => {
@@ -103,7 +101,7 @@ it('키 파일 경로를 받으면 keyFile로 인증한다', async () => {
 
   await getProductRows(googleSheetConfig);
 
-  expect(google.auth.GoogleAuth).toHaveBeenLastCalledWith({
+  expect(auth.GoogleAuth).toHaveBeenLastCalledWith({
     keyFile: 'key.json',
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
@@ -116,7 +114,7 @@ it('키 내용을 받으면 credentials로 인증한다', async () => {
 
   await getProductRows({ ...googleSheetConfig, auth: { credentials } });
 
-  expect(google.auth.GoogleAuth).toHaveBeenLastCalledWith({
+  expect(auth.GoogleAuth).toHaveBeenLastCalledWith({
     credentials,
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
