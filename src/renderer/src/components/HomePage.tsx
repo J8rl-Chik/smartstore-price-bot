@@ -5,7 +5,6 @@ import RestartCountdown from './RestartCountdown';
 import StartButton from './StartButton';
 import StartUpdateErrorBanner from './StartUpdateErrorBanner';
 import { ERROR_MESSAGE } from '../../../domain/error/errorMessage';
-import { parseToProductTableRow } from '../domain/parseToProductTableRow';
 import type { TargetProductsUpdate } from '../hooks/useTargetProductsUpdate';
 
 interface HomePageProps extends Omit<TargetProductsUpdate, 'startUpdate' | 'stopUpdate'> {
@@ -61,7 +60,7 @@ const HomePage = ({
         isPreparing={isPreparing}
       />
       <ProductTable
-        products={targetProducts.map(parseToProductTableRow)}
+        targetProducts={targetProducts}
         currentProductId={currentProduct?.originProductNo ?? null}
         isPreparing={isPreparing}
       />

@@ -21,10 +21,9 @@ const createProduct = (
   ...overrides,
 });
 
-it('originProductNo를 id로, 이름을 그대로 가져온다', () => {
+it('이름을 그대로 가져온다', () => {
   const result = parseToProductTableRow(createProduct());
 
-  expect(result.id).toBe(111);
   expect(result.name).toBe('무선 이어폰 프로');
 });
 

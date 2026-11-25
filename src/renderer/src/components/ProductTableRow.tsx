@@ -1,11 +1,13 @@
+import { useMemo } from 'react';
 import styled, { css } from 'styled-components';
 import DeliveryFeeInfo from './DeliveryFeeInfo';
 import StatusBadge from './StatusBadge';
 import formatTotalPrice from '../domain/formatTotalPrice';
-import type { TProductTableRow } from '../domain/_type';
+import { parseToProductTableRow } from '../domain/parseToProductTableRow';
+import type { TargetProductWithUpdate } from '../../../domain/product/_type';
 
 interface ProductTableRowProps {
-  product: TProductTableRow;
+  targetProduct: TargetProductWithUpdate;
   // 순회 중 지금 가격을 수정하고 있는 상품인지. 목록에서 위치를 찾기 쉽게 행을 강조한다.
   isUpdating: boolean;
 }
@@ -67,33 +69,44 @@ const UpdateTimeCell = styled.td`
   text-align: right;
 `;
 
-const ProductTableRow = ({ product, isUpdating }: ProductTableRowProps): React.JSX.Element => (
-  <ProductTableRowContainer $isUpdating={isUpdating}>
-    <NameCell>{product.name}</NameCell>
-    <ConfiguredPriceCell>
-      {formatTotalPrice(product.configuredPrice)}
-      <DeliveryFeeInfo {...product.configuredPrice} />
-    </ConfiguredPriceCell>
-    <CurrentPriceCell>
-      {formatTotalPrice(product.currentPrice)}
-      <DeliveryFeeInfo {...product.currentPrice} />
-    </CurrentPriceCell>
-    <UpdatedPriceCell>
-      {product.updatedPrice === null ? (
-        '—'
-      ) : (
-        <>
-          {formatTotalPrice(product.updatedPrice)}
-          <DeliveryFeeInfo {...product.updatedPrice} />
-        </>
-      )}
-    </UpdatedPriceCell>
-    <StatusCell>
-      <StatusBadge status={product.status} />
-      {product.errorMessage !== null && <ErrorMessage>{product.errorMessage}</ErrorMessage>}
-    </StatusCell>
-    <UpdateTimeCell>{product.updateTime}</UpdateTimeCell>
-  </ProductTableRowContainer>
-);
+/**
+ * 표에 보여줄 값은 행 안에서 변환하고, 상품 참조가 같으면 이전 변환 결과를 다시 쓴다.
+ * useTargetProductsUpdate가 내용이 바뀌지 않은 상품의 참조를 유지하므로, 바뀐 상품만 다시 변환한다.
+ */
+const ProductTableRow = ({
+  targetProduct,
+  isUpdating,
+}: ProductTableRowProps): React.JSX.Element => {
+  const product = useMemo(() => parseToProductTableRow(targetProduct), [targetProduct]);
+
+  return (
+    <ProductTableRowContainer $isUpdating={isUpdating}>
+      <NameCell>{product.name}</NameCell>
+      <ConfiguredPriceCell>
+        {formatTotalPrice(product.configuredPrice)}
+        <DeliveryFeeInfo {...product.configuredPrice} />
+      </ConfiguredPriceCell>
+      <CurrentPriceCell>
+        {formatTotalPrice(product.currentPrice)}
+        <DeliveryFeeInfo {...product.currentPrice} />
+      </CurrentPriceCell>
+      <UpdatedPriceCell>
+        {product.updatedPrice === null ? (
+          '—'
+        ) : (
+          <>
+            {formatTotalPrice(product.updatedPrice)}
+            <DeliveryFeeInfo {...product.updatedPrice} />
+          </>
+        )}
+      </UpdatedPriceCell>
+      <StatusCell>
+        <StatusBadge status={product.status} />
+        {product.errorMessage !== null && <ErrorMessage>{product.errorMessage}</ErrorMessage>}
+      </StatusCell>
+      <UpdateTimeCell>{product.updateTime}</UpdateTimeCell>
+    </ProductTableRowContainer>
+  );
+};
 
 export default ProductTableRow;

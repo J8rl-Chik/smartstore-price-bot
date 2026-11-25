@@ -1,13 +1,13 @@
 import styled, { keyframes } from 'styled-components';
 import ProductTableRow from './ProductTableRow';
-import type { TProductTableRow } from '../domain/_type';
+import type { TargetProductWithUpdate } from '../../../domain/product/_type';
 
 type TextAlign = 'left' | 'center' | 'right';
 
 interface ProductTableProps {
-  products: TProductTableRow[];
-  // 지금 가격을 수정하고 있는 상품의 id. 순회 중이 아니면 null
-  currentProductId: TProductTableRow['id'] | null;
+  targetProducts: TargetProductWithUpdate[];
+  // 지금 가격을 수정하고 있는 상품의 originProductNo. 순회 중이 아니면 null
+  currentProductId: TargetProductWithUpdate['originProductNo'] | null;
   // 상품 목록을 불러오는 중인지. 불러오는 동안 상품 행 대신 스켈레톤 상자를 보여준다.
   isPreparing: boolean;
 }
@@ -82,7 +82,7 @@ const SkeletonCell = styled.td`
 `;
 
 const ProductTable = ({
-  products,
+  targetProducts,
   currentProductId,
   isPreparing,
 }: ProductTableProps): React.JSX.Element => (
@@ -113,11 +113,11 @@ const ProductTable = ({
           <SkeletonCell colSpan={6} role="status" aria-label="상품 목록을 불러오는 중" />
         </tr>
       ) : (
-        products.map((product) => (
+        targetProducts.map((targetProduct) => (
           <ProductTableRow
-            key={product.id}
-            product={product}
-            isUpdating={product.id === currentProductId}
+            key={targetProduct.originProductNo}
+            targetProduct={targetProduct}
+            isUpdating={targetProduct.originProductNo === currentProductId}
           />
         ))
       )}
