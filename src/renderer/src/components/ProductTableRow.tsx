@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import styled, { css } from 'styled-components';
 import DeliveryFeeInfo from './DeliveryFeeInfo';
 import StatusBadge from './StatusBadge';
@@ -109,4 +109,8 @@ const ProductTableRow = ({
   );
 };
 
-export default ProductTableRow;
+/**
+ * 순회 중에는 상품 하나가 바뀔 때마다 표 전체가 다시 그려지므로,
+ * 상품 참조와 강조 여부가 그대로인 행은 다시 그리지 않는다.
+ */
+export default memo(ProductTableRow);
