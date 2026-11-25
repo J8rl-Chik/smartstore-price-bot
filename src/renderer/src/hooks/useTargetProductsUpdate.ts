@@ -5,6 +5,7 @@ import type {
   UpdateState,
 } from '../../../domain/product/_type';
 import type { Settings } from '../../../domain/settings/_type';
+import reuseUnchangedProducts from '../domain/reuseUnchangedProducts';
 
 export interface TargetProductsUpdate {
   targetProducts: TargetProductWithUpdate[];
@@ -32,13 +33,19 @@ const initialUpdateState: UpdateState = {
 
 /**
  * 가격 수정 순회는 main이 처리하고, 이 훅은 main이 보내는 상태를 구독해 화면에 넘기기만 한다.
- * 상태는 main이 매번 통째로 보내므로 받은 그대로 저장한다.
+ * 상태는 main이 매번 통째로 보내므로 받은 상태로 바꾸되, 내용이 바뀌지 않은 상품은 이전 객체를 그대로 쓴다.
  */
 const useTargetProductsUpdate = (): TargetProductsUpdate => {
   const [updateState, setUpdateState] = useState<UpdateState>(initialUpdateState);
 
   // onUpdateState가 반환하는 구독 해제 함수를 그대로 cleanup으로 넘긴다.
-  useEffect(() => window.api.onUpdateState(setUpdateState), []);
+  useEffect(
+    () =>
+      window.api.onUpdateState((nextState) =>
+        setUpdateState((prevState) => reuseUnchangedProducts(prevState, nextState)),
+      ),
+    [],
+  );
 
   /**
    * 실패 이유도 main이 상태(errorMessage)로 보낸다.

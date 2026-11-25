@@ -306,3 +306,30 @@ test('main이 보낸 상태의 nextRunAt을 그대로 알려준다', async () =>
 
   expect(result.current.nextRunAt).toBe(1700000000000);
 });
+
+test('main이 내용이 같은 상품을 다시 보내면 이전 상품 객체를 그대로 쓴다', async () => {
+  const { result, act } = await renderHook(() => useTargetProductsUpdate());
+  const state: UpdateState = {
+    targetProducts: [firstProduct, secondProduct],
+    invalidProductRows: [],
+    currentIndex: null,
+    isPreparing: false,
+    isRunning: true,
+    errorMessage: null,
+    nextRunAt: null,
+  };
+
+  await act(() => {
+    emitUpdateState(state);
+  });
+
+  const [prevFirstProduct, prevSecondProduct] = result.current.targetProducts;
+
+  // IPC로 받은 것처럼 내용은 같고 참조만 다른 상태를 보낸다.
+  await act(() => {
+    emitUpdateState({ ...structuredClone(state), currentIndex: 0 });
+  });
+
+  expect(result.current.targetProducts[0]).toBe(prevFirstProduct);
+  expect(result.current.targetProducts[1]).toBe(prevSecondProduct);
+});
