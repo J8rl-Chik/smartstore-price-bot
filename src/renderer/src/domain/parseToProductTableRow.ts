@@ -10,7 +10,6 @@ import type { TProductTableRow } from './_type';
  * 실패 이유는 수정에 실패(error)했을 때만 main이 보낸 메시지를 그대로 담는다.
  */
 export const parseToProductTableRow = ({
-  originProductNo,
   name,
   store,
   sheet,
@@ -25,7 +24,6 @@ export const parseToProductTableRow = ({
   switch (update.status) {
     case 'wait':
       return {
-        id: originProductNo,
         name,
         configuredPrice,
         currentPrice,
@@ -36,7 +34,6 @@ export const parseToProductTableRow = ({
       };
     case 'complete':
       return {
-        id: originProductNo,
         name,
         configuredPrice,
         currentPrice,
@@ -47,7 +44,6 @@ export const parseToProductTableRow = ({
       };
     case 'error':
       return {
-        id: originProductNo,
         name,
         configuredPrice,
         currentPrice,

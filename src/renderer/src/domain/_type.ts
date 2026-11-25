@@ -27,7 +27,6 @@ export interface PriceWithFee {
 }
 
 export interface TProductTableRow {
-  id: number;
   name: string;
   configuredPrice: PriceWithFee;
   currentPrice: PriceWithFee;
