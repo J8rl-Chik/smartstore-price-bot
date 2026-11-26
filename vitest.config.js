@@ -25,7 +25,8 @@ export default defineConfig({
         },
       },
       {
-        plugins: [react()],
+        // 앱 빌드(electron.vite.config.ts)와 같은 컴파일 결과로 테스트하도록 React 컴파일러를 함께 적용한다.
+        plugins: [react({ babel: { plugins: ['babel-plugin-react-compiler'] } })],
         test: {
           name: 'browser',
           include: ['src/renderer/src/**/*.test.tsx'],

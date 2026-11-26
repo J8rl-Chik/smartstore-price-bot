@@ -48,6 +48,11 @@ export default defineConfig({
     },
     // 플러그인 설정: 이 프로젝트의 화면을 'React(리액트)'로 그리겠다는 선언입니다.
     // 이 플러그인 덕분에 리액트 컴포넌트(.jsx, .tsx)와 핫 리로딩(HMR)이 완벽하게 지원됩니다.
-    plugins: [react()],
+    plugins: [
+      react({
+        // React 컴파일러가 컴포넌트와 훅을 빌드할 때 자동으로 메모이제이션한다.
+        babel: { plugins: ['babel-plugin-react-compiler'] },
+      }),
+    ],
   },
 });
