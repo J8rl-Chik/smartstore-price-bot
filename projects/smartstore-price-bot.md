@@ -1,6 +1,6 @@
-# 홍길동
+> Velog · GitHub · Email
 
-> 프론트엔드 개발자 · hong@example.com · 010-0000-0000 · GitHub
+> (대학교) 졸업 · (자격증) · (자격증)
 
 - 관심 있는 주제는 책과 AI로 학습해 프로젝트에 적용하고 기록합니다.
 - 직접 사용하며 겪은 불편을 찾아 사용자 입장에서 개선합니다.
@@ -14,15 +14,17 @@
 
 네이버 스마트스토어 판매가를 경쟁 판매처보다 낮게 자동으로 유지하는 프로그램입니다. 3년 넘게 실제 운영에 써 온 CLI 프로그램을 TypeScript, 테스트, Electron GUI로 개선했습니다.
 
-- **도구** — TypeScript, Electron(electron-vite), React, styled-components, Puppeteer, Vitest, GitHub Actions, Snyk
-- **외부 API** — 스마트스토어 Commerce API, Google Sheets API
-
-### 기존 프로젝트
+### 기존 프로그램
 
 - 제품마다 최저가를 확인하고 직접 수정하던 작업을 Puppeteer와 Commerce API로 자동화
 - 1개당 수정 시간 **약 40초 → 약 15초**
 
-### 개선 프로젝트
+### 개선 프로그램
+
+!image.png
+
+- **도구** — TypeScript, Electron(electron-vite), React, styled-components, Puppeteer, Vitest, GitHub Actions, Snyk
+- **외부 API** — 스마트스토어 Commerce API, Google Sheets API
 
 #### AI 활용
 
