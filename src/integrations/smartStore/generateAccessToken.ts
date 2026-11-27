@@ -10,10 +10,10 @@ interface AccessTokenResult extends SmartStoreApiResult {
   access_token: string;
 }
 
-async function generateAccessToken({
+const generateAccessToken = async ({
   clientId,
   clientSecret,
-}: CommerceApiCredentials): Promise<string> {
+}: CommerceApiCredentials): Promise<string> => {
   try {
     const timestamp = Date.now();
     const password = `${clientId}_${timestamp}`;
@@ -44,6 +44,6 @@ async function generateAccessToken({
   } catch (error) {
     throw new Error(ERROR_MESSAGE.ACCESS_TOKEN_FAILED, { cause: error });
   }
-}
+};
 
 export default generateAccessToken;

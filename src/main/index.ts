@@ -14,7 +14,7 @@ import { registerAppProtocol, registerAppScheme } from './appProtocol';
 // 스킴 등록은 앱이 준비되기 전에만 할 수 있어 파일을 불러올 때 바로 한다.
 registerAppScheme();
 
-function createWindow(): void {
+const createWindow = (): void => {
   const mainWindow = new BrowserWindow({
     // 수집 브라우저와 겹치지 않도록 화면 오른쪽 절반에 띄운다.
     ...APP_WINDOW_BOUNDS,
@@ -62,7 +62,7 @@ function createWindow(): void {
 
   // 개발 모드는 실시간 새로고침(HMR)을 쓰도록 개발 서버를, 배포 빌드는 app://renderer/index.html을 띄운다.
   mainWindow.loadURL(getRendererURL());
-}
+};
 
 // Electron 앱이 구동될 준비가 완벽히 끝났을 때
 app.whenReady().then(async () => {
@@ -106,7 +106,7 @@ app.whenReady().then(async () => {
   checkAppUpdate();
 
   // macOS: 하단의 앱 아이콘을 다시 클릭했을 때, 열려있는 창이 하나도 없다면 새로운 창을 다시 만들어준다.
-  app.on('activate', function () {
+  app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });

@@ -59,12 +59,12 @@ const sanitizeProductForUpdate = (product: OriginProduct): OriginProduct => {
   return sanitizedProduct;
 };
 
-async function updatePrice({
+const updatePrice = async ({
   commerceApiCredentials,
   productNo,
   deliveryFee,
   salePrice,
-}: UpdatePriceParam): Promise<UpdatePriceResult> {
+}: UpdatePriceParam): Promise<UpdatePriceResult> => {
   try {
     const productURL = `https://api.commerce.naver.com/external/v2/products/origin-products/${productNo}`;
     const accessToken = await generateAccessToken(commerceApiCredentials);
@@ -107,6 +107,6 @@ async function updatePrice({
   } catch (error) {
     throw new Error(ERROR_MESSAGE.PRICE_UPDATE_FAILED, { cause: error });
   }
-}
+};
 
 export default updatePrice;

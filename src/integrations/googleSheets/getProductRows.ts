@@ -44,11 +44,11 @@ const fillEmptyCell = (row: string[]): RowValues => {
  */
 const isActiveRow = (row: string[]): boolean => row[COLUMN.activate] === 'TRUE';
 
-async function getProductRows({
+const getProductRows = async ({
   sheetId,
   sheetName,
   auth,
-}: GoogleSheetConfig): Promise<RowValues[]> {
+}: GoogleSheetConfig): Promise<RowValues[]> => {
   // 첫 번째 칼럼 행(제목, URL 등등) 제외
   const range = '!A2:L';
 
@@ -64,6 +64,6 @@ async function getProductRows({
   } catch (error) {
     throw new Error(ERROR_MESSAGE.SHEET_FETCH_FAILED, { cause: error });
   }
-}
+};
 
 export default getProductRows;

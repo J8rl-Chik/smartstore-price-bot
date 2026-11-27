@@ -10,9 +10,9 @@ interface SaleProductsResult extends SmartStoreApiResult {
   contents: SaleProduct[];
 }
 
-async function getSaleProducts(
+const getSaleProducts = async (
   commerceApiCredentials: CommerceApiCredentials,
-): Promise<SaleProduct[]> {
+): Promise<SaleProduct[]> => {
   try {
     const accessToken = await generateAccessToken(commerceApiCredentials);
     const response = await fetch('https://api.commerce.naver.com/external/v1/products/search', {
@@ -34,6 +34,6 @@ async function getSaleProducts(
   } catch (error) {
     throw new Error(ERROR_MESSAGE.SALE_PRODUCTS_FETCH_FAILED, { cause: error });
   }
-}
+};
 
 export default getSaleProducts;
