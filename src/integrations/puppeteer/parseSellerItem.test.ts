@@ -103,7 +103,7 @@ describe('collectSellerItemTexts', () => {
   });
 
   it('항목 안에 해당 요소가 없으면 그 텍스트는 null이다', () => {
-    document.body.innerHTML = `<div class="product_seller_info_wrap__x7f2A"></div>`;
+    document.body.innerHTML = '<div class="product_seller_info_wrap__x7f2A"></div>';
 
     expect(collectSellerItemTexts(SELLER_ITEM_SELECTOR)).toEqual([
       { name: null, price: null, discountPrice: null, delivery: null },

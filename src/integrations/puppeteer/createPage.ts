@@ -45,7 +45,7 @@ const createPage = async (
        */
       pipe: true,
       userDataDir,
-      executablePath: `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
+      executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
       /**
        * 지정하지 않으면 뷰포트가 800x600으로 고정돼 실제 창 크기와 어긋난다.
        * null로 두면 창 크기를 그대로 따라간다.

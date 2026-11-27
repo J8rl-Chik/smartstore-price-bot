@@ -15,7 +15,7 @@ async function getSaleProducts(
 ): Promise<SaleProduct[]> {
   try {
     const accessToken = await generateAccessToken(commerceApiCredentials);
-    const response = await fetch(`https://api.commerce.naver.com/external/v1/products/search`, {
+    const response = await fetch('https://api.commerce.naver.com/external/v1/products/search', {
       method: 'POST',
       headers: {
         Authorization: accessToken,

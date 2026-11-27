@@ -76,7 +76,7 @@ describe('createReferer', () => {
 
 describe('getSellerItemTexts', () => {
   const catalogUrl = 'https://example.com/catalog';
-  const referer = `https://search.shopping.naver.com/search/all?query=productName&vertical=search`;
+  const referer = 'https://search.shopping.naver.com/search/all?query=productName&vertical=search';
 
   const createMockPage = (sellerItemTexts: SellerItemTexts[] = []) => ({
     goto: vi.fn(),
