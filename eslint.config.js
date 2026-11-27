@@ -101,6 +101,12 @@ export default defineConfig([
           endOfLine: 'auto',
         },
       ],
+      /**
+       * Airbnb 6.1: 문자열은 작은따옴표로 쓴다. 보간이 없는 템플릿 리터럴도 작은따옴표로 바꾼다.
+       * Prettier는 백틱을 바꾸지 않아서 ESLint로 검사한다. 작은따옴표가 든 문자열은 큰따옴표를 허용한다.
+       * eslint-config-prettier가 끄는 규칙이라 그 뒤인 여기에서 켠다.
+       */
+      quotes: ['error', 'single', { avoidEscape: true }],
     },
   },
 ]);
