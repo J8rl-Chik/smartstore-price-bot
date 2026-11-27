@@ -32,15 +32,13 @@ const StartButtonContainer = styled.button`
   }
 `;
 
-const StartButton = ({ onClick, isDisabled }: Props): React.JSX.Element => {
-  return (
-    <StartButtonContainer onClick={onClick} disabled={isDisabled}>
-      <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
-        <path d="M3 2l7 4-7 4V2z" fill="white" />
-      </svg>
-      자동 수정 시작
-    </StartButtonContainer>
-  );
-};
+const StartButton = ({ onClick, isDisabled }: Props): React.JSX.Element => (
+  <StartButtonContainer onClick={onClick} disabled={isDisabled}>
+    <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+      <path d="M3 2l7 4-7 4V2z" fill="white" />
+    </svg>
+    자동 수정 시작
+  </StartButtonContainer>
+);
 
 export default StartButton;

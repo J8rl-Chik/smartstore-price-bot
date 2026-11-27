@@ -8,9 +8,5 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }): React.JSX
   <StyleProvider>{children}</StyleProvider>
 );
 
-export const customRender = (
-  ui: React.ReactNode,
-  options?: RenderOptions,
-): Promise<RenderResult> => {
-  return render(ui, { wrapper: AllTheProviders, ...options });
-};
+export const customRender = (ui: React.ReactNode, options?: RenderOptions): Promise<RenderResult> =>
+  render(ui, { wrapper: AllTheProviders, ...options });
