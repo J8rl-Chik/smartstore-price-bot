@@ -107,6 +107,13 @@ export default defineConfig([
        * eslint-config-prettier가 끄는 규칙이라 그 뒤인 여기에서 켠다.
        */
       quotes: ['error', 'single', { avoidEscape: true }],
+      // Airbnb 7.1: 함수 선언 대신 함수 표현식(화살표 함수 포함)을 쓴다. 선언은 호이스팅돼 정의 전에 호출할 수 있기 때문이다.
+      'func-style': ['error', 'expression'],
+      /**
+       * Airbnb 8.1: 익명 콜백은 화살표 함수로 쓴다. 옵션은 eslint-config-airbnb-base와 같다.
+       * eslint-config-prettier가 prettier/prettier와 함께 쓰면 --fix가 충돌할 수 있다고 끄는 규칙이라 그 뒤인 여기에서 켠다.
+       */
+      'prefer-arrow-callback': ['error', { allowNamedFunctions: false, allowUnboundThis: true }],
     },
   },
 ]);
