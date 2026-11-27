@@ -114,6 +114,11 @@ export default defineConfig([
        * eslint-config-prettier가 prettier/prettier와 함께 쓰면 --fix가 충돌할 수 있다고 끄는 규칙이라 그 뒤인 여기에서 켠다.
        */
       'prefer-arrow-callback': ['error', { allowNamedFunctions: false, allowUnboundThis: true }],
+      /**
+       * Airbnb 8.2: 값을 반환하기만 하는 화살표 함수는 중괄호와 return을 생략한다. 옵션은 eslint-config-airbnb-base와 같다.
+       * eslint-config-prettier가 prettier/prettier와 함께 쓰면 --fix가 충돌할 수 있다고 끄는 규칙이라 그 뒤인 여기에서 켠다.
+       */
+      'arrow-body-style': ['error', 'as-needed', { requireReturnForObjectLiteral: false }],
     },
   },
 ]);
