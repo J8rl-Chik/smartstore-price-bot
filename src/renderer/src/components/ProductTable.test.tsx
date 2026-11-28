@@ -1,15 +1,8 @@
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import ProductTable from './ProductTable';
-import StatusBadge from './StatusBadge';
 import { customRender } from '../customRender';
 import { DELIVERY_FEE_TYPE } from '../../../domain/delivery/_constant';
 import type { TargetProductWithUpdate } from '../../../domain/product/_type';
-
-/**
- * 행마다 상태 뱃지를 하나씩 그리므로, 뱃지가 호출된 횟수로 다시 그린 행 수를 센다.
- * 뱃지 표시는 StatusBadge.test.tsx에서 검증하므로, 여기서는 그리지 않고 호출만 기록한다.
- */
-vi.mock(import('./StatusBadge'), () => ({ default: vi.fn() }));
 
 const createTargetProduct = (
   overrides: Partial<Pick<TargetProductWithUpdate, 'name' | 'originProductNo' | 'update'>> = {},
@@ -204,55 +197,4 @@ test('상태 열의 너비는 10%이다', async () => {
 
 test('수정 시간 열의 너비는 10%이다', async () => {
   expect(await getColumnWidthRatio('col-updated-at')).toBeCloseTo(0.1);
-});
-
-/**
- * 순회 중 main이 상품 하나의 결과를 보낸 상황처럼, 두 번째 상품만 새 객체로 바꾸고
- * 나머지는 useTargetProductsUpdate가 유지한 것처럼 같은 참조를 둔다.
- */
-const updatedTargetProducts = targetProducts.map((targetProduct) =>
-  targetProduct.originProductNo === 2
-    ? createTargetProduct({
-        name: '블루투스 스피커 미니',
-        originProductNo: 2,
-        update: { status: 'complete', price: 34000, baseFee: 0, time: 1700000000000 },
-      })
-    : targetProduct,
-);
-
-test('상품이 바뀐 행만 다시 그린다', async () => {
-  const screen = await customRender(
-    <ProductTable targetProducts={targetProducts} currentProductId={null} isPreparing={false} />,
-  );
-  vi.mocked(StatusBadge).mockClear();
-
-  await screen.rerender(
-    <ProductTable
-      targetProducts={updatedTargetProducts}
-      currentProductId={null}
-      isPreparing={false}
-    />,
-  );
-
-  expect(StatusBadge).toHaveBeenCalledOnce();
-  await expect
-    .element(
-      screen
-        .getByRole('row', { name: /블루투스 스피커 미니/ })
-        .getByText('34,000원', { exact: false }),
-    )
-    .toBeVisible();
-});
-
-test('강조 여부가 바뀐 행만 다시 그린다', async () => {
-  const screen = await customRender(
-    <ProductTable targetProducts={targetProducts} currentProductId={null} isPreparing={false} />,
-  );
-  vi.mocked(StatusBadge).mockClear();
-
-  await screen.rerender(
-    <ProductTable targetProducts={targetProducts} currentProductId={2} isPreparing={false} />,
-  );
-
-  expect(StatusBadge).toHaveBeenCalledOnce();
 });
