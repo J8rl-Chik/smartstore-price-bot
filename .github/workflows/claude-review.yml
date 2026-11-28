@@ -27,7 +27,7 @@ jobs:
           # git push 같은 인증이 필요한 작업이 없으므로, 이후 단계의 action이 토큰을 읽지 못하게 git 인증 정보를 남기지 않는다.
           persist-credentials: false
 
-      - uses: anthropics/claude-code-action@4fa93a88de49bbef68b10eb15aabedf28ca0e1ed # v1.0.271
+      - uses: anthropics/claude-code-action@4411a9e9b0283becf4b924f7bce360fd7756c78c # v1.0.290
         with:
           # Pro 구독으로 실행한다. API 크레딧이 들지 않는다.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
